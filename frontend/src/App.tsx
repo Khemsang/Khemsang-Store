@@ -23,17 +23,17 @@ import PageLoader from "./components/PageLoader";
 import { lazy } from "react";
 
 // Main Pages - Lazy loaded
-const Home = lazy(() => import("./pages/main/Home"));
-const Products = lazy(() => import("./pages/main/Products"));
-const Gallery = lazy(() => import("./pages/main/Gallery"));
-const About = lazy(() => import("./pages/main/About"));
-const Contact = lazy(() => import("./pages/main/Contact"));
+const Home = lazy(() => import("./pages/main/home"));
+const Products = lazy(() => import("./pages/main/products"));
+const Gallery = lazy(() => import("./pages/main/gallary"));
+const About = lazy(() => import("./pages/main/about"));
+const Contact = lazy(() => import("./pages/main/contact"));
 const FAQ = lazy(() => import("./pages/main/FAQ"));
 const Cart = lazy(() => import("./pages/main/Cart"));
 const Checkout = lazy(() => import("./pages/main/Checkout"));
 const Orders = lazy(() => import("./pages/main/Orders"));
 const ProductDetailsPage = lazy(
-  () => import("./pages/main/ProductDetailsPage")
+  () => import("./pages/main/ProductDetailsPage ")
 );
 const FeaturedProductDetails = lazy(
   () => import("./pages/main/FeaturedProductDetails")
