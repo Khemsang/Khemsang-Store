@@ -53,4 +53,4 @@ services:
     staticPublishPath: ./frontend/dist
     envVars:
       - key: VITE_API_URL
-        value: https://furniture-backend.onrender.com
+        value: https://e-commerce-1-4x29.onrender.com/api
