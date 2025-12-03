@@ -201,10 +201,10 @@ const ProductDetailsPage: React.FC = () => {
           </span>
         </nav>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-6 lg:gap-8">
           {/* Image Gallery */}
           <div className="lg:col-span-5 space-y-4">
-            <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-xl border border-gray-200 dark:border-gray-700">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl p-3 sm:p-6 shadow-xl border border-gray-200 dark:border-gray-700">
               <div className="relative group">
                 <div className="relative w-full aspect-square rounded-xl overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-800">
                   <img
@@ -248,7 +248,7 @@ const ProductDetailsPage: React.FC = () => {
 
               {/* Thumbnail Gallery */}
               {product.images.length > 1 && (
-                <div className="grid grid-cols-5 gap-2 mt-4">
+                <div className="grid grid-cols-4 sm:grid-cols-5 gap-2 mt-3 sm:mt-4">
                   {product.images.map((img, idx) => (
                     <button
                       key={idx}
@@ -272,8 +272,8 @@ const ProductDetailsPage: React.FC = () => {
           </div>
 
           {/* Product Info */}
-          <div className="lg:col-span-7 space-y-6">
-            <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 md:p-8 shadow-xl border border-gray-200 dark:border-gray-700">
+          <div className="lg:col-span-7 space-y-4 md:space-y-6">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 sm:p-6 md:p-8 shadow-xl border border-gray-200 dark:border-gray-700">
               <div className="flex items-start justify-between mb-4">
                 <span className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[var(--root-color)]/10 to-purple-600/10 text-[var(--root-color)] rounded-full text-sm font-semibold">
                   <svg
@@ -304,7 +304,7 @@ const ProductDetailsPage: React.FC = () => {
                 </span>
               </div>
 
-              <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4 leading-tight">
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-3 sm:mb-4 leading-tight">
                 {product.title}
               </h1>
 
@@ -322,30 +322,30 @@ const ProductDetailsPage: React.FC = () => {
                 </div>
               )}
 
-              <p className="text-gray-600 dark:text-gray-400 text-base leading-relaxed mb-6">
+              <p className="text-gray-600 dark:text-gray-400 text-sm sm:text-base leading-relaxed mb-4 sm:mb-6">
                 {product.description}
               </p>
 
-              <div className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-xl p-6 mb-6">
-                <div className="flex items-baseline gap-3">
-                  <span className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-[var(--root-color)] to-purple-600 bg-clip-text text-transparent">
+              <div className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-xl p-4 sm:p-6 mb-4 sm:mb-6">
+                <div className="flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-3">
+                  <span className="text-3xl sm:text-4xl md:text-5xl font-bold bg-gradient-to-r from-[var(--root-color)] to-purple-600 bg-clip-text text-transparent">
                     Rs. {product.price.toLocaleString()}
                   </span>
-                  <span className="text-gray-500 dark:text-gray-400 text-sm">
+                  <span className="text-gray-500 dark:text-gray-400 text-xs sm:text-sm">
                     Inclusive of all taxes
                   </span>
                 </div>
               </div>
 
               {/* Quantity Selector */}
-              <div className="flex items-center gap-4 mb-6">
-                <span className="text-gray-700 dark:text-gray-300 font-semibold text-lg">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mb-4 sm:mb-6">
+                <span className="text-gray-700 dark:text-gray-300 font-semibold text-base sm:text-lg">
                   Quantity:
                 </span>
-                <div className="flex items-center gap-2 bg-gray-100 dark:bg-gray-700 rounded-xl p-1.5">
+                <div className="flex items-center gap-2 bg-gray-100 dark:bg-gray-700 rounded-xl p-1.5 w-fit">
                   <button
                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    className="w-10 h-10 flex items-center justify-center rounded-lg bg-white dark:bg-gray-600 text-gray-700 dark:text-gray-200 hover:bg-[var(--root-color)] hover:text-white transition-all shadow-sm"
+                    className="w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-lg bg-white dark:bg-gray-600 text-gray-700 dark:text-gray-200 hover:bg-[var(--root-color)] hover:text-white transition-all shadow-sm"
                   >
                     <svg
                       className="w-5 h-5"
@@ -361,7 +361,7 @@ const ProductDetailsPage: React.FC = () => {
                       />
                     </svg>
                   </button>
-                  <span className="w-16 text-center font-bold text-xl text-gray-900 dark:text-white">
+                  <span className="w-12 sm:w-16 text-center font-bold text-lg sm:text-xl text-gray-900 dark:text-white">
                     {quantity}
                   </span>
                   <button
@@ -369,7 +369,7 @@ const ProductDetailsPage: React.FC = () => {
                       setQuantity(Math.min(product.stock, quantity + 1))
                     }
                     disabled={quantity >= product.stock}
-                    className="w-10 h-10 flex items-center justify-center rounded-lg bg-white dark:bg-gray-600 text-gray-700 dark:text-gray-200 hover:bg-[var(--root-color)] hover:text-white transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-lg bg-white dark:bg-gray-600 text-gray-700 dark:text-gray-200 hover:bg-[var(--root-color)] hover:text-white transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <svg
                       className="w-5 h-5"
@@ -389,11 +389,11 @@ const ProductDetailsPage: React.FC = () => {
               </div>
 
               {/* Action Buttons */}
-              <div className="flex flex-col sm:flex-row gap-3">
+              <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
                 <button
                   onClick={handleAddToCart}
                   disabled={product.stock === 0}
-                  className="flex-1 py-4 px-6 bg-white dark:bg-gray-700 text-gray-900 dark:text-white border-2 border-[var(--root-color)] rounded-xl hover:bg-[var(--root-color)] hover:text-white transition-all duration-200 font-semibold disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-md hover:shadow-lg"
+                  className="flex-1 py-3 sm:py-4 px-4 sm:px-6 bg-white dark:bg-gray-700 text-gray-900 dark:text-white border-2 border-[var(--root-color)] rounded-xl hover:bg-[var(--root-color)] hover:text-white transition-all duration-200 font-semibold text-sm sm:text-base disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-md hover:shadow-lg"
                 >
                   <svg
                     className="w-5 h-5"
@@ -413,7 +413,7 @@ const ProductDetailsPage: React.FC = () => {
                 <button
                   onClick={handleBuyNow}
                   disabled={product.stock === 0}
-                  className="flex-1 py-4 px-6 bg-gradient-to-r from-[var(--root-color)] to-purple-600 text-white rounded-xl hover:from-[var(--root-color)] hover:to-purple-700 transition-all duration-200 font-semibold disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transform hover:scale-[1.02]"
+                  className="flex-1 py-3 sm:py-4 px-4 sm:px-6 bg-gradient-to-r from-[var(--root-color)] to-purple-600 text-white rounded-xl hover:from-[var(--root-color)] hover:to-purple-700 transition-all duration-200 font-semibold text-sm sm:text-base disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transform hover:scale-[1.02]"
                 >
                   Buy Now
                 </button>
@@ -421,8 +421,8 @@ const ProductDetailsPage: React.FC = () => {
             </div>
 
             {/* Product Details Card */}
-            <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-xl border border-gray-200 dark:border-gray-700">
-              <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+            <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 sm:p-6 shadow-xl border border-gray-200 dark:border-gray-700">
+              <h3 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white mb-3 sm:mb-4 flex items-center gap-2">
                 <svg
                   className="w-5 h-5 text-[var(--root-color)]"
                   fill="none"
@@ -438,9 +438,9 @@ const ProductDetailsPage: React.FC = () => {
                 </svg>
                 Product Information
               </h3>
-              <div className="space-y-3">
+              <div className="space-y-2 sm:space-y-3">
                 <div className="flex items-center justify-between py-2 border-b border-gray-100 dark:border-gray-700">
-                  <span className="text-gray-600 dark:text-gray-400 flex items-center gap-2">
+                  <span className="text-sm sm:text-base text-gray-600 dark:text-gray-400 flex items-center gap-2">
                     <svg
                       className="w-4 h-4"
                       fill="none"
@@ -456,12 +456,12 @@ const ProductDetailsPage: React.FC = () => {
                     </svg>
                     Category
                   </span>
-                  <span className="font-semibold text-gray-900 dark:text-white">
+                  <span className="font-semibold text-sm sm:text-base text-gray-900 dark:text-white">
                     {product.category}
                   </span>
                 </div>
                 <div className="flex items-center justify-between py-2 border-b border-gray-100 dark:border-gray-700">
-                  <span className="text-gray-600 dark:text-gray-400 flex items-center gap-2">
+                  <span className="text-sm sm:text-base text-gray-600 dark:text-gray-400 flex items-center gap-2">
                     <svg
                       className="w-4 h-4"
                       fill="none"
@@ -478,7 +478,7 @@ const ProductDetailsPage: React.FC = () => {
                     Stock Status
                   </span>
                   <span
-                    className={`font-semibold ${
+                    className={`font-semibold text-sm sm:text-base ${
                       product.stock > 0 ? "text-green-600" : "text-red-600"
                     }`}
                   >
@@ -488,7 +488,7 @@ const ProductDetailsPage: React.FC = () => {
                   </span>
                 </div>
                 <div className="flex items-center justify-between py-2">
-                  <span className="text-gray-600 dark:text-gray-400 flex items-center gap-2">
+                  <span className="text-sm sm:text-base text-gray-600 dark:text-gray-400 flex items-center gap-2">
                     <svg
                       className="w-4 h-4"
                       fill="none"
@@ -504,7 +504,7 @@ const ProductDetailsPage: React.FC = () => {
                     </svg>
                     SKU
                   </span>
-                  <span className="font-mono font-semibold text-gray-900 dark:text-white">
+                  <span className="font-mono font-semibold text-sm sm:text-base text-gray-900 dark:text-white">
                     {product._id.slice(-8).toUpperCase()}
                   </span>
                 </div>

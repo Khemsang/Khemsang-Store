@@ -59,10 +59,6 @@ const Checkout = () => {
         price: item.product.price,
       }));
 
-      console.log("Creating order with items:", items);
-      console.log("Shipping address:", formData);
-      console.log("Payment method:", paymentMethod);
-
       const { data } = await api.post("/orders", {
         items,
         totalAmount: getCartTotal() + 100,
@@ -70,13 +66,8 @@ const Checkout = () => {
         paymentMethod: paymentMethod,
       });
 
-      console.log("Order created:", data);
-      console.log("Payment Status:", data.paymentStatus);
-      console.log("Payment Method:", data.paymentMethod);
-
       // If Cash on Delivery, redirect to success page
       if (paymentMethod === "cod") {
-        console.log("💵 Cash on Delivery selected");
         navigate(`/payment/success?orderId=${data._id}`);
         return;
       }
@@ -87,14 +78,6 @@ const Checkout = () => {
       const apiUrl =
         import.meta.env.VITE_API_URL || "http://localhost:5000/api";
       const merchantId = import.meta.env.VITE_ESEWA_MERCHANT_ID || "EPAYTEST";
-
-      console.log("✅ Order created successfully:", data._id);
-      console.log("💳 eSewa Payment Details:");
-      console.log("  - Order ID:", data._id);
-      console.log("  - Amount:", getCartTotal());
-      console.log("  - Total:", getCartTotal() + 100);
-      console.log("  - Merchant:", merchantId);
-      console.log("🔄 Redirecting to eSewa...");
 
       // Create form for eSewa payment
       const form = document.createElement("form");

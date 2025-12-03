@@ -16,6 +16,7 @@ import {
   ProtectedRoute,
   ScrollToTop,
 } from "./components";
+import PageLoader from "./components/PageLoader";
 
 // Main Pages
 import {
@@ -79,117 +80,119 @@ const AppRoutes = () => {
   }
 
   return (
-    <Routes>
-      {/* ---------- Admin Routes ---------- */}
-      <Route
-        path="/admin"
-        element={
-          <ProtectedRoute adminOnly>
-            <AdminLayout />
-          </ProtectedRoute>
-        }
-      >
-        <Route index element={<AdminDashboard />} />
-        <Route path="dashboard" element={<AdminDashboard />} />
-        <Route path="products" element={<AdminProducts />} />
-        <Route path="featured-products" element={<AdminFeaturedProducts />} />
-        <Route path="orders" element={<AdminOrders />} />
-        <Route path="categories" element={<AdminCategories />} />
-        <Route path="banners" element={<AdminBanners />} />
-        <Route path="about" element={<AdminAbout />} />
-        <Route path="contact" element={<AdminContact />} />
-      </Route>
+    <PageLoader>
+      <Routes>
+        {/* ---------- Admin Routes ---------- */}
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute adminOnly>
+              <AdminLayout />
+            </ProtectedRoute>
+          }
+        >
+          <Route index element={<AdminDashboard />} />
+          <Route path="dashboard" element={<AdminDashboard />} />
+          <Route path="products" element={<AdminProducts />} />
+          <Route path="featured-products" element={<AdminFeaturedProducts />} />
+          <Route path="orders" element={<AdminOrders />} />
+          <Route path="categories" element={<AdminCategories />} />
+          <Route path="banners" element={<AdminBanners />} />
+          <Route path="about" element={<AdminAbout />} />
+          <Route path="contact" element={<AdminContact />} />
+        </Route>
 
-      {/* ---------- Auth Routes ---------- */}
-      <Route path="/login" element={<Login />} />
-      <Route path="/signup" element={<Signup />} />
-      <Route path="/verify-email" element={<VerifyEmail />} />
-      <Route path="/verify-otp" element={<VerifyOTP />} />
+        {/* ---------- Auth Routes ---------- */}
+        <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<Signup />} />
+        <Route path="/verify-email" element={<VerifyEmail />} />
+        <Route path="/verify-otp" element={<VerifyOTP />} />
 
-      {/* ---------- Payment Status ---------- */}
-      <Route path="/payment/success" element={<PaymentSuccess />} />
-      <Route path="/payment/failed" element={<PaymentFailed />} />
+        {/* ---------- Payment Status ---------- */}
+        <Route path="/payment/success" element={<PaymentSuccess />} />
+        <Route path="/payment/failed" element={<PaymentFailed />} />
 
-      {/* ---------- User Routes (Navbar + Footer) ---------- */}
-      <Route
-        path="/*"
-        element={
-          <>
-            <Navbar />
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/products" element={<Products />} />
-              <Route path="/gallery" element={<Gallery />} />
-              <Route path="/about" element={<About />} />
-              <Route path="/contact" element={<Contact />} />
-              <Route path="/faq" element={<FAQ />} />
+        {/* ---------- User Routes (Navbar + Footer) ---------- */}
+        <Route
+          path="/*"
+          element={
+            <>
+              <Navbar />
+              <Routes>
+                <Route path="/" element={<Home />} />
+                <Route path="/products" element={<Products />} />
+                <Route path="/gallery" element={<Gallery />} />
+                <Route path="/about" element={<About />} />
+                <Route path="/contact" element={<Contact />} />
+                <Route path="/faq" element={<FAQ />} />
 
-              <Route
-                path="/submit-testimonial"
-                element={<SubmitTestimonial />}
-              />
+                <Route
+                  path="/submit-testimonial"
+                  element={<SubmitTestimonial />}
+                />
 
-              <Route
-                path="/dashboard"
-                element={
-                  <ProtectedRoute>
-                    <Dashboard />
-                  </ProtectedRoute>
-                }
-              />
+                <Route
+                  path="/dashboard"
+                  element={
+                    <ProtectedRoute>
+                      <Dashboard />
+                    </ProtectedRoute>
+                  }
+                />
 
-              <Route
-                path="/profile"
-                element={
-                  <ProtectedRoute>
-                    <Profile />
-                  </ProtectedRoute>
-                }
-              />
+                <Route
+                  path="/profile"
+                  element={
+                    <ProtectedRoute>
+                      <Profile />
+                    </ProtectedRoute>
+                  }
+                />
 
-              <Route path="/search" element={<SearchResults />} />
-              <Route path="/furniture" element={<FurnitureDoorPage />} />
+                <Route path="/search" element={<SearchResults />} />
+                <Route path="/furniture" element={<FurnitureDoorPage />} />
 
-              <Route path="/product/:id" element={<ProductDetailsPage />} />
-              <Route
-                path="/featured/:id"
-                element={<FeaturedProductDetails />}
-              />
-              <Route
-                path="/featured-products"
-                element={<AllFeaturedProducts />}
-              />
+                <Route path="/product/:id" element={<ProductDetailsPage />} />
+                <Route
+                  path="/featured/:id"
+                  element={<FeaturedProductDetails />}
+                />
+                <Route
+                  path="/featured-products"
+                  element={<AllFeaturedProducts />}
+                />
 
-              <Route path="/cart" element={<Cart />} />
+                <Route path="/cart" element={<Cart />} />
 
-              <Route
-                path="/checkout"
-                element={
-                  <ProtectedRoute>
-                    <Checkout />
-                  </ProtectedRoute>
-                }
-              />
+                <Route
+                  path="/checkout"
+                  element={
+                    <ProtectedRoute>
+                      <Checkout />
+                    </ProtectedRoute>
+                  }
+                />
 
-              <Route
-                path="/orders"
-                element={
-                  <ProtectedRoute>
-                    <Orders />
-                  </ProtectedRoute>
-                }
-              />
+                <Route
+                  path="/orders"
+                  element={
+                    <ProtectedRoute>
+                      <Orders />
+                    </ProtectedRoute>
+                  }
+                />
 
-              <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-              <Route path="/terms-of-service" element={<TermsOfService />} />
-              <Route path="/sitemap" element={<Sitemap />} />
-            </Routes>
+                <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+                <Route path="/terms-of-service" element={<TermsOfService />} />
+                <Route path="/sitemap" element={<Sitemap />} />
+              </Routes>
 
-            <Footer />
-          </>
-        }
-      />
-    </Routes>
+              <Footer />
+            </>
+          }
+        />
+      </Routes>
+    </PageLoader>
   );
 };
 

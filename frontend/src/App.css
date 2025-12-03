@@ -1,1 +1,6 @@
 /* App specific styles */
+
+/* Apply text-justify to all paragraph text globally */
+p {
+  text-align: justify;
+}

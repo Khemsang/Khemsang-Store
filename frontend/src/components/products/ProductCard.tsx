@@ -21,7 +21,7 @@ const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
   return (
     <div className="bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 border border-gray-100 dark:border-gray-700">
       <div
-        className="relative h-40 sm:h-48 overflow-hidden cursor-pointer group"
+        className="relative aspect-square overflow-hidden cursor-pointer group"
         onClick={() => navigate(`/product/${product._id}`)}
       >
         <img
@@ -38,19 +38,19 @@ const ProductCard = ({ product, onAddToCart }: ProductCardProps) => {
         )}
       </div>
 
-      <div className="p-3">
+      <div className="p-3 sm:p-4">
         <h3
-          className="text-sm font-bold text-gray-900 dark:text-white mb-1 line-clamp-1 cursor-pointer hover:text-[var(--root-color)] transition-colors"
+          className="text-sm sm:text-base font-bold text-gray-900 dark:text-white mb-1 line-clamp-1 cursor-pointer hover:text-[var(--root-color)] transition-colors"
           onClick={() => navigate(`/product/${product._id}`)}
         >
           {product.title}
         </h3>
-        <p className="text-xs text-gray-600 dark:text-gray-400 mb-2 line-clamp-1">
+        <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-2 line-clamp-2">
           {product.description}
         </p>
 
         <div className="flex items-center justify-between mb-2">
-          <span className="text-lg font-bold text-[var(--root-color)]">
+          <span className="text-base sm:text-lg font-bold text-[var(--root-color)]">
             {formatCurrency(product.price)}
           </span>
           <span className="text-xs text-gray-500 dark:text-gray-400">

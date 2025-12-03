@@ -30,21 +30,17 @@ const ProductShowcase = () => {
   const fetchFeaturedProducts = async () => {
     try {
       setLoading(true);
-      console.log("🔄 Fetching featured products from admin...");
 
       // Fetch featured products from admin panel
       const { data } = await api.get("/featured-products");
-      console.log("✅ Featured products received:", data);
-      console.log(`📊 Total featured products: ${data.length}`);
 
       // Fetch all real products to match
       let allProducts: any[] = [];
       try {
         const productsResponse = await api.get("/products");
         allProducts = productsResponse.data;
-        console.log(`📦 Total real products: ${allProducts.length}`);
       } catch (err) {
-        console.log("Could not fetch products for matching");
+        // Silently handle error
       }
 
       // Sort by newest first and take only latest 4
@@ -59,9 +55,6 @@ const ProductShowcase = () => {
         .map((featured: any) => {
           // If productId exists, use it
           if (featured.productId) {
-            console.log(
-              `✅ "${featured.title}" has productId: ${featured.productId}`
-            );
             return featured;
           }
 
@@ -73,22 +66,15 @@ const ProductShowcase = () => {
           );
 
           if (matchingProduct) {
-            console.log(
-              `🔗 Auto-matched "${featured.title}" to product ${matchingProduct._id}`
-            );
             return { ...featured, productId: matchingProduct._id };
           }
 
-          console.log(`⚠️ "${featured.title}" has no matching product`);
           return featured;
         });
 
-      console.log(
-        `✨ Showing ${latestFeatured.length} featured products from admin`
-      );
       setProducts(latestFeatured);
     } catch (error) {
-      console.error("❌ Error fetching featured products:", error);
+      // Silently handle error
     } finally {
       setLoading(false);
     }
@@ -123,7 +109,7 @@ const ProductShowcase = () => {
           <h2 className="text-3xl md:text-4xl font-bold mb-2 bg-gradient-to-r from-[var(--root-color)] to-purple-600 bg-clip-text text-transparent">
             Featured Products
           </h2>
-          <p className="text-gray-600 dark:text-gray-400">
+          <p className="text-gray-600 dark:text-gray-400 text-justify">
             Handpicked premium products just for you
           </p>
         </div>
@@ -135,18 +121,16 @@ const ProductShowcase = () => {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
             {products.map((product) => (
               <div
                 key={product._id}
                 onClick={() => {
-                  console.log(`🖱️ Clicked featured product: ${product.title}`);
-                  // Navigate to featured product details page
                   navigate(`/featured/${product._id}`);
                 }}
                 className="group bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-300 cursor-pointer border border-gray-200 dark:border-gray-700 hover:border-[var(--root-color)]"
               >
-                <div className="relative h-40 sm:h-48 bg-gray-100 dark:bg-gray-700 overflow-hidden">
+                <div className="relative aspect-square bg-gray-100 dark:bg-gray-700 overflow-hidden">
                   <img
                     src={
                       product.images?.[0] || product.image || "/placeholder.jpg"
@@ -171,19 +155,19 @@ const ProductShowcase = () => {
                   )}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                 </div>
-                <div className="p-3">
+                <div className="p-3 sm:p-4">
                   <span className="inline-block px-2 py-0.5 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 rounded text-xs font-semibold mb-2">
                     {product.category}
                   </span>
-                  <h3 className="font-bold text-sm text-gray-900 dark:text-white mb-1 line-clamp-1">
+                  <h3 className="font-bold text-sm sm:text-base text-gray-900 dark:text-white mb-1 line-clamp-1">
                     {product.title}
                   </h3>
-                  <p className="text-xs text-gray-600 dark:text-gray-400 mb-2 line-clamp-1">
+                  <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-2 line-clamp-2 text-justify">
                     {product.description}
                   </p>
                   <div className="flex items-center justify-between">
                     <div className="flex flex-col">
-                      <span className="text-lg font-bold text-[var(--root-color)]">
+                      <span className="text-base sm:text-lg font-bold text-[var(--root-color)]">
                         Rs. {product.price.toLocaleString()}
                       </span>
                       {product.originalPrice &&

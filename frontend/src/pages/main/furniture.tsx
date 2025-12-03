@@ -80,7 +80,7 @@ const FurnitureDoorPage: React.FC = () => {
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-6">
             {filteredProducts.map((product, index) => (
               <motion.div
                 key={product._id}
@@ -90,7 +90,7 @@ const FurnitureDoorPage: React.FC = () => {
                 className="bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 cursor-pointer"
                 onClick={() => navigate(`/product/${product._id}`)}
               >
-                <div className="relative h-64 bg-gray-100 dark:bg-gray-700">
+                <div className="relative aspect-square bg-gray-100 dark:bg-gray-700">
                   <img
                     src={product.images?.[0] || "/placeholder.jpg"}
                     alt={product.title}
@@ -104,18 +104,18 @@ const FurnitureDoorPage: React.FC = () => {
                     </div>
                   )}
                 </div>
-                <div className="p-5">
-                  <h3 className="font-semibold text-lg text-gray-800 dark:text-white mb-2 line-clamp-1">
+                <div className="p-3 sm:p-5">
+                  <h3 className="font-semibold text-sm sm:text-base md:text-lg text-gray-800 dark:text-white mb-2 line-clamp-1">
                     {product.title}
                   </h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-3 line-clamp-2">
+                  <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-3 line-clamp-2">
                     {product.description}
                   </p>
                   <div className="flex items-center justify-between">
-                    <span className="text-xl font-bold text-primary">
+                    <span className="text-base sm:text-lg md:text-xl font-bold text-primary">
                       Rs. {product.price?.toLocaleString()}
                     </span>
-                    <button className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors text-sm">
+                    <button className="bg-primary text-white px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg hover:bg-primary/90 transition-colors text-xs sm:text-sm">
                       View Details
                     </button>
                   </div>

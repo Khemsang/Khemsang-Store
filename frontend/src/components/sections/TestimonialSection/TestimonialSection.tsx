@@ -124,52 +124,59 @@ const TestimonialSection: React.FC = () => {
             <MdChevronRight className="w-6 h-6 text-gray-700 dark:text-gray-300 group-hover:translate-x-1 transition-transform" />
           </button>
 
-          {/* Card */}
-          <div className="bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl p-6 sm:p-8 md:p-12 shadow-lg">
+          {/* Card - New Modern Design */}
+          <div className="bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 rounded-2xl sm:rounded-3xl p-6 sm:p-8 md:p-12 shadow-2xl border border-gray-100 dark:border-gray-700">
             <div
               key={currentTestimonial.id}
-              className={`transition-all duration-500 ease-in-out flex flex-col items-center gap-4 sm:gap-6 text-center ${
+              className={`transition-all duration-500 ease-in-out ${
                 animate
                   ? "opacity-100 translate-y-0"
                   : "opacity-0 translate-y-6"
               }`}
             >
-              {/* Avatar */}
-              <img
-                src={currentTestimonial.imageUrl}
-                alt={currentTestimonial.name}
-                className="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 rounded-full object-cover border-4 border-gray-100 dark:border-gray-700 shadow-lg"
-              />
+              {/* Top Section - Avatar and Info */}
+              <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6 mb-6">
+                {/* Avatar with gradient border */}
+                <div className="relative">
+                  <div className="absolute inset-0 bg-gradient-to-r from-[var(--root-color)] to-purple-600 rounded-full blur-sm opacity-75"></div>
+                  <img
+                    src={currentTestimonial.imageUrl}
+                    alt={currentTestimonial.name}
+                    className="relative w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-full object-cover border-4 border-white dark:border-gray-800 shadow-lg"
+                  />
+                </div>
 
-              {/* Rating Stars */}
-              <div className="flex gap-0.5 sm:gap-1">
-                {[...Array(currentTestimonial.rating || 5)].map((_, i) => (
-                  <svg
-                    key={i}
-                    className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-400 fill-current"
-                    viewBox="0 0 20 20"
-                  >
-                    <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z" />
-                  </svg>
-                ))}
+                {/* Name, Role & Rating */}
+                <div className="flex-1 text-center sm:text-left">
+                  <h4 className="text-gray-900 dark:text-white font-bold text-lg sm:text-xl md:text-2xl mb-1">
+                    {currentTestimonial.name}
+                  </h4>
+                  <p className="text-[var(--root-color)] font-medium text-sm sm:text-base md:text-lg mb-3">
+                    {currentTestimonial.role}
+                  </p>
+                  {/* Rating Stars */}
+                  <div className="flex gap-1 justify-center sm:justify-start">
+                    {[...Array(currentTestimonial.rating || 5)].map((_, i) => (
+                      <svg
+                        key={i}
+                        className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-400 fill-current"
+                        viewBox="0 0 20 20"
+                      >
+                        <path d="M10 15l-5.878 3.09 1.123-6.545L.489 6.91l6.572-.955L10 0l2.939 5.955 6.572.955-4.756 4.635 1.123 6.545z" />
+                      </svg>
+                    ))}
+                  </div>
+                </div>
               </div>
 
-              {/* Quote */}
-              <div className="relative px-2 sm:px-4 md:px-8 max-w-3xl">
-                <IoMdQuote className="text-[var(--root-color)] w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 rotate-180 opacity-30 mb-3 sm:mb-4" />
-                <p className="text-gray-700 dark:text-gray-300 text-base sm:text-lg md:text-xl leading-relaxed">
-                  "{currentTestimonial.quote}"
-                </p>
-              </div>
-
-              {/* Name & Role */}
-              <div className="mt-1 sm:mt-2">
-                <h4 className="text-gray-900 dark:text-white font-bold text-base sm:text-lg md:text-xl mb-1">
-                  {currentTestimonial.name}
-                </h4>
-                <p className="text-[var(--root-color)] font-medium text-xs sm:text-sm md:text-base">
-                  {currentTestimonial.role}
-                </p>
+              {/* Quote Section */}
+              <div className="relative">
+                <IoMdQuote className="absolute -top-2 -left-2 text-[var(--root-color)] w-10 h-10 sm:w-12 sm:h-12 rotate-180 opacity-20" />
+                <div className="relative bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-6 shadow-inner">
+                  <p className="text-gray-700 dark:text-gray-300 text-sm sm:text-base md:text-lg leading-relaxed italic">
+                    "{currentTestimonial.quote}"
+                  </p>
+                </div>
               </div>
             </div>
           </div>

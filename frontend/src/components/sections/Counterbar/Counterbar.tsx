@@ -31,16 +31,16 @@ const CounterCard: React.FC<CounterCardProps> = ({
   return (
     <div
       ref={ref}
-      className="flex flex-col items-center justify-center p-8 bg-white dark:bg-gray-800 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2"
+      className="flex flex-col items-center justify-center p-4 sm:p-6 md:p-8 bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2"
     >
-      <div className="text-5xl md:text-6xl font-bold text-primary mb-3">
+      <div className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-primary mb-2 sm:mb-3">
         {inView ? (
           <CountUp key={key} end={end} duration={duration} suffix={suffix} />
         ) : (
           <span>0{suffix}</span>
         )}
       </div>
-      <p className="text-gray-600 dark:text-gray-400 text-lg font-medium text-center">
+      <p className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm md:text-base lg:text-lg font-medium text-center">
         {label}
       </p>
     </div>
@@ -123,16 +123,16 @@ const Counterbar: React.FC = () => {
   }
 
   return (
-    <section className="py-16 px-4 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
+    <section className="py-8 sm:py-12 md:py-16 px-4 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
       <div className="container mx-auto">
-        <h2 className="text-3xl md:text-4xl font-bold text-center mb-4 text-gray-800 dark:text-white">
+        <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-center mb-3 sm:mb-4 text-gray-800 dark:text-white">
           Our Achievements
         </h2>
-        <p className="text-center text-gray-600 dark:text-gray-400 mb-12">
+        <p className="text-center text-gray-600 dark:text-gray-400 text-sm sm:text-base mb-8 sm:mb-12">
           Numbers that speak for our quality and service
         </p>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 md:gap-8">
           {stats.map((stat) => (
             <CounterCard
               key={stat._id}

@@ -65,8 +65,52 @@ const ProductAnalytics = () => {
     }
   };
 
-  if (loading)
-    return <div className="text-center py-8">Loading analytics...</div>;
+  if (loading) {
+    return (
+      <div className="space-y-6 animate-pulse">
+        {/* Stats Grid Skeleton */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          {[...Array(4)].map((_, i) => (
+            <div
+              key={i}
+              className="bg-gradient-to-br from-gray-200 to-gray-300 dark:from-gray-700 dark:to-gray-800 rounded-2xl p-6 h-32"
+            >
+              <div className="flex items-center justify-between mb-4">
+                <div className="w-10 h-10 bg-gray-300 dark:bg-gray-600 rounded-full"></div>
+                <div className="w-16 h-8 bg-gray-300 dark:bg-gray-600 rounded"></div>
+              </div>
+              <div className="w-24 h-4 bg-gray-300 dark:bg-gray-600 rounded"></div>
+            </div>
+          ))}
+        </div>
+
+        {/* Top Products Skeleton */}
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="w-6 h-6 bg-gray-300 dark:bg-gray-600 rounded"></div>
+            <div className="w-48 h-6 bg-gray-300 dark:bg-gray-600 rounded"></div>
+          </div>
+          <div className="space-y-3">
+            {[...Array(5)].map((_, i) => (
+              <div
+                key={i}
+                className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-xl"
+              >
+                <div className="flex items-center gap-4">
+                  <div className="w-8 h-8 bg-gray-300 dark:bg-gray-600 rounded"></div>
+                  <div className="space-y-2">
+                    <div className="w-32 h-4 bg-gray-300 dark:bg-gray-600 rounded"></div>
+                    <div className="w-20 h-3 bg-gray-300 dark:bg-gray-600 rounded"></div>
+                  </div>
+                </div>
+                <div className="w-16 h-5 bg-gray-300 dark:bg-gray-600 rounded"></div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const avgOrderValue = analytics?.totalOrders
     ? Math.round(analytics.totalRevenue / analytics.totalOrders)

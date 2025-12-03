@@ -74,7 +74,7 @@ const AllFeaturedProducts = () => {
           <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-[var(--root-color)] to-purple-600 bg-clip-text text-transparent">
             All Featured Products
           </h1>
-          <p className="text-gray-600 dark:text-gray-400 text-lg">
+          <p className="text-gray-600 dark:text-gray-400 text-lg text-justify">
             Discover our complete collection of premium featured products
           </p>
         </div>
@@ -110,14 +110,14 @@ const AllFeaturedProducts = () => {
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-8">
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 mb-8">
               {products.map((product) => (
                 <div
                   key={product._id}
                   onClick={() => navigate(`/featured/${product._id}`)}
                   className="group bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-300 cursor-pointer border border-gray-200 dark:border-gray-700 hover:border-[var(--root-color)]"
                 >
-                  <div className="relative h-40 sm:h-48 bg-gray-100 dark:bg-gray-700 overflow-hidden">
+                  <div className="relative aspect-square bg-gray-100 dark:bg-gray-700 overflow-hidden">
                     <img
                       src={product.image || "/placeholder.jpg"}
                       alt={product.title}
@@ -140,19 +140,19 @@ const AllFeaturedProducts = () => {
                     )}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                   </div>
-                  <div className="p-3">
+                  <div className="p-3 sm:p-4">
                     <span className="inline-block px-2 py-0.5 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 rounded text-xs font-semibold mb-2">
                       {product.category}
                     </span>
-                    <h3 className="font-bold text-sm text-gray-900 dark:text-white mb-1 line-clamp-1">
+                    <h3 className="font-bold text-sm sm:text-base text-gray-900 dark:text-white mb-1 line-clamp-1">
                       {product.title}
                     </h3>
-                    <p className="text-xs text-gray-600 dark:text-gray-400 mb-2 line-clamp-1">
+                    <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 mb-2 line-clamp-2 text-justify">
                       {product.description}
                     </p>
                     <div className="flex items-center justify-between">
                       <div className="flex flex-col">
-                        <span className="text-lg font-bold text-[var(--root-color)]">
+                        <span className="text-base sm:text-lg font-bold text-[var(--root-color)]">
                           Rs. {product.price.toLocaleString()}
                         </span>
                         {product.originalPrice &&

@@ -110,8 +110,6 @@ const AdminProducts = () => {
 
   const handleAddToFeatured = async (product: Product) => {
     try {
-      console.log("⭐ Adding product to featured:", product.title);
-
       // Create featured product from regular product
       const featuredData = {
         title: product.title,
