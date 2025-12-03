@@ -72,8 +72,10 @@ export const sendOTPEmail = async (email, otp) => {
 // Test connection
 export const testEmailConnection = async () => {
   if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
-    console.log("⚠️  Email credentials not configured");
-    console.log("⚠️  In development, tokens/OTPs will be shown in console.");
+    if (process.env.NODE_ENV === "development") {
+      console.log("⚠️  Email credentials not configured");
+      console.log("⚠️  In development, tokens/OTPs will be shown in console.");
+    }
     return false;
   }
 
@@ -82,8 +84,13 @@ export const testEmailConnection = async () => {
     console.log("✅ Email server ready");
     return true;
   } catch (error) {
-    console.error("❌ Email server connection failed:", error.message);
-    console.log("⚠️  In development, tokens/OTPs will be shown in console.");
+    if (process.env.NODE_ENV === "development") {
+      console.error("❌ Email server connection failed:", error.message);
+      console.log("⚠️  In development, tokens/OTPs will be shown in console.");
+    } else {
+      // In production, just log once without details
+      console.log("⚠️  Email service unavailable - using fallback");
+    }
     return false;
   }
 };

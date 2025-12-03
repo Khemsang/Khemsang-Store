@@ -76,8 +76,10 @@ export const sendOTPEmail = async (email, otp) => {
 // Test SMTP connection
 export const testEmailConnection = async () => {
   if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
-    console.log("⚠️  Email credentials not configured");
-    console.log("⚠️  Emails will fallback to console logging.");
+    if (process.env.NODE_ENV === "development") {
+      console.log("⚠️  Email credentials not configured");
+      console.log("⚠️  Emails will fallback to console logging.");
+    }
     return false;
   }
 
@@ -86,8 +88,12 @@ export const testEmailConnection = async () => {
     console.log("✅ SMTP connection successful. Ready to send emails!");
     return true;
   } catch (err) {
-    console.error("❌ SMTP connection failed:", err.message);
-    console.log("⚠️ Emails will fallback to console logging.");
+    if (process.env.NODE_ENV === "development") {
+      console.error("❌ SMTP connection failed:", err.message);
+      console.log("⚠️ Emails will fallback to console logging.");
+    } else {
+      console.log("⚠️  Email service unavailable - using fallback");
+    }
     return false;
   }
 };
