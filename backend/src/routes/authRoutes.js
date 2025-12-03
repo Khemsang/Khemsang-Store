@@ -8,8 +8,6 @@ import {
   resendVerification,
   resendOTP,
   getMe,
-  googleAuth,
-  googleAuthCallback,
   updateProfile,
   changePassword,
   getUserStats,
@@ -29,9 +27,5 @@ router.get("/me", auth, getMe);
 router.get("/stats", auth, getUserStats);
 router.put("/profile", auth, updateProfile);
 router.put("/change-password", auth, changePassword);
-
-// Google OAuth routes
-router.get("/google", googleAuth);
-router.get("/google/callback", googleAuthCallback);
 
 export default router;
