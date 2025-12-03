@@ -3,11 +3,19 @@ import nodemailer from "nodemailer";
 
 // Create transporter with Gmail service
 const transporter = nodemailer.createTransport({
-  service: "gmail",
+  host: process.env.SMTP_HOST || "smtp.gmail.com",
+  port: parseInt(process.env.SMTP_PORT) || 587,
+  secure: false, // true for 465, false for other ports
   auth: {
     user: process.env.SMTP_USER,
     pass: process.env.SMTP_PASS, // Use App Password
   },
+  tls: {
+    rejectUnauthorized: false,
+  },
+  connectionTimeout: 10000, // 10 seconds
+  greetingTimeout: 10000,
+  socketTimeout: 10000,
 });
 
 // Generic function to send email
@@ -43,7 +51,11 @@ export const sendVerificationEmail = async (email, token) => {
     </div>
   `;
 
-  await sendEmail({ to: email, subject: "Verify Your Email - Furniture Store", html });
+  await sendEmail({
+    to: email,
+    subject: "Verify Your Email - Furniture Store",
+    html,
+  });
 };
 
 // Send OTP email
@@ -63,6 +75,12 @@ export const sendOTPEmail = async (email, otp) => {
 
 // Test SMTP connection
 export const testEmailConnection = async () => {
+  if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
+    console.log("⚠️  Email credentials not configured");
+    console.log("⚠️  Emails will fallback to console logging.");
+    return false;
+  }
+
   try {
     await transporter.verify();
     console.log("✅ SMTP connection successful. Ready to send emails!");

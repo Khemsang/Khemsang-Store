@@ -2,11 +2,13 @@ import React, { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { api } from "../../services/api";
 import { useToast } from "../../contexts/ToastContext";
+import { useAuth } from "../../contexts/AuthContext";
 
 const VerifyEmail: React.FC = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const toast = useToast();
+  const { updateUser } = useAuth();
   const [status, setStatus] = useState<"verifying" | "success" | "error">(
     "verifying"
   );
@@ -18,6 +20,7 @@ const VerifyEmail: React.FC = () => {
     if (!token) {
       setStatus("error");
       setMessage("Invalid verification link");
+      toast.error("Invalid verification link");
       return;
     }
 
@@ -27,13 +30,23 @@ const VerifyEmail: React.FC = () => {
   const verifyEmail = async (token: string) => {
     try {
       const { data } = await api.get(`/auth/verify-email/${token}`);
-      setStatus("success");
-      setMessage(data.message);
-      toast.success("Email verified successfully! Redirecting to login...");
 
-      // Redirect to login after 2 seconds
+      // Update auth context with verified user
+      if (data.user) {
+        updateUser(data.user);
+      }
+
+      setStatus("success");
+      setMessage(data.message || "Email verified successfully!");
+      toast.success("Email verified successfully!");
+
+      // Redirect based on user role after 2 seconds
       setTimeout(() => {
-        navigate("/login");
+        if (data.user?.isAdmin) {
+          navigate("/admin/dashboard", { replace: true });
+        } else {
+          navigate("/", { replace: true });
+        }
       }, 2000);
     } catch (error: any) {
       setStatus("error");
@@ -97,7 +110,9 @@ const VerifyEmail: React.FC = () => {
                 Email Verified!
               </h2>
               <p className="text-gray-600 dark:text-gray-400">{message}</p>
-              <p className="text-sm text-gray-500">Redirecting to home...</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                Redirecting to home...
+              </p>
             </>
           )}
 

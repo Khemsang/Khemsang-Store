@@ -12,19 +12,35 @@ services:
         value: production
       - key: PORT
         value: 5000
-      - key: MONGODB_URI
+      - key: MONGO_URI
         sync: false
       - key: JWT_SECRET
         sync: false
-      - key: EMAIL_USER
+      - key: SMTP_HOST
         sync: false
-      - key: EMAIL_PASS
+      - key: SMTP_PORT
+        sync: false
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false
+      - key: EMAIL_FROM
         sync: false
       - key: CLOUDINARY_CLOUD_NAME
         sync: false
       - key: CLOUDINARY_API_KEY
         sync: false
       - key: CLOUDINARY_API_SECRET
+        sync: false
+      - key: ESEWA_MERCHANT_ID
+        sync: false
+      - key: ESEWA_SECRET_KEY
+        sync: false
+      - key: ESEWA_PAYMENT_URL
+        sync: false
+      - key: ESEWA_VERIFY_URL
+        sync: false
+      - key: FRONTEND_URL
         sync: false
 
   # Frontend Service

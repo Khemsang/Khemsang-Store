@@ -4,11 +4,19 @@ dotenv.config(); // Must be first
 
 // Create transporter with Gmail service
 const transporter = nodemailer.createTransport({
-  service: "gmail",
+  host: process.env.SMTP_HOST || "smtp.gmail.com",
+  port: parseInt(process.env.SMTP_PORT) || 587,
+  secure: false, // true for 465, false for other ports
   auth: {
     user: process.env.SMTP_USER,
     pass: process.env.SMTP_PASS,
   },
+  tls: {
+    rejectUnauthorized: false,
+  },
+  connectionTimeout: 10000, // 10 seconds
+  greetingTimeout: 10000,
+  socketTimeout: 10000,
 });
 
 // Generic send function
@@ -63,11 +71,19 @@ export const sendOTPEmail = async (email, otp) => {
 
 // Test connection
 export const testEmailConnection = async () => {
+  if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
+    console.log("⚠️  Email credentials not configured");
+    console.log("⚠️  In development, tokens/OTPs will be shown in console.");
+    return false;
+  }
+
   try {
     await transporter.verify();
     console.log("✅ Email server ready");
+    return true;
   } catch (error) {
     console.error("❌ Email server connection failed:", error.message);
     console.log("⚠️  In development, tokens/OTPs will be shown in console.");
+    return false;
   }
 };
