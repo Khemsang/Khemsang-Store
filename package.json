@@ -1,0 +1,11 @@
+{
+  "name": "furniture-app",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "cd backend && npm start",
+    "install-backend": "cd backend && npm install",
+    "install-frontend": "cd frontend && npm install",
+    "build-frontend": "cd frontend && npm run build",
+    "postinstall": "npm run install-backend"
+  }
+}
