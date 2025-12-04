@@ -1,17 +1,17 @@
 import express from "express";
-import * as reviewController from "../controllers/reviewController.js";
-import { protect } from "../middlewares/authMiddleware.js";
+import * as reviewCtrl from "../controllers/reviewController.js";
+import { protect } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-// Public routes
-router.get("/product/:productId", reviewController.getProductReviews);
-router.get("/product/:productId/stats", reviewController.getReviewStats);
+// Public
+router.get("/product/:productId", reviewCtrl.getProductReviews);
+router.get("/product/:productId/stats", reviewCtrl.getReviewStats);
 
-// Protected routes (require authentication)
-router.post("/product/:productId", protect, reviewController.createReview);
-router.put("/:reviewId", protect, reviewController.updateReview);
-router.delete("/:reviewId", protect, reviewController.deleteReview);
-router.post("/:reviewId/like", protect, reviewController.toggleLikeReview);
+// Protected
+router.post("/product/:productId", protect, reviewCtrl.createReview);
+router.put("/:reviewId", protect, reviewCtrl.updateReview);
+router.delete("/:reviewId", protect, reviewCtrl.deleteReview);
+router.post("/:reviewId/like", protect, reviewCtrl.toggleLikeReview);
 
 export default router;

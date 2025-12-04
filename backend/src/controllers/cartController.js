@@ -1,133 +1,94 @@
 import User from "../models/User.js";
 
-// @desc    Get user cart
-// @route   GET /api/cart
+// Get user cart
 export const getCart = async (req, res) => {
   try {
     const user = await User.findById(req.user._id).populate("cart.product");
     res.json(user.cart);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 };
 
-// @desc    Merge cart from localStorage
-// @route   POST /api/cart/merge
+// Merge localStorage cart after login
 export const mergeCart = async (req, res) => {
   try {
-    const { items } = req.body; // items: [{ product: id, quantity: number }]
-
+    const { items } = req.body;
     const user = await User.findById(req.user._id);
 
-    // Merge logic: add new items or update quantities
-    items.forEach((item) => {
-      const existingItem = user.cart.find(
-        (cartItem) => cartItem.product.toString() === item.product
-      );
-
-      if (existingItem) {
-        existingItem.quantity += item.quantity;
-      } else {
-        user.cart.push(item);
-      }
+    items.forEach(item => {
+      const existing = user.cart.find(c => c.product.toString() === item.product);
+      if (existing) existing.quantity += item.quantity;
+      else user.cart.push(item);
     });
 
     await user.save();
-    const updatedUser = await User.findById(req.user._id).populate(
-      "cart.product"
-    );
-
+    const updatedUser = await User.findById(req.user._id).populate("cart.product");
     res.json(updatedUser.cart);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 };
 
-// @desc    Add to cart
-// @route   POST /api/cart
+// Add item to cart
 export const addToCart = async (req, res) => {
   try {
-    const { productId, quantity } = req.body;
-
+    const { productId, quantity = 1 } = req.body;
     const user = await User.findById(req.user._id);
-    const existingItem = user.cart.find(
-      (item) => item.product.toString() === productId
-    );
 
-    if (existingItem) {
-      existingItem.quantity += quantity || 1;
-    } else {
-      user.cart.push({ product: productId, quantity: quantity || 1 });
-    }
+    const existing = user.cart.find(item => item.product.toString() === productId);
+    if (existing) existing.quantity += quantity;
+    else user.cart.push({ product: productId, quantity });
 
     await user.save();
-    const updatedUser = await User.findById(req.user._id).populate(
-      "cart.product"
-    );
-
+    const updatedUser = await User.findById(req.user._id).populate("cart.product");
     res.json(updatedUser.cart);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 };
 
-// @desc    Update cart item quantity
-// @route   PUT /api/cart/:productId
+// Update cart item quantity
 export const updateCartItem = async (req, res) => {
   try {
     const { quantity } = req.body;
-
     const user = await User.findById(req.user._id);
-    const cartItem = user.cart.find(
-      (item) => item.product.toString() === req.params.productId
-    );
 
-    if (!cartItem) {
-      return res.status(404).json({ message: "Item not in cart" });
-    }
+    const item = user.cart.find(c => c.product.toString() === req.params.productId);
+    if (!item) return res.status(404).json({ message: "Item not in cart" });
 
-    cartItem.quantity = quantity;
+    item.quantity = quantity;
     await user.save();
 
-    const updatedUser = await User.findById(req.user._id).populate(
-      "cart.product"
-    );
+    const updatedUser = await User.findById(req.user._id).populate("cart.product");
     res.json(updatedUser.cart);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 };
 
-// @desc    Remove from cart
-// @route   DELETE /api/cart/:productId
+// Remove item from cart
 export const removeFromCart = async (req, res) => {
   try {
     const user = await User.findById(req.user._id);
-    user.cart = user.cart.filter(
-      (item) => item.product.toString() !== req.params.productId
-    );
+    user.cart = user.cart.filter(item => item.product.toString() !== req.params.productId);
 
     await user.save();
-    const updatedUser = await User.findById(req.user._id).populate(
-      "cart.product"
-    );
-
+    const updatedUser = await User.findById(req.user._id).populate("cart.product");
     res.json(updatedUser.cart);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 };
 
-// @desc    Clear cart
-// @route   DELETE /api/cart
+// Clear cart
 export const clearCart = async (req, res) => {
   try {
     const user = await User.findById(req.user._id);
     user.cart = [];
     await user.save();
-
     res.json({ message: "Cart cleared" });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 };

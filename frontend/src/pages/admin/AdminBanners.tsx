@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { bannersApi } from "../../services/api";
-import { useToast } from "../../contexts/ToastContext";
+import { useToast } from "../../context/ToastContext";
 import { uploadImage } from "../../utils/imageUpload";
 
 interface Banner {

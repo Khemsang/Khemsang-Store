@@ -1,6 +1,8 @@
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
+
+// Route imports
 import authRoutes from "./routes/authRoutes.js";
 import productRoutes from "./routes/productRoutes.js";
 import cartRoutes from "./routes/cartRoutes.js";
@@ -16,12 +18,21 @@ import contactRoutes from "./routes/contact.js";
 import featureRoutes from "./routes/features.js";
 import uploadRoutes from "./routes/upload.js";
 import activityRoutes from "./routes/activities.js";
-import userActivityRoutes from "./routes/activities.js";
-import { errorHandler } from "./middlewares/errorHandler.js";
+
+// Middleware imports
+import { errorHandler } from "./middleware/errorHandler.js";
+
+/**
+ * ========================================
+ * EXPRESS APP CONFIGURATION
+ * ========================================
+ */
 
 const app = express();
 
-// Middleware
+// ==========================================
+// MIDDLEWARE SETUP
+// ==========================================
 app.use(
   cors({
     origin: ["http://localhost:5173", "http://localhost:5174"],
@@ -32,7 +43,9 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-// Routes
+// ==========================================
+// API ROUTES
+// ==========================================
 app.use("/api/auth", authRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/cart", cartRoutes);
@@ -49,12 +62,16 @@ app.use("/api/features", featureRoutes);
 app.use("/api/upload", uploadRoutes);
 app.use("/api/activities", activityRoutes);
 
-// Health check
+// ==========================================
+// HEALTH CHECK
+// ==========================================
 app.get("/health", (req, res) => {
   res.json({ status: "OK", message: "Server is running" });
 });
 
-// Error handler
+// ==========================================
+// ERROR HANDLER (must be last)
+// ==========================================
 app.use(errorHandler);
 
 export default app;

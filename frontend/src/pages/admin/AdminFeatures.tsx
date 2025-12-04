@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { featuresApi } from "../../services/api";
-import { useToast } from "../../contexts/ToastContext";
+import { useToast } from "../../context/ToastContext";
 import {
   FaStar,
   FaPlus,

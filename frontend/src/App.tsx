@@ -1,15 +1,16 @@
 import { Route, Routes, Navigate } from "react-router-dom";
 import { Provider } from "react-redux";
 import { store } from "./store/store";
-import { Suspense } from "react";
+import { Suspense, lazy } from "react";
 
-// Contexts
-import { AuthProvider, useAuth } from "./contexts/AuthContext";
-import { CartProvider } from "./contexts/CartContext";
-import { ThemeProvider } from "./contexts/ThemeContext";
-import { ToastProvider } from "./contexts/ToastContext";
+// Context Providers
+import { AuthProvider, useAuth } from "./context/AuthContext";
+import { CartProvider } from "./context/CartContext";
+import { ThemeProvider } from "./context/ThemeContext";
+import { ToastProvider } from "./context/ToastContext";
+import { LoadingProvider } from "./context/LoadingContext";
 
-// Layout & Common Components
+// Layout Components
 import {
   Navbar,
   Footer,
@@ -19,10 +20,14 @@ import {
 } from "./components";
 import PageLoader from "./components/PageLoader";
 
-// Lazy load pages for better performance
-import { lazy } from "react";
+/**
+ * ========================================
+ * LAZY LOADED PAGES
+ * Better performance - loads only when needed
+ * ========================================
+ */
 
-// Main Pages - Lazy loaded
+// Main Pages
 const Home = lazy(() => import("./pages/main/home"));
 const Products = lazy(() => import("./pages/main/products"));
 const Gallery = lazy(() => import("./pages/main/gallary"));
@@ -51,13 +56,15 @@ const SubmitTestimonial = lazy(() => import("./pages/main/SubmitTestimonial"));
 const Profile = lazy(() => import("./pages/main/Profile"));
 const FurnitureDoorPage = lazy(() => import("./pages/main/furniture"));
 
-// Auth Pages - Lazy loaded
+// Auth Pages
 const Login = lazy(() => import("./pages/auth/login"));
 const Signup = lazy(() => import("./pages/auth/signup"));
 const Dashboard = lazy(() => import("./pages/auth/Dashboard"));
 const VerifyEmail = lazy(() => import("./pages/auth/VerifyEmail"));
+const ForgotPassword = lazy(() => import("./pages/auth/ForgotPassword"));
+const ResetPassword = lazy(() => import("./pages/auth/ResetPassword"));
 
-// Admin Pages - Lazy loaded
+// Admin Pages
 const AdminLayout = lazy(() => import("./pages/admin/AdminLayout"));
 const AdminDashboard = lazy(() => import("./pages/admin/AdminDashboard"));
 const AdminProducts = lazy(() => import("./pages/admin/AdminProducts"));
@@ -70,11 +77,16 @@ const AdminBanners = lazy(() => import("./pages/admin/AdminBanners"));
 const AdminAbout = lazy(() => import("./pages/admin/AdminAbout"));
 const AdminContact = lazy(() => import("./pages/admin/AdminContact"));
 
-// ----------------------------------------------------------
-
+/**
+ * ========================================
+ * APP ROUTES COMPONENT
+ * Handles all routing logic
+ * ========================================
+ */
 const AppRoutes = () => {
   const { user, loading } = useAuth();
 
+  // Show loading while checking auth
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -83,7 +95,7 @@ const AppRoutes = () => {
     );
   }
 
-  // Auto redirect admin from home → admin dashboard
+  // Redirect admin to dashboard
   if (user?.isAdmin && window.location.pathname === "/") {
     return <Navigate to="/admin/dashboard" replace />;
   }
@@ -98,7 +110,7 @@ const AppRoutes = () => {
     >
       <PageLoader>
         <Routes>
-          {/* ---------- Admin Routes ---------- */}
+          {/* ========== ADMIN ROUTES ========== */}
           <Route
             path="/admin"
             element={
@@ -121,56 +133,40 @@ const AppRoutes = () => {
             <Route path="contact" element={<AdminContact />} />
           </Route>
 
-          {/* ---------- Auth Routes ---------- */}
+          {/* ========== AUTH ROUTES ========== */}
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/verify-email" element={<VerifyEmail />} />
           <Route path="/verify-otp" element={<VerifyOTP />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
 
-          {/* ---------- Payment Status ---------- */}
+          {/* ========== PAYMENT ROUTES ========== */}
           <Route path="/payment/success" element={<PaymentSuccess />} />
           <Route path="/payment/failed" element={<PaymentFailed />} />
 
-          {/* ---------- User Routes (Navbar + Footer) ---------- */}
+          {/* ========== USER ROUTES (with Navbar & Footer) ========== */}
           <Route
             path="/*"
             element={
               <>
                 <Navbar />
                 <Routes>
+                  {/* Public Pages */}
                   <Route path="/" element={<Home />} />
                   <Route path="/products" element={<Products />} />
                   <Route path="/gallery" element={<Gallery />} />
                   <Route path="/about" element={<About />} />
                   <Route path="/contact" element={<Contact />} />
                   <Route path="/faq" element={<FAQ />} />
-
                   <Route
                     path="/submit-testimonial"
                     element={<SubmitTestimonial />}
                   />
-
-                  <Route
-                    path="/dashboard"
-                    element={
-                      <ProtectedRoute>
-                        <Dashboard />
-                      </ProtectedRoute>
-                    }
-                  />
-
-                  <Route
-                    path="/profile"
-                    element={
-                      <ProtectedRoute>
-                        <Profile />
-                      </ProtectedRoute>
-                    }
-                  />
-
                   <Route path="/search" element={<SearchResults />} />
                   <Route path="/furniture" element={<FurnitureDoorPage />} />
 
+                  {/* Product Pages */}
                   <Route path="/product/:id" element={<ProductDetailsPage />} />
                   <Route
                     path="/featured/:id"
@@ -180,9 +176,25 @@ const AppRoutes = () => {
                     path="/featured-products"
                     element={<AllFeaturedProducts />}
                   />
-
                   <Route path="/cart" element={<Cart />} />
 
+                  {/* Protected Pages */}
+                  <Route
+                    path="/dashboard"
+                    element={
+                      <ProtectedRoute>
+                        <Dashboard />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/profile"
+                    element={
+                      <ProtectedRoute>
+                        <Profile />
+                      </ProtectedRoute>
+                    }
+                  />
                   <Route
                     path="/checkout"
                     element={
@@ -191,7 +203,6 @@ const AppRoutes = () => {
                       </ProtectedRoute>
                     }
                   />
-
                   <Route
                     path="/orders"
                     element={
@@ -201,6 +212,7 @@ const AppRoutes = () => {
                     }
                   />
 
+                  {/* Legal Pages */}
                   <Route path="/privacy-policy" element={<PrivacyPolicy />} />
                   <Route
                     path="/terms-of-service"
@@ -208,7 +220,6 @@ const AppRoutes = () => {
                   />
                   <Route path="/sitemap" element={<Sitemap />} />
                 </Routes>
-
                 <Footer />
               </>
             }
@@ -219,19 +230,25 @@ const AppRoutes = () => {
   );
 };
 
-// ----------------------------------------------------------
-
+/**
+ * ========================================
+ * MAIN APP COMPONENT
+ * Wraps everything with providers
+ * ========================================
+ */
 const App = () => {
   return (
     <Provider store={store}>
       <ThemeProvider>
         <ToastProvider>
-          <AuthProvider>
-            <CartProvider>
-              <ScrollToTop />
-              <AppRoutes />
-            </CartProvider>
-          </AuthProvider>
+          <LoadingProvider>
+            <AuthProvider>
+              <CartProvider>
+                <ScrollToTop />
+                <AppRoutes />
+              </CartProvider>
+            </AuthProvider>
+          </LoadingProvider>
         </ToastProvider>
       </ThemeProvider>
     </Provider>

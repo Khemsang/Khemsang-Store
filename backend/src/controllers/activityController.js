@@ -1,7 +1,6 @@
 import Activity from "../models/Activity.js";
 
-// @desc    Get user activities
-// @route   GET /api/activities
+// Get latest 20 activities for logged-in user
 export const getUserActivities = async (req, res) => {
   try {
     const activities = await Activity.find({ user: req.user._id })
@@ -11,35 +10,31 @@ export const getUserActivities = async (req, res) => {
       .limit(20);
 
     res.json(activities);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 };
 
-// @desc    Create activity
-// @route   POST /api/activities
+// Create a new activity
 export const createActivity = async (req, res) => {
   try {
-    const { action, type, icon, relatedOrder, relatedProduct, metadata } =
-      req.body;
-
     const activity = await Activity.create({
       user: req.user._id,
-      action,
-      type,
-      icon: icon || "FaCircle",
-      relatedOrder,
-      relatedProduct,
-      metadata,
+      action: req.body.action,
+      type: req.body.type,
+      icon: req.body.icon || "FaCircle",
+      relatedOrder: req.body.relatedOrder || null,
+      relatedProduct: req.body.relatedProduct || null,
+      metadata: req.body.metadata || null,
     });
 
     res.status(201).json(activity);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 };
 
-// Helper function to log activity (can be used in other controllers)
+// Log activity helper
 export const logActivity = async (
   userId,
   action,
@@ -50,16 +45,8 @@ export const logActivity = async (
   metadata = null
 ) => {
   try {
-    await Activity.create({
-      user: userId,
-      action,
-      type,
-      icon,
-      relatedOrder,
-      relatedProduct,
-      metadata,
-    });
-  } catch (error) {
-    console.error("Error logging activity:", error);
+    await Activity.create({ user: userId, action, type, icon, relatedOrder, relatedProduct, metadata });
+  } catch (err) {
+    console.error("Activity logging error:", err);
   }
 };

@@ -1,5 +1,6 @@
 import express from "express";
 import * as categoryController from "../controllers/categoryController.js";
+import { auth, isAdmin } from "../middleware/auth.js";
 
 const router = express.Router();
 
@@ -7,9 +8,9 @@ const router = express.Router();
 router.get("/", categoryController.getAllCategories);
 router.get("/:id", categoryController.getCategoryById);
 
-// Admin routes (add auth middleware later)
-router.post("/", categoryController.createCategory);
-router.put("/:id", categoryController.updateCategory);
-router.delete("/:id", categoryController.deleteCategory);
+// Admin routes
+router.post("/", auth, isAdmin, categoryController.createCategory);
+router.put("/:id", auth, isAdmin, categoryController.updateCategory);
+router.delete("/:id", auth, isAdmin, categoryController.deleteCategory);
 
 export default router;

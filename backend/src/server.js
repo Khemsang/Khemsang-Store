@@ -1,24 +1,21 @@
+
 import dotenv from "dotenv";
 import path from "path";
 import { fileURLToPath } from "url";
+import fs from "fs";
 import app from "./app.js";
 import { connectDB } from "./config/db.js";
 import { testEmailConnection } from "./config/email.js";
-import fs from "fs";
 
 // Get directory name in ES modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Load .env from backend root
+// Load environment variables
 dotenv.config({ path: path.join(__dirname, "../.env") });
 
-// Create uploads directory if it doesn't exist
-if (!fs.existsSync("uploads")) {
-  fs.mkdirSync("uploads");
-}
-
-const PORT = process.env.PORT || 5000;
+// Create uploads folder if it doesn't exist
+if (!fs.existsSync("uploads")) fs.mkdirSync("uploads");
 
 // Connect to database
 connectDB();
@@ -26,6 +23,5 @@ connectDB();
 // Test email connection
 testEmailConnection();
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

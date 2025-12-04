@@ -2,27 +2,27 @@ import User from "../models/User.js";
 import OTP from "../models/OTP.js";
 import crypto from "crypto";
 import { sendVerificationEmail } from "../config/email.js";
-import { sendOTPEmail } from "../services/emailService.js";
+import {
+  sendOTPEmail,
+  sendPasswordResetEmail,
+} from "../services/emailService.js";
 import { generateToken, setTokenCookie } from "../utils/generateToken.js";
 import { createActivity } from "./activityController.js";
 
-// POST /api/auth/signup
+// SIGNUP
 export const signup = async (req, res) => {
   try {
     const { name, email, password, isAdmin } = req.body;
-
-    if (!name || !email || !password) {
+    if (!name || !email || !password)
       return res
         .status(400)
-        .json({ message: "Please provide name, email, and password" });
-    }
+        .json({ message: "Provide name, email, and password" });
 
-    const userExists = await User.findOne({ email });
-    if (userExists)
-      return res.status(400).json({ message: "User already exists" });
+    const exists = await User.findOne({ email });
+    if (exists) return res.status(400).json({ message: "User already exists" });
 
     const verificationToken = crypto.randomBytes(32).toString("hex");
-
+    const verificationTokenExpires = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
     const user = await User.create({
       name,
       email,
@@ -30,34 +30,19 @@ export const signup = async (req, res) => {
       isAdmin: isAdmin || false,
       isVerified: false,
       verificationToken,
+      verificationTokenExpires,
     });
 
-    // Send verification email
     try {
       await sendVerificationEmail(email, verificationToken);
-      console.log("✅ Verification email sent to:", email);
-
-      res.status(201).json({
-        message:
-          "Signup successful! Please check your email to verify your account.",
+      return res.status(201).json({
+        message: "Signup successful! Check your email to verify your account.",
         userId: user._id,
       });
-    } catch (emailError) {
-      console.error(
-        "❌ Failed to send verification email:",
-        emailError.message
-      );
-
-      // In development, provide verification URL
+    } catch {
       const verificationUrl = `${process.env.FRONTEND_URL}/verify-email?token=${verificationToken}`;
-
-      console.log("\n📝 DEVELOPMENT MODE - Use this URL to verify:");
-      console.log("   " + verificationUrl);
-      console.log("   Or copy from the alert in the browser\n");
-
-      // Return token in development for testing
-      res.status(201).json({
-        message: "Signup successful! Email service unavailable in development.",
+      return res.status(201).json({
+        message: "Signup successful! Email service unavailable in dev.",
         userId: user._id,
         verificationToken:
           process.env.NODE_ENV === "development"
@@ -67,16 +52,19 @@ export const signup = async (req, res) => {
           process.env.NODE_ENV === "development" ? verificationUrl : undefined,
       });
     }
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 };
 
-// GET /api/auth/verify-email/:token
+// VERIFY EMAIL
 export const verifyEmail = async (req, res) => {
   try {
     const { token } = req.params;
-    const user = await User.findOne({ verificationToken: token });
+    const user = await User.findOne({
+      verificationToken: token,
+      verificationTokenExpires: { $gt: Date.now() },
+    });
     if (!user)
       return res
         .status(400)
@@ -84,377 +72,324 @@ export const verifyEmail = async (req, res) => {
 
     user.isVerified = true;
     user.verificationToken = undefined;
+    user.verificationTokenExpires = undefined;
     await user.save();
 
     const authToken = generateToken(user._id);
     setTokenCookie(res, authToken);
 
-    res.json({
-      message: "Email verified successfully",
-      user: {
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        isAdmin: user.isAdmin,
-        isVerified: user.isVerified,
-      },
-    });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.json({ message: "Email verified successfully", user });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 };
 
-// POST /api/auth/resend-verification
+// RESEND VERIFICATION
 export const resendVerification = async (req, res) => {
   try {
     const { email } = req.body;
     const user = await User.findOne({ email });
-
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-
-    if (user.isVerified) {
+    if (!user) return res.status(404).json({ message: "User not found" });
+    if (user.isVerified)
       return res.status(400).json({ message: "Email already verified" });
-    }
 
     const verificationToken = crypto.randomBytes(32).toString("hex");
     user.verificationToken = verificationToken;
+    user.verificationTokenExpires = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
     await user.save();
+    await sendVerificationEmail(email, verificationToken);
 
-    try {
-      await sendVerificationEmail(email, verificationToken);
-      res.json({ message: "Verification email sent successfully" });
-    } catch (err) {
-      console.error("❌ Failed to send verification email:", err.message);
-      res.status(500).json({ message: "Failed to send verification email" });
-    }
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.json({ message: "Verification email sent" });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 };
 
-// POST /api/auth/login
+// LOGIN
 export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
-
     const user = await User.findOne({ email }).select("+password");
-    if (!user) {
-      return res.status(401).json({ message: "Invalid credentials" });
-    }
+    if (!user) return res.status(401).json({ message: "Invalid credentials" });
 
     const isMatch = await user.matchPassword(password);
-    if (!isMatch) {
+    if (!isMatch)
       return res.status(401).json({ message: "Invalid credentials" });
-    }
 
-    if (!user.isVerified) {
-      return res.status(400).json({
-        message: "Please verify your email first",
-        needsVerification: true,
-      });
-    }
+    if (!user.isVerified)
+      return res
+        .status(400)
+        .json({ message: "Verify your email first", needsVerification: true });
 
-    // Check if OTP verification is needed (15 minutes validity)
-    const now = new Date();
-    const otpValidityMinutes = 15;
+    const otpValidMinutes = 15;
     const needsOTP =
       !user.otpVerifiedAt ||
-      now - new Date(user.otpVerifiedAt) > otpValidityMinutes * 60 * 1000;
+      Date.now() - new Date(user.otpVerifiedAt) > otpValidMinutes * 60 * 1000;
 
     if (needsOTP) {
-      // Generate 6-digit OTP
       const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
-
-      // Delete old OTPs for this email
       await OTP.deleteMany({ email });
-
-      // Store OTP in database
       await OTP.create({
         email,
         otp: otpCode,
-        expiresAt: new Date(Date.now() + 10 * 60 * 1000), // 10 minutes
+        expiresAt: new Date(Date.now() + 10 * 60 * 1000),
       });
 
-      // Send OTP via email
       try {
         await sendOTPEmail(email, otpCode);
-        console.log(`✅ OTP sent to ${email}`);
-      } catch (emailError) {
-        console.error(`❌ Failed to send OTP email:`, emailError.message);
-        console.log(`🔐 Development OTP for ${email}: ${otpCode}`);
+      } catch {
+        console.log(`Dev OTP for ${email}: ${otpCode}`);
       }
 
       return res.json({
         needsOTP: true,
-        message: "OTP sent to your email",
+        message: "OTP sent to email",
         otp: process.env.NODE_ENV === "development" ? otpCode : undefined,
       });
     }
 
-    // OTP still valid, login directly
     const token = generateToken(user._id);
     setTokenCookie(res, token);
-
-    res.json({
-      _id: user._id,
-      name: user.name,
-      email: user.email,
-      isAdmin: user.isAdmin,
-      isVerified: user.isVerified,
-    });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.json(user);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 };
 
-// POST /api/auth/verify-otp
+// VERIFY OTP
 export const verifyOTP = async (req, res) => {
   try {
     const { email, otp } = req.body;
-
-    // Find OTP record
     const otpRecord = await OTP.findOne({ email }).sort({ createdAt: -1 });
-
-    if (!otpRecord) {
+    if (!otpRecord)
       return res.status(400).json({ message: "OTP not found or expired" });
-    }
 
-    // Check if OTP is expired
     if (new Date() > otpRecord.expiresAt) {
       await OTP.deleteOne({ _id: otpRecord._id });
-      return res.status(400).json({ message: "OTP has expired" });
+      return res.status(400).json({ message: "OTP expired" });
     }
 
-    // Verify OTP
-    const isMatch = await otpRecord.matchOTP(otp);
-    if (!isMatch) {
+    if (!(await otpRecord.matchOTP(otp)))
       return res.status(400).json({ message: "Invalid OTP" });
-    }
 
-    // Update user's OTP verified timestamp
     const user = await User.findOne({ email });
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
+    if (!user) return res.status(404).json({ message: "User not found" });
 
     user.otpVerifiedAt = new Date();
     await user.save();
-
-    // Delete used OTP
     await OTP.deleteOne({ _id: otpRecord._id });
 
-    // Generate token and login
     const token = generateToken(user._id);
     setTokenCookie(res, token);
 
-    res.json({
-      message: "OTP verified successfully",
-      user: {
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        isAdmin: user.isAdmin,
-        isVerified: user.isVerified,
-      },
-    });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.json({ message: "OTP verified", user });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 };
 
-// POST /api/auth/resend-otp
+// RESEND OTP
 export const resendOTP = async (req, res) => {
   try {
     const { email } = req.body;
-
     const user = await User.findOne({ email });
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
+    if (!user) return res.status(404).json({ message: "User not found" });
 
-    // Generate new OTP
     const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
-
-    // Delete old OTPs
     await OTP.deleteMany({ email });
-
-    // Create new OTP
     await OTP.create({
       email,
       otp: otpCode,
       expiresAt: new Date(Date.now() + 10 * 60 * 1000),
     });
 
-    // Send OTP via email
     try {
       await sendOTPEmail(email, otpCode);
-      console.log(`✅ OTP resent to ${email}`);
-    } catch (emailError) {
-      console.error(`❌ Failed to resend OTP email:`, emailError.message);
-      console.log(`🔐 Development OTP for ${email}: ${otpCode}`);
+    } catch {
+      console.log(`Dev OTP for ${email}: ${otpCode}`);
     }
 
     res.json({
-      message: "OTP sent successfully",
+      message: "OTP sent",
       otp: process.env.NODE_ENV === "development" ? otpCode : undefined,
     });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 };
 
-// POST /api/auth/logout
+// LOGOUT
 export const logout = async (req, res) => {
-  try {
-    res.cookie("token", "", {
-      httpOnly: true,
-      expires: new Date(0),
-    });
-    res.json({ message: "Logged out successfully" });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
+  res.cookie("token", "", { httpOnly: true, expires: new Date(0) });
+  res.json({ message: "Logged out" });
 };
 
-// GET /api/auth/me
+// GET CURRENT USER
 export const getMe = async (req, res) => {
-  try {
-    const user = await User.findById(req.user._id).select("-password");
-    res.json(user);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
+  const user = await User.findById(req.user._id).select("-password");
+  res.json(user);
 };
 
-// PUT /api/auth/profile
+// UPDATE PROFILE
 export const updateProfile = async (req, res) => {
+  const { name, email, phone, address, avatar } = req.body;
+  const user = await User.findById(req.user._id);
+  if (!user) return res.status(404).json({ message: "User not found" });
+
+  if (email && email !== user.email) {
+    const exists = await User.findOne({ email });
+    if (exists)
+      return res.status(400).json({ message: "Email already in use" });
+  }
+
+  user.name = name || user.name;
+  user.email = email || user.email;
+  user.phone = phone || user.phone;
+  user.address = address || user.address;
+  user.avatar = avatar || user.avatar;
+  await user.save();
+
+  await createActivity(user._id, "profile_updated", "Updated profile info", {
+    name: user.name,
+    email: user.email,
+  });
+  res.json({ message: "Profile updated", user });
+};
+
+// CHANGE PASSWORD
+export const changePassword = async (req, res) => {
+  const { currentPassword, newPassword } = req.body;
+  if (!currentPassword || !newPassword)
+    return res
+      .status(400)
+      .json({ message: "Provide current and new password" });
+
+  const user = await User.findById(req.user._id);
+  if (!user) return res.status(404).json({ message: "User not found" });
+
+  const isMatch = await user.comparePassword(currentPassword);
+  if (!isMatch)
+    return res.status(400).json({ message: "Current password incorrect" });
+
+  user.password = newPassword;
+  await user.save();
+  await createActivity(user._id, "password_changed", "Changed password");
+
+  res.json({ message: "Password changed successfully" });
+};
+
+// FORGOT PASSWORD
+export const forgotPassword = async (req, res) => {
   try {
-    const { name, email, phone, address, avatar } = req.body;
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ message: "Email is required" });
 
-    const user = await User.findById(req.user._id);
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
+    const user = await User.findOne({ email });
+    if (!user) return res.status(404).json({ message: "User not found" });
 
-    // Check if email is being changed and if it's already taken
-    if (email && email !== user.email) {
-      const emailExists = await User.findOne({ email });
-      if (emailExists) {
-        return res.status(400).json({ message: "Email already in use" });
-      }
-    }
-
-    user.name = name || user.name;
-    user.email = email || user.email;
-    user.phone = phone || user.phone;
-    user.address = address || user.address;
-    user.avatar = avatar || user.avatar;
-
+    // Generate reset token
+    const resetToken = crypto.randomBytes(32).toString("hex");
+    user.resetPasswordToken = resetToken;
+    user.resetPasswordExpires = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
     await user.save();
 
-    // Log activity
-    await createActivity(
-      user._id,
-      "profile_updated",
-      `Updated profile information`,
-      { name: user.name, email: user.email }
-    );
-
-    res.json({
-      message: "Profile updated successfully",
-      user: {
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        phone: user.phone,
-        address: user.address,
-        avatar: user.avatar,
-        role: user.isAdmin ? "admin" : "user",
-      },
-    });
-  } catch (error) {
-    res.status(500).json({ message: "Server error", error: error.message });
+    try {
+      await sendPasswordResetEmail(email, resetToken);
+      res.json({ message: "Password reset link sent to your email" });
+    } catch {
+      // Fallback for dev mode
+      const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
+      res.json({
+        message: "Password reset link sent",
+        resetToken:
+          process.env.NODE_ENV === "development" ? resetToken : undefined,
+        resetUrl: process.env.NODE_ENV === "development" ? resetUrl : undefined,
+      });
+    }
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 };
 
-// PUT /api/auth/change-password
-export const changePassword = async (req, res) => {
+// RESET PASSWORD
+export const resetPassword = async (req, res) => {
   try {
-    const { currentPassword, newPassword } = req.body;
+    const { token, password } = req.body;
+    console.log(
+      "Reset password request - token:",
+      token ? token.substring(0, 10) + "..." : "missing"
+    );
 
-    if (!currentPassword || !newPassword) {
+    if (!token || !password)
       return res
         .status(400)
-        .json({ message: "Please provide both current and new password" });
+        .json({ message: "Token and password are required" });
+
+    // First check if token exists (without expiry check)
+    const userWithToken = await User.findOne({ resetPasswordToken: token });
+    console.log("User with token found:", !!userWithToken);
+
+    if (userWithToken) {
+      console.log("Token expires:", userWithToken.resetPasswordExpires);
+      console.log("Current time:", new Date());
+      console.log(
+        "Is expired:",
+        new Date() > userWithToken.resetPasswordExpires
+      );
     }
 
-    const user = await User.findById(req.user._id);
+    const user = await User.findOne({
+      resetPasswordToken: token,
+      resetPasswordExpires: { $gt: Date.now() },
+    });
+
     if (!user) {
-      return res.status(404).json({ message: "User not found" });
+      if (userWithToken) {
+        return res
+          .status(400)
+          .json({
+            message: "Reset token has expired. Please request a new one.",
+          });
+      }
+      return res.status(400).json({ message: "Invalid reset token" });
     }
 
-    // Check current password
-    const isMatch = await user.comparePassword(currentPassword);
-    if (!isMatch) {
-      return res.status(400).json({ message: "Current password is incorrect" });
-    }
-
-    // Update password
-    user.password = newPassword;
+    user.password = password;
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpires = undefined;
     await user.save();
 
-    // Log activity
-    await createActivity(
-      user._id,
-      "password_changed",
-      `Changed account password`,
-      {}
-    );
-
-    res.json({ message: "Password changed successfully" });
-  } catch (error) {
-    res.status(500).json({ message: "Server error", error: error.message });
+    res.json({
+      message:
+        "Password reset successful. You can now login with your new password.",
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 };
 
-// GET /api/auth/stats
+// USER STATS
 export const getUserStats = async (req, res) => {
-  try {
-    const Order = (await import("../models/Order.js")).default;
+  const Order = (await import("../models/Order.js")).default;
+  const orders = await Order.find({ user: req.user._id });
 
-    // Get user orders
-    const orders = await Order.find({ user: req.user._id });
+  const totalOrders = orders.length;
+  const completedOrders = orders.filter(
+    (o) => o.orderStatus === "delivered"
+  ).length;
+  const pendingOrders = orders.filter((o) =>
+    ["pending", "processing"].includes(o.orderStatus)
+  ).length;
+  const totalSpent = orders
+    .filter((o) => o.paymentStatus === "paid")
+    .reduce((sum, o) => sum + o.totalAmount, 0);
 
-    // Calculate stats
-    const totalOrders = orders.length;
-    const completedOrders = orders.filter(
-      (o) => o.orderStatus === "delivered"
-    ).length;
-    const pendingOrders = orders.filter(
-      (o) => o.orderStatus === "pending" || o.orderStatus === "processing"
-    ).length;
-    const totalSpent = orders
-      .filter((o) => o.paymentStatus === "paid")
-      .reduce((sum, o) => sum + o.totalAmount, 0);
-
-    // Get wishlist count (if you have wishlist feature)
-    const wishlistItems = 0; // TODO: Implement wishlist
-
-    // Get reviews count (if you have reviews feature)
-    const reviewsGiven = 0; // TODO: Implement reviews
-
-    res.json({
-      totalOrders,
-      completedOrders,
-      pendingOrders,
-      totalSpent,
-      wishlistItems,
-      reviewsGiven,
-    });
-  } catch (error) {
-    console.error("Error fetching user stats:", error);
-    res.status(500).json({ message: "Server error", error: error.message });
-  }
+  res.json({
+    totalOrders,
+    completedOrders,
+    pendingOrders,
+    totalSpent,
+    wishlistItems: 0,
+    reviewsGiven: 0,
+  });
 };

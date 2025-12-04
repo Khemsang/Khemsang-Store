@@ -11,11 +11,14 @@ const ForgotPassword: React.FC = () => {
     setError("");
 
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/forgot-password`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
-      });
+      const res = await fetch(
+        `${import.meta.env.VITE_API_URL}/auth/forgot-password`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email }),
+        }
+      );
 
       const data = await res.json();
 
@@ -32,9 +35,12 @@ const ForgotPassword: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center px-4">
       <div className="bg-white shadow-xl rounded-2xl w-full max-w-md p-8 sm:p-10">
-        <h2 className="text-2xl font-bold text-center text-gray-800 mb-6">Forgot Your Password?</h2>
+        <h2 className="text-2xl font-bold text-center text-gray-800 mb-6">
+          Forgot Your Password?
+        </h2>
         <p className="text-sm text-center text-gray-600 mb-6">
-          Enter your email address and we’ll send you a link to reset your password.
+          Enter your email address and we’ll send you a link to reset your
+          password.
         </p>
 
         {message && (
@@ -51,7 +57,10 @@ const ForgotPassword: React.FC = () => {
 
         <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+            <label
+              htmlFor="email"
+              className="block text-sm font-medium text-gray-700 mb-1"
+            >
               Email address
             </label>
             <input

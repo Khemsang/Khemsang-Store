@@ -46,7 +46,7 @@ export const sendVerificationEmail = async (email, token) => {
       <p>Please verify your email address by clicking below:</p>
       <a href="${verificationUrl}" style="display:inline-block; padding:12px 24px; background:#4F46E5; color:white; text-decoration:none; border-radius:5px;">Verify Email</a>
       <p>Or paste this link in your browser: <br/>${verificationUrl}</p>
-      <p>This link will expire in 24 hours.</p>
+      <p>This link will expire in 15 minutes.</p>
       <p>If you didn't create an account, ignore this email.</p>
     </div>
   `;
@@ -71,6 +71,28 @@ export const sendOTPEmail = async (email, otp) => {
   `;
 
   await sendEmail({ to: email, subject: "Login OTP - Furniture Store", html });
+};
+
+// Send password reset email
+export const sendPasswordResetEmail = async (email, token) => {
+  const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${token}`;
+
+  const html = `
+    <div style="font-family: Arial, sans-serif; max-width:600px; margin:0 auto;">
+      <h2>Password Reset Request</h2>
+      <p>You requested to reset your password. Click the button below to set a new password:</p>
+      <a href="${resetUrl}" style="display:inline-block; padding:12px 24px; background:#4F46E5; color:white; text-decoration:none; border-radius:5px;">Reset Password</a>
+      <p>Or paste this link in your browser: <br/>${resetUrl}</p>
+      <p>This link will expire in 15 minutes.</p>
+      <p>If you didn't request this, please ignore this email.</p>
+    </div>
+  `;
+
+  await sendEmail({
+    to: email,
+    subject: "Password Reset - Furniture Store",
+    html,
+  });
 };
 
 // Test SMTP connection

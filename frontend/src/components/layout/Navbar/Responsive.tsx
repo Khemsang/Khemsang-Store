@@ -12,8 +12,8 @@ import {
 } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { logo } from "../../../image";
-import { useAuth } from "../../../contexts/AuthContext";
-import { useCart } from "../../../contexts/CartContext";
+import { useAuth } from "../../../context/AuthContext";
+import { useCart } from "../../../context/CartContext";
 import { DarkModeToggle, ConfirmDialog } from "../../common";
 
 type ResponsiveMenuProps = {

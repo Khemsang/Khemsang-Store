@@ -1,19 +1,25 @@
 import FeaturedProduct from "../models/FeaturedProduct.js";
 
-// Get all featured products
+// Get all featured products (active + featured for public, all for admin)
 export const getAllFeaturedProducts = async (req, res) => {
   try {
-    const products = await FeaturedProduct.find({
-      isActive: true,
-      isFeatured: true,
-    }).sort({ order: 1, createdAt: -1 });
+    const filter = {};
+    // If not admin request, only show active and featured
+    if (!req.query.admin) {
+      filter.isActive = true;
+      filter.isFeatured = true;
+    }
+    const products = await FeaturedProduct.find(filter).sort({
+      order: 1,
+      createdAt: -1,
+    });
     res.json(products);
-  } catch (error) {
+  } catch (err) {
     res
       .status(500)
       .json({
         message: "Error fetching featured products",
-        error: error.message,
+        error: err.message,
       });
   }
 };
@@ -22,14 +28,12 @@ export const getAllFeaturedProducts = async (req, res) => {
 export const getFeaturedProductById = async (req, res) => {
   try {
     const product = await FeaturedProduct.findById(req.params.id);
-    if (!product) {
-      return res.status(404).json({ message: "Product not found" });
-    }
+    if (!product) return res.status(404).json({ message: "Product not found" });
     res.json(product);
-  } catch (error) {
+  } catch (err) {
     res
       .status(500)
-      .json({ message: "Error fetching product", error: error.message });
+      .json({ message: "Error fetching product", error: err.message });
   }
 };
 
@@ -39,10 +43,10 @@ export const createFeaturedProduct = async (req, res) => {
     const product = new FeaturedProduct(req.body);
     await product.save();
     res.status(201).json(product);
-  } catch (error) {
+  } catch (err) {
     res
       .status(400)
-      .json({ message: "Error creating product", error: error.message });
+      .json({ message: "Error creating product", error: err.message });
   }
 };
 
@@ -52,16 +56,17 @@ export const updateFeaturedProduct = async (req, res) => {
     const product = await FeaturedProduct.findByIdAndUpdate(
       req.params.id,
       req.body,
-      { new: true, runValidators: true }
+      {
+        new: true,
+        runValidators: true,
+      }
     );
-    if (!product) {
-      return res.status(404).json({ message: "Product not found" });
-    }
+    if (!product) return res.status(404).json({ message: "Product not found" });
     res.json(product);
-  } catch (error) {
+  } catch (err) {
     res
       .status(400)
-      .json({ message: "Error updating product", error: error.message });
+      .json({ message: "Error updating product", error: err.message });
   }
 };
 
@@ -69,13 +74,11 @@ export const updateFeaturedProduct = async (req, res) => {
 export const deleteFeaturedProduct = async (req, res) => {
   try {
     const product = await FeaturedProduct.findByIdAndDelete(req.params.id);
-    if (!product) {
-      return res.status(404).json({ message: "Product not found" });
-    }
+    if (!product) return res.status(404).json({ message: "Product not found" });
     res.json({ message: "Product deleted successfully" });
-  } catch (error) {
+  } catch (err) {
     res
       .status(500)
-      .json({ message: "Error deleting product", error: error.message });
+      .json({ message: "Error deleting product", error: err.message });
   }
 };

@@ -21,8 +21,8 @@ import {
 } from "react-icons/fa";
 import ResponsiveMenu from "./Responsive";
 
-import { useAuth } from "../../../contexts/AuthContext";
-import { useCart } from "../../../contexts/CartContext";
+import { useAuth } from "../../../context/AuthContext";
+import { useCart } from "../../../context/CartContext";
 import { DarkModeToggle, ConfirmDialog } from "../../common";
 
 const Navbar: React.FC = () => {

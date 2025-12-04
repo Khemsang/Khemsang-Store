@@ -40,10 +40,19 @@ const userSchema = new mongoose.Schema(
     verificationToken: {
       type: String,
     },
+    verificationTokenExpires: {
+      type: Date,
+    },
     otpVerifiedAt: {
       type: Date,
     },
     otpExpiresAt: {
+      type: Date,
+    },
+    resetPasswordToken: {
+      type: String,
+    },
+    resetPasswordExpires: {
       type: Date,
     },
     cart: [

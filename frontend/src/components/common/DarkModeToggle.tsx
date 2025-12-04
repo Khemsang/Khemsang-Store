@@ -1,4 +1,4 @@
-import { useTheme } from "../../contexts/ThemeContext";
+import { useTheme } from "../../context/ThemeContext";
 import { FaSun, FaMoon } from "react-icons/fa";
 
 const DarkModeToggle = () => {

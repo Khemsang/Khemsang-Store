@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { useAuth } from "../../contexts/AuthContext";
-import { useToast } from "../../contexts/ToastContext";
+import { useAuth } from "../../context/AuthContext";
+import { useToast } from "../../context/ToastContext";
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState("");
@@ -268,10 +268,16 @@ const Login: React.FC = () => {
             Continue with Google
           </button>
 
-          <div className="text-center mt-6">
+          <div className="text-center mt-6 space-y-2">
+            <Link
+              to="/forgot-password"
+              className="block text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-[var(--root-color)] transition-colors duration-200"
+            >
+              Forgot your password?
+            </Link>
             <Link
               to="/signup"
-              className="text-sm font-medium text-[var(--root-color)] hover:text-purple-600 transition-colors duration-200"
+              className="block text-sm font-medium text-[var(--root-color)] hover:text-purple-600 transition-colors duration-200"
             >
               Don't have an account? <span className="underline">Sign up</span>
             </Link>

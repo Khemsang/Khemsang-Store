@@ -10,7 +10,7 @@ import {
   FaTwitter,
   FaLinkedin,
 } from "react-icons/fa";
-import { useToast } from "../../contexts/ToastContext";
+import { useToast } from "../../context/ToastContext";
 import { contactApi } from "../../services/api";
 
 interface ContactSettings {

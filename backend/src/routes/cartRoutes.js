@@ -5,12 +5,13 @@ import {
   updateCartItem,
   removeFromCart,
   clearCart,
-  mergeCart,
+  mergeCart
 } from "../controllers/cartController.js";
-import { auth } from "../middlewares/auth.js";
+import { auth } from "../middleware/auth.js";
 
 const router = express.Router();
 
+// All cart routes require authentication
 router.get("/", auth, getCart);
 router.post("/", auth, addToCart);
 router.post("/merge", auth, mergeCart);
