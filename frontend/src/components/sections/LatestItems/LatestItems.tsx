@@ -108,7 +108,7 @@ const LatestItems: React.FC = () => {
               {Array.from({ length: totalSlides }).map((_, slideIndex) => (
                 <div
                   key={slideIndex}
-                  className="min-w-full grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"
+                  className="min-w-full grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 md:gap-4"
                 >
                   {latestProducts
                     .slice(
@@ -128,17 +128,17 @@ const LatestItems: React.FC = () => {
                           },
                         }}
                         onClick={() => navigate(`/product/${item._id}`)}
-                        className="group bg-white dark:bg-gray-700 rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 cursor-pointer border border-gray-200 dark:border-gray-600 hover:border-green-500"
+                        className="group bg-white dark:bg-gray-700 rounded-lg md:rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 cursor-pointer border border-gray-200 dark:border-gray-600 hover:border-green-500"
                       >
-                        <div className="relative h-40 sm:h-48 bg-gray-100 dark:bg-gray-600 overflow-hidden">
+                        <div className="relative h-28 sm:h-36 md:h-48 bg-gray-100 dark:bg-gray-600 overflow-hidden">
                           <img
                             src={item.images?.[0] || "/placeholder.jpg"}
                             alt={item.title}
                             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                           />
-                          <div className="absolute top-2 right-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white px-2 py-1 rounded-lg text-xs font-bold shadow-lg flex items-center gap-1">
+                          <div className="absolute top-1 right-1 md:top-2 md:right-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white px-1.5 py-0.5 md:px-2 md:py-1 rounded-md md:rounded-lg text-[10px] md:text-xs font-bold shadow-lg flex items-center gap-0.5 md:gap-1">
                             <svg
-                              className="w-3 h-3"
+                              className="w-2.5 h-2.5 md:w-3 md:h-3"
                               fill="none"
                               stroke="currentColor"
                               viewBox="0 0 24 24"
@@ -154,15 +154,15 @@ const LatestItems: React.FC = () => {
                           </div>
                           <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                         </div>
-                        <div className="p-3">
-                          <h3 className="font-bold text-sm text-gray-900 dark:text-white mb-1 line-clamp-1">
+                        <div className="p-2 md:p-3">
+                          <h3 className="font-bold text-xs md:text-sm text-gray-900 dark:text-white mb-0.5 md:mb-1 line-clamp-1">
                             {item.title}
                           </h3>
-                          <p className="text-xs text-gray-600 dark:text-gray-400 mb-2 line-clamp-1">
+                          <p className="text-[10px] md:text-xs text-gray-600 dark:text-gray-400 mb-1 md:mb-2 line-clamp-1">
                             {item.description}
                           </p>
                           <div className="flex items-center justify-between">
-                            <span className="text-lg font-bold text-[var(--root-color)]">
+                            <span className="text-sm md:text-lg font-bold text-[var(--root-color)]">
                               Rs. {item.price?.toLocaleString()}
                             </span>
                             <button
@@ -170,7 +170,7 @@ const LatestItems: React.FC = () => {
                                 e.stopPropagation();
                                 navigate(`/product/${item._id}`);
                               }}
-                              className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-3 py-1.5 rounded-lg hover:from-green-600 hover:to-emerald-700 transition-all text-xs font-medium shadow-md"
+                              className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-2 py-1 md:px-3 md:py-1.5 rounded-md md:rounded-lg hover:from-green-600 hover:to-emerald-700 transition-all text-[10px] md:text-xs font-medium shadow-md"
                             >
                               View
                             </button>
