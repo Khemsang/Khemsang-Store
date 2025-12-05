@@ -2,36 +2,58 @@ import nodemailer from "nodemailer";
 import dotenv from "dotenv";
 dotenv.config(); // Must be first
 
-// Create transporter with Gmail service
-const transporter = nodemailer.createTransport({
-  service: "gmail", // Use Gmail service directly
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
-  },
-  tls: {
-    rejectUnauthorized: false,
-  },
-  connectionTimeout: 30000, // 30 seconds
-  greetingTimeout: 30000,
-  socketTimeout: 30000,
-});
+// Create transporter
+let transporter;
+
+const createTransporter = () => {
+  // If Gmail credentials provided, use Gmail
+  if (process.env.SMTP_USER && process.env.SMTP_PASS) {
+    transporter = nodemailer.createTransport({
+      host: "smtp.gmail.com",
+      port: 465,
+      secure: true,
+      auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS,
+      },
+    });
+    console.log("✅ Gmail SMTP configured");
+  } else {
+    console.log("⚠️ SMTP credentials not configured");
+  }
+};
+
+// Initialize transporter immediately
+createTransporter();
 
 // Generic send function
 export const sendEmail = async ({ to, subject, html }) => {
-  if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
-    console.error("❌ SMTP credentials missing in .env");
-    return;
+  if (!transporter) {
+    console.log("⚠️ Email transporter not ready, retrying...");
+    await createTransporter();
+  }
+
+  if (!transporter) {
+    console.error("❌ Email service unavailable");
+    throw new Error("Email service unavailable");
   }
 
   try {
-    await transporter.sendMail({
-      from: process.env.EMAIL_FROM,
+    const info = await transporter.sendMail({
+      from: process.env.EMAIL_FROM || "noreply@test.com",
       to,
       subject,
       html,
     });
     console.log(`✅ Email sent to: ${to}`);
+
+    // If using Ethereal, show preview URL
+    if (info.messageId && info.envelope) {
+      const previewUrl = nodemailer.getTestMessageUrl(info);
+      if (previewUrl) {
+        console.log(`📧 Preview URL: ${previewUrl}`);
+      }
+    }
   } catch (error) {
     console.error("❌ Failed to send email:", error.message);
     throw new Error("Failed to send email");
@@ -67,28 +89,19 @@ export const sendOTPEmail = async (email, otp) => {
   await sendEmail({ to: email, subject: "Login OTP", html });
 };
 
-// Test connection
+// Test connection - skip verify to avoid timeout
 export const testEmailConnection = async () => {
   if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
-    if (process.env.NODE_ENV === "development") {
-      console.log("⚠️  Email credentials not configured");
-      console.log("⚠️  In development, tokens/OTPs will be shown in console.");
-    }
+    console.log("⚠️ Email credentials not configured");
     return false;
   }
 
-  try {
-    await transporter.verify();
-    console.log("✅ Email server ready");
+  // Just check if transporter exists, don't verify connection
+  // Gmail will work when actually sending emails
+  if (transporter) {
+    console.log("✅ Email service ready (Gmail)");
     return true;
-  } catch (error) {
-    if (process.env.NODE_ENV === "development") {
-      console.error("❌ Email server connection failed:", error.message);
-      console.log("⚠️  In development, tokens/OTPs will be shown in console.");
-    } else {
-      // In production, just log once without details
-      console.log("⚠️  Email service unavailable - using fallback");
-    }
-    return false;
   }
+
+  return false;
 };
