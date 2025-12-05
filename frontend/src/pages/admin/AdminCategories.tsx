@@ -230,20 +230,20 @@ const AdminCategories: React.FC = () => {
   }
 
   return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+    <div className="p-3 md:p-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-6">
+        <h1 className="text-xl md:text-3xl font-bold text-gray-900 dark:text-white">
           Categories Management
         </h1>
         <button
           onClick={() => setShowModal(true)}
-          className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-[var(--root-color)] to-purple-600 text-white rounded-xl hover:shadow-lg transition-all"
+          className="flex items-center gap-2 px-4 py-2 md:px-6 md:py-3 bg-gradient-to-r from-[var(--root-color)] to-purple-600 text-white rounded-lg md:rounded-xl hover:shadow-lg transition-all text-sm md:text-base"
         >
           <FaPlus /> Add Category
         </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-6">
         {paginatedCategories.map((category) => {
           const IconComponent = getIconComponent(category.icon);
           return (
@@ -251,10 +251,10 @@ const AdminCategories: React.FC = () => {
               key={category._id}
               className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300"
             >
-              <div className="relative h-32 bg-gradient-to-br from-[var(--root-color)] to-purple-600 flex items-center justify-center">
-                <IconComponent className="text-6xl text-white opacity-90" />
+              <div className="relative h-20 md:h-32 bg-gradient-to-br from-[var(--root-color)] to-purple-600 flex items-center justify-center">
+                <IconComponent className="text-3xl md:text-6xl text-white opacity-90" />
                 <div
-                  className={`absolute top-3 right-3 px-3 py-1 rounded-full text-xs font-bold ${
+                  className={`absolute top-2 right-2 md:top-3 md:right-3 px-2 py-0.5 md:px-3 md:py-1 rounded-full text-[10px] md:text-xs font-bold ${
                     category.isActive
                       ? "bg-green-500 text-white"
                       : "bg-red-500 text-white"
@@ -263,25 +263,27 @@ const AdminCategories: React.FC = () => {
                   {category.isActive ? "Active" : "Inactive"}
                 </div>
               </div>
-              <div className="p-5">
-                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+              <div className="p-3 md:p-5">
+                <h3 className="text-sm md:text-xl font-bold text-gray-900 dark:text-white mb-1 md:mb-2 line-clamp-1">
                   {category.name}
                 </h3>
-                <p className="text-gray-600 dark:text-gray-400 text-sm mb-4 line-clamp-2">
+                <p className="text-gray-600 dark:text-gray-400 text-xs md:text-sm mb-2 md:mb-4 line-clamp-2 hidden md:block">
                   {category.description || "No description"}
                 </p>
-                <div className="flex gap-2">
+                <div className="flex gap-1 md:gap-2">
                   <button
                     onClick={() => handleEdit(category)}
-                    className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-all"
+                    className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 md:px-4 md:py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-all text-xs md:text-base"
                   >
-                    <FaEdit /> Edit
+                    <FaEdit className="text-xs md:text-base" />{" "}
+                    <span className="hidden sm:inline">Edit</span>
                   </button>
                   <button
                     onClick={() => handleDelete(category._id)}
-                    className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-all"
+                    className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 md:px-4 md:py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-all text-xs md:text-base"
                   >
-                    <FaTrash /> Delete
+                    <FaTrash className="text-xs md:text-base" />{" "}
+                    <span className="hidden sm:inline">Delete</span>
                   </button>
                 </div>
               </div>

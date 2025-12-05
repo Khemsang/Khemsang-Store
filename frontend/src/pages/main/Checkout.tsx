@@ -72,28 +72,37 @@ const Checkout = () => {
         return;
       }
 
-      // eSewa Payment Integration - Using Form Submit
-      const esewaUrl =
-        import.meta.env.VITE_ESEWA_URL || "https://uat.esewa.com.np/epay/main";
+      // eSewa Payment Integration v2 - Using Form Submit with Signature
+      const esewaUrl = "https://rc-epay.esewa.com.np/api/epay/main/v2/form";
       const apiUrl =
         import.meta.env.VITE_API_URL || "http://localhost:5000/api";
       const merchantId = import.meta.env.VITE_ESEWA_MERCHANT_ID || "EPAYTEST";
+      const totalAmount = getCartTotal() + 100;
 
-      // Create form for eSewa payment
+      // Get signature from backend
+      const signatureRes = await api.post("/orders/esewa/signature", {
+        totalAmount: totalAmount.toString(),
+        transactionUuid: data._id,
+        productCode: merchantId,
+      });
+
+      // Create form for eSewa v2 payment
       const form = document.createElement("form");
       form.method = "POST";
       form.action = esewaUrl;
 
       const params = {
-        amt: getCartTotal().toString(),
-        psc: "0",
-        pdc: "0",
-        txAmt: "0",
-        tAmt: (getCartTotal() + 100).toString(),
-        pid: data._id,
-        scd: merchantId,
-        su: `${apiUrl}/orders/esewa/verify`,
-        fu: `${apiUrl}/orders/esewa/failure`,
+        amount: getCartTotal().toString(),
+        tax_amount: "0",
+        total_amount: totalAmount.toString(),
+        transaction_uuid: data._id,
+        product_code: merchantId,
+        product_service_charge: "0",
+        product_delivery_charge: "100",
+        success_url: `${apiUrl}/orders/esewa/verify`,
+        failure_url: `${apiUrl}/orders/esewa/failure`,
+        signed_field_names: "total_amount,transaction_uuid,product_code",
+        signature: signatureRes.data.signature,
       };
 
       Object.entries(params).forEach(([key, value]) => {
@@ -105,7 +114,7 @@ const Checkout = () => {
       });
 
       document.body.appendChild(form);
-      console.log("📝 Form parameters:", params);
+      console.log("📝 eSewa v2 Form parameters:", params);
       console.log("🚀 Submitting to eSewa...");
       form.submit();
     } catch (err: any) {

@@ -34,6 +34,8 @@ const Navbar: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [categories, setCategories] = useState<any[]>([]);
+  const [searchProducts, setSearchProducts] = useState<any[]>([]);
+  const [searchLoading, setSearchLoading] = useState(false);
 
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const navigate = useNavigate();
@@ -110,13 +112,46 @@ const Navbar: React.FC = () => {
       )
     : [];
 
+  // Search products when searchTerm changes
+  useEffect(() => {
+    const searchProductsApi = async () => {
+      if (searchTerm.trim().length < 2) {
+        setSearchProducts([]);
+        return;
+      }
+      try {
+        setSearchLoading(true);
+        const { data } = await api.get(
+          `/products?search=${encodeURIComponent(searchTerm)}`
+        );
+        setSearchProducts(data.slice(0, 5)); // Show max 5 results
+      } catch (error) {
+        console.error("Error searching products:", error);
+        setSearchProducts([]);
+      } finally {
+        setSearchLoading(false);
+      }
+    };
+
+    const debounce = setTimeout(searchProductsApi, 300);
+    return () => clearTimeout(debounce);
+  }, [searchTerm]);
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchTerm.trim()) {
-      navigate(`/search?q=${encodeURIComponent(searchTerm)}`);
+      navigate(`/products?search=${encodeURIComponent(searchTerm)}`);
       setShowSearch(false);
       setSearchTerm("");
+      setSearchProducts([]);
     }
+  };
+
+  const goToProduct = (productId: string) => {
+    setShowSearch(false);
+    setSearchTerm("");
+    setSearchProducts([]);
+    navigate(`/product/${productId}`);
   };
 
   const toggleMenu = () => setShowMenu((p) => !p);
@@ -445,23 +480,69 @@ const Navbar: React.FC = () => {
                 <FaSearch />
               </button>
 
-              {searchTerm && filteredSubmenu.length > 0 && (
-                <div className="absolute w-full top-full mt-2 bg-white dark:bg-gray-800 rounded-xl shadow-2xl border max-h-96 overflow-auto z-50">
-                  <p className="px-6 py-3 font-semibold bg-gray-100 dark:bg-gray-700">
-                    Quick Categories
-                  </p>
-                  {filteredSubmenu.map((c) => (
-                    <button
-                      key={c.name}
-                      onClick={() => goCategory(c.name)}
-                      className="w-full text-left px-6 py-4 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-all flex items-center gap-3"
-                    >
-                      {c.icon && <c.icon className="text-lg" />}
-                      {c.name}
-                    </button>
-                  ))}
-                </div>
-              )}
+              {searchTerm &&
+                (searchProducts.length > 0 ||
+                  filteredSubmenu.length > 0 ||
+                  searchLoading) && (
+                  <div className="absolute w-full top-full mt-2 bg-white dark:bg-gray-800 rounded-xl shadow-2xl border max-h-96 overflow-auto z-50">
+                    {/* Products Results */}
+                    {searchLoading && (
+                      <p className="px-6 py-4 text-gray-500 text-center">
+                        Searching...
+                      </p>
+                    )}
+                    {!searchLoading && searchProducts.length > 0 && (
+                      <>
+                        <p className="px-6 py-3 font-semibold bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300">
+                          Products
+                        </p>
+                        {searchProducts.map((product) => (
+                          <button
+                            key={product._id}
+                            onClick={() => goToProduct(product._id)}
+                            className="w-full text-left px-6 py-3 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all flex items-center gap-3"
+                          >
+                            <img
+                              src={product.images?.[0] || "/placeholder.jpg"}
+                              alt={product.title}
+                              className="w-12 h-12 object-cover rounded-lg"
+                            />
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium text-gray-900 dark:text-white truncate">
+                                {product.title}
+                              </p>
+                              <p className="text-sm text-[var(--root-color)] font-bold">
+                                Rs. {product.price?.toLocaleString()}
+                              </p>
+                            </div>
+                          </button>
+                        ))}
+                      </>
+                    )}
+                    {/* Categories Results */}
+                    {filteredSubmenu.length > 0 && (
+                      <>
+                        <p className="px-6 py-3 font-semibold bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300">
+                          Categories
+                        </p>
+                        {filteredSubmenu.map((c) => (
+                          <button
+                            key={c.name}
+                            onClick={() => goCategory(c.name)}
+                            className="w-full text-left px-6 py-3 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all flex items-center gap-3"
+                          >
+                            {c.icon && (
+                              <c.icon className="text-lg text-[var(--root-color)]" />
+                            )}
+                            <span className="text-gray-900 dark:text-white">
+                              {c.name}
+                            </span>
+                          </button>
+                        ))}
+                      </>
+                    )}
+                  </div>
+                )}
             </form>
           </div>
         </div>

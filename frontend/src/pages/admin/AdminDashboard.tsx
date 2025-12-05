@@ -224,9 +224,11 @@ const AdminDashboard = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="bg-gradient-to-r from-[var(--root-color)] to-purple-600 rounded-2xl p-8 text-white shadow-xl">
-        <h1 className="text-4xl font-bold mb-2">Dashboard Overview</h1>
-        <p className="text-white/90 text-lg">
+      <div className="bg-gradient-to-r from-[var(--root-color)] to-purple-600 rounded-2xl p-4 md:p-8 text-white shadow-xl">
+        <h1 className="text-2xl md:text-4xl font-bold mb-2">
+          Dashboard Overview
+        </h1>
+        <p className="text-white/90 text-sm md:text-lg">
           Welcome back! Here's what's happening with your store today.
         </p>
       </div>

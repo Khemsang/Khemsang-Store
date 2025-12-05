@@ -4,41 +4,43 @@ const aboutSchema = new mongoose.Schema(
   {
     heroTitle: {
       type: String,
-      required: true,
+      default: "",
     },
     heroSubtitle: {
       type: String,
-      required: true,
+      default: "",
     },
     heroDescription: {
       type: String,
-      required: true,
+      default: "",
     },
     heroImage: {
       type: String,
-      required: true,
+      default: "",
     },
     heroSmallImage1: {
       type: String,
+      default: "",
     },
     heroSmallImage2: {
       type: String,
+      default: "",
     },
     yearsOfExperience: {
       type: Number,
-      required: true,
+      default: 10,
     },
     happyCustomers: {
       type: Number,
-      required: true,
+      default: 5000,
     },
     whyChooseTitle: {
       type: String,
-      required: true,
+      default: "",
     },
     whyChooseDescription: {
       type: String,
-      required: true,
+      default: "",
     },
     galleryImages: [
       {
@@ -47,11 +49,11 @@ const aboutSchema = new mongoose.Schema(
     ],
     ctaTitle: {
       type: String,
-      required: true,
+      default: "",
     },
     ctaDescription: {
       type: String,
-      required: true,
+      default: "",
     },
     isActive: {
       type: Boolean,

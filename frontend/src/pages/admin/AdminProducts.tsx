@@ -30,7 +30,7 @@ const AdminProducts = () => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [productToDelete, setProductToDelete] = useState<Product | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 9;
+  const itemsPerPage = 12;
   const { success, error } = useToast();
 
   // Paginated products
@@ -209,12 +209,12 @@ const AdminProducts = () => {
   return (
     <div className="space-y-6">
       {/* Header Section */}
-      <div className="bg-gradient-to-r from-blue-500 to-indigo-600 rounded-2xl p-8 text-white shadow-xl">
+      <div className="bg-gradient-to-r from-blue-500 to-indigo-600 rounded-2xl p-4 md:p-8 text-white shadow-xl">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
-            <h2 className="text-4xl font-bold mb-2 flex items-center gap-3">
+            <h2 className="text-2xl md:text-4xl font-bold mb-2 flex items-center gap-2 md:gap-3">
               <svg
-                className="w-10 h-10"
+                className="w-6 h-6 md:w-10 md:h-10"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -228,7 +228,7 @@ const AdminProducts = () => {
               </svg>
               Products Management
             </h2>
-            <p className="text-white/90 text-lg">
+            <p className="text-white/90 text-sm md:text-lg">
               {products.length} product{products.length !== 1 ? "s" : ""} in
               inventory
             </p>
@@ -241,7 +241,7 @@ const AdminProducts = () => {
                 setShowForm(true);
               }
             }}
-            className="px-6 py-3 bg-white text-blue-600 rounded-xl hover:bg-blue-50 transition-all duration-200 shadow-lg font-semibold flex items-center gap-2 transform hover:scale-105"
+            className="px-4 py-2 md:px-6 md:py-3 bg-white text-blue-600 rounded-lg md:rounded-xl hover:bg-blue-50 transition-all duration-200 shadow-lg font-semibold flex items-center gap-2 transform hover:scale-105 text-sm md:text-base"
           >
             {showForm ? (
               <>
@@ -600,7 +600,7 @@ const AdminProducts = () => {
         </form>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2 md:gap-4">
         {products.length === 0 ? (
           <div className="col-span-full text-center py-12">
             <div className="text-6xl mb-4">📦</div>
@@ -615,18 +615,18 @@ const AdminProducts = () => {
           paginatedProducts.map((product) => (
             <div
               key={product._id}
-              className={`bg-white dark:bg-gray-800 rounded-2xl p-4 shadow-lg border-2 transition-all duration-300 ${
+              className={`bg-white dark:bg-gray-800 rounded-lg md:rounded-xl p-1.5 md:p-3 shadow border transition-all duration-300 ${
                 editingProduct?._id === product._id
-                  ? "border-blue-500 ring-4 ring-blue-200 dark:ring-blue-900/50 scale-105"
-                  : "border-gray-200 dark:border-gray-700 hover:shadow-xl"
+                  ? "border-blue-500 ring-2 ring-blue-200 dark:ring-blue-900/50"
+                  : "border-gray-200 dark:border-gray-700 hover:shadow-md"
               }`}
             >
               {/* Editing Badge */}
               {editingProduct?._id === product._id && (
-                <div className="mb-3 p-2 bg-blue-50 dark:bg-blue-900/30 border-l-4 border-blue-500 rounded">
-                  <p className="text-sm font-semibold text-blue-700 dark:text-blue-400 flex items-center gap-2">
+                <div className="mb-2 md:mb-3 p-1.5 md:p-2 bg-blue-50 dark:bg-blue-900/30 border-l-4 border-blue-500 rounded">
+                  <p className="text-xs md:text-sm font-semibold text-blue-700 dark:text-blue-400 flex items-center gap-1 md:gap-2">
                     <svg
-                      className="w-4 h-4"
+                      className="w-3 h-3 md:w-4 md:h-4"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -638,62 +638,62 @@ const AdminProducts = () => {
                         d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
                       />
                     </svg>
-                    Currently Editing
+                    <span className="hidden sm:inline">Currently</span> Editing
                   </p>
                 </div>
               )}
 
               {/* Image with badge */}
-              <div className="relative mb-3">
+              <div className="relative mb-1.5 md:mb-3">
                 <img
                   src={product.images?.[0] || "/placeholder.jpg"}
                   alt={product.title}
-                  className="w-full h-48 object-cover rounded-xl"
+                  className="w-full h-24 md:h-40 object-cover rounded-lg md:rounded-xl"
                 />
                 {product.images.length > 1 && (
-                  <span className="absolute top-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded-full">
-                    +{product.images.length - 1} more
+                  <span className="absolute top-1 right-1 md:top-2 md:right-2 bg-black/70 text-white text-[10px] md:text-xs px-1.5 py-0.5 md:px-2 md:py-1 rounded-full">
+                    +{product.images.length - 1}
                   </span>
                 )}
                 {product.stock < 10 && (
-                  <span className="absolute top-2 left-2 bg-red-500 text-white text-xs px-2 py-1 rounded-full font-semibold">
-                    Low Stock
+                  <span className="absolute top-1 left-1 md:top-2 md:left-2 bg-red-500 text-white text-[10px] md:text-xs px-1.5 py-0.5 md:px-2 md:py-1 rounded-full font-semibold">
+                    Low
                   </span>
                 )}
               </div>
 
               {/* Product Info */}
-              <div className="space-y-2">
-                <h3 className="font-bold text-lg text-gray-900 dark:text-white line-clamp-2">
+              <div className="space-y-1 md:space-y-2">
+                <h3 className="font-bold text-xs md:text-lg text-gray-900 dark:text-white line-clamp-1 md:line-clamp-2">
                   {product.title}
                 </h3>
-                <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
+                <p className="text-[10px] md:text-sm text-gray-600 dark:text-gray-400 line-clamp-1 md:line-clamp-2 hidden md:block">
                   {product.description}
                 </p>
-                <div className="flex items-center justify-between pt-2">
-                  <p className="text-2xl font-bold text-[var(--root-color)]">
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between pt-1 md:pt-2 gap-1">
+                  <p className="text-sm md:text-2xl font-bold text-[var(--root-color)]">
                     Rs. {product.price.toLocaleString()}
                   </p>
-                  <span className="px-3 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full text-sm font-medium">
+                  <span className="px-2 py-0.5 md:px-3 md:py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full text-[10px] md:text-sm font-medium w-fit">
                     Stock: {product.stock}
                   </span>
                 </div>
-                <div className="pt-2">
-                  <span className="inline-block px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-full text-xs font-medium">
+                <div className="pt-1 md:pt-2">
+                  <span className="inline-block px-2 py-0.5 md:px-3 md:py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 rounded-full text-[10px] md:text-xs font-medium">
                     {product.category}
                   </span>
                 </div>
               </div>
 
               {/* Action Buttons */}
-              <div className="flex flex-col gap-2 mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-                <div className="flex gap-2">
+              <div className="flex flex-col gap-1 md:gap-2 mt-2 md:mt-4 pt-2 md:pt-4 border-t border-gray-200 dark:border-gray-700">
+                <div className="flex gap-1 md:gap-2">
                   <button
                     onClick={() => handleEdit(product)}
-                    className="flex-1 bg-blue-500 text-white px-3 py-2 rounded-lg hover:bg-blue-600 transition-colors font-medium flex items-center justify-center gap-2"
+                    className="flex-1 bg-blue-500 text-white px-2 py-1.5 md:px-3 md:py-2 rounded-lg hover:bg-blue-600 transition-colors font-medium flex items-center justify-center gap-1 md:gap-2 text-xs md:text-base"
                   >
                     <svg
-                      className="w-4 h-4"
+                      className="w-3 h-3 md:w-4 md:h-4"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -705,14 +705,14 @@ const AdminProducts = () => {
                         d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
                       />
                     </svg>
-                    Edit
+                    <span className="hidden sm:inline">Edit</span>
                   </button>
                   <button
                     onClick={() => handleDeleteClick(product)}
-                    className="flex-1 bg-red-500 text-white px-3 py-2 rounded-lg hover:bg-red-600 transition-colors font-medium flex items-center justify-center gap-2"
+                    className="flex-1 bg-red-500 text-white px-2 py-1.5 md:px-3 md:py-2 rounded-lg hover:bg-red-600 transition-colors font-medium flex items-center justify-center gap-1 md:gap-2 text-xs md:text-base"
                   >
                     <svg
-                      className="w-4 h-4"
+                      className="w-3 h-3 md:w-4 md:h-4"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -724,15 +724,15 @@ const AdminProducts = () => {
                         d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
                       />
                     </svg>
-                    Delete
+                    <span className="hidden sm:inline">Delete</span>
                   </button>
                 </div>
                 <button
                   onClick={() => handleAddToFeatured(product)}
-                  className="w-full bg-gradient-to-r from-purple-500 to-pink-600 text-white px-3 py-2 rounded-lg hover:from-purple-600 hover:to-pink-700 transition-colors font-medium flex items-center justify-center gap-2"
+                  className="w-full bg-gradient-to-r from-purple-500 to-pink-600 text-white px-2 py-1.5 md:px-3 md:py-2 rounded-lg hover:from-purple-600 hover:to-pink-700 transition-colors font-medium flex items-center justify-center gap-1 md:gap-2 text-xs md:text-base"
                 >
                   <svg
-                    className="w-4 h-4"
+                    className="w-3 h-3 md:w-4 md:h-4"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -744,7 +744,7 @@ const AdminProducts = () => {
                       d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
                     />
                   </svg>
-                  Add to Featured
+                  <span className="hidden sm:inline">Add to</span> Featured
                 </button>
               </div>
             </div>

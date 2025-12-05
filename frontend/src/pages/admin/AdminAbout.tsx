@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { api } from "../../services/api";
 import { useToast } from "../../context/ToastContext";
+import { uploadImage } from "../../utils/imageUpload";
 import {
   FaImage,
   FaStar,
@@ -11,6 +12,7 @@ import {
   FaTrash,
   FaSave,
   FaInfoCircle,
+  FaUpload,
 } from "react-icons/fa";
 
 interface AboutData {
@@ -34,6 +36,8 @@ const AdminAbout = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const { showToast } = useToast();
+
+  const [uploading, setUploading] = useState<string | null>(null);
 
   const [formData, setFormData] = useState<AboutData>({
     heroTitle: "",
@@ -121,6 +125,41 @@ const AdminAbout = () => {
       (_, i) => i !== index
     );
     setFormData({ ...formData, galleryImages: newGalleryImages });
+  };
+
+  const handleImageUpload = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+    field: string,
+    galleryIndex?: number
+  ) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      showToast("Please select an image file", "error");
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      showToast("Image size should be less than 5MB", "error");
+      return;
+    }
+
+    try {
+      setUploading(field);
+      const imageUrl = await uploadImage(file);
+
+      if (galleryIndex !== undefined) {
+        handleGalleryImageChange(galleryIndex, imageUrl);
+      } else {
+        setFormData({ ...formData, [field]: imageUrl });
+      }
+      showToast("Image uploaded successfully", "success");
+    } catch (error: any) {
+      showToast(error.message || "Failed to upload image", "error");
+    } finally {
+      setUploading(null);
+    }
   };
 
   if (loading) {
@@ -230,17 +269,32 @@ const AdminAbout = () => {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="group">
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Main Image URL
+                    Main Image
                   </label>
-                  <input
-                    type="url"
-                    value={formData.heroImage}
-                    onChange={(e) =>
-                      setFormData({ ...formData, heroImage: e.target.value })
-                    }
-                    className="w-full px-3 py-2 border-2 border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm"
-                    placeholder="https://..."
-                  />
+                  <div className="flex gap-2 mb-2">
+                    <input
+                      type="url"
+                      value={formData.heroImage}
+                      onChange={(e) =>
+                        setFormData({ ...formData, heroImage: e.target.value })
+                      }
+                      className="flex-1 px-3 py-2 border-2 border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm"
+                      placeholder="https://..."
+                    />
+                    <label className="cursor-pointer px-3 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition flex items-center gap-1">
+                      <FaUpload className="text-xs" />
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => handleImageUpload(e, "heroImage")}
+                        className="hidden"
+                        disabled={uploading === "heroImage"}
+                      />
+                    </label>
+                  </div>
+                  {uploading === "heroImage" && (
+                    <p className="text-xs text-purple-500">Uploading...</p>
+                  )}
                   {formData.heroImage && (
                     <img
                       src={formData.heroImage}
@@ -251,20 +305,37 @@ const AdminAbout = () => {
                 </div>
                 <div className="group">
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Small Image 1 URL
+                    Small Image 1
                   </label>
-                  <input
-                    type="url"
-                    value={formData.heroSmallImage1}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        heroSmallImage1: e.target.value,
-                      })
-                    }
-                    className="w-full px-3 py-2 border-2 border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm"
-                    placeholder="https://..."
-                  />
+                  <div className="flex gap-2 mb-2">
+                    <input
+                      type="url"
+                      value={formData.heroSmallImage1}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          heroSmallImage1: e.target.value,
+                        })
+                      }
+                      className="flex-1 px-3 py-2 border-2 border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm"
+                      placeholder="https://..."
+                    />
+                    <label className="cursor-pointer px-3 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition flex items-center gap-1">
+                      <FaUpload className="text-xs" />
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) =>
+                          handleImageUpload(e, "heroSmallImage1")
+                        }
+                        className="hidden"
+                        disabled={uploading === "heroSmallImage1"}
+                      />
+                    </label>
+                  </div>
+                  {uploading === "heroSmallImage1" && (
+                    <p className="text-xs text-purple-500">Uploading...</p>
+                  )}
                   {formData.heroSmallImage1 && (
                     <img
                       src={formData.heroSmallImage1}
@@ -275,20 +346,37 @@ const AdminAbout = () => {
                 </div>
                 <div className="group">
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Small Image 2 URL
+                    Small Image 2
                   </label>
-                  <input
-                    type="url"
-                    value={formData.heroSmallImage2}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        heroSmallImage2: e.target.value,
-                      })
-                    }
-                    className="w-full px-3 py-2 border-2 border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm"
-                    placeholder="https://..."
-                  />
+                  <div className="flex gap-2 mb-2">
+                    <input
+                      type="url"
+                      value={formData.heroSmallImage2}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          heroSmallImage2: e.target.value,
+                        })
+                      }
+                      className="flex-1 px-3 py-2 border-2 border-gray-200 dark:border-gray-700 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent dark:bg-gray-700 dark:text-white text-sm"
+                      placeholder="https://..."
+                    />
+                    <label className="cursor-pointer px-3 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition flex items-center gap-1">
+                      <FaUpload className="text-xs" />
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) =>
+                          handleImageUpload(e, "heroSmallImage2")
+                        }
+                        className="hidden"
+                        disabled={uploading === "heroSmallImage2"}
+                      />
+                    </label>
+                  </div>
+                  {uploading === "heroSmallImage2" && (
+                    <p className="text-xs text-purple-500">Uploading...</p>
+                  )}
                   {formData.heroSmallImage2 && (
                     <img
                       src={formData.heroSmallImage2}
@@ -442,15 +530,33 @@ const AdminAbout = () => {
                     </button>
                   )}
                 </div>
-                <input
-                  type="url"
-                  value={img}
-                  onChange={(e) =>
-                    handleGalleryImageChange(index, e.target.value)
-                  }
-                  placeholder={`Gallery Image ${index + 1} URL`}
-                  className="w-full px-4 py-2.5 border-2 border-gray-200 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-all duration-200"
-                />
+                <div className="flex gap-2">
+                  <input
+                    type="url"
+                    value={img}
+                    onChange={(e) =>
+                      handleGalleryImageChange(index, e.target.value)
+                    }
+                    placeholder={`Gallery Image ${index + 1} URL`}
+                    className="flex-1 px-4 py-2.5 border-2 border-gray-200 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent dark:bg-gray-700 dark:text-white transition-all duration-200"
+                  />
+                  <label className="cursor-pointer px-4 py-2.5 bg-green-500 text-white rounded-lg hover:bg-green-600 transition flex items-center gap-2 font-medium">
+                    <FaUpload className="text-sm" />
+                    <span className="hidden sm:inline">Upload</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) =>
+                        handleImageUpload(e, `gallery-${index}`, index)
+                      }
+                      className="hidden"
+                      disabled={uploading === `gallery-${index}`}
+                    />
+                  </label>
+                </div>
+                {uploading === `gallery-${index}` && (
+                  <p className="text-xs text-green-500 mt-1">Uploading...</p>
+                )}
                 {img && (
                   <div className="mt-3 relative overflow-hidden rounded-lg shadow-md group-hover:shadow-xl transition-shadow duration-200">
                     <img

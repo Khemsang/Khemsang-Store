@@ -1,6 +1,9 @@
 import Order from "../models/Order.js";
 import User from "../models/User.js";
-import { verifyEsewaPayment } from "../services/esewaService.js";
+import {
+  verifyEsewaPayment,
+  generateEsewaSignature,
+} from "../services/esewaService.js";
 import { logActivity } from "./activityController.js";
 
 /**
@@ -12,11 +15,19 @@ export const createOrder = async (req, res) => {
   try {
     const { items, totalAmount, shippingAddress, paymentMethod } = req.body;
 
-    if (!items?.length) return res.status(400).json({ message: "No items in order" });
+    if (!items?.length)
+      return res.status(400).json({ message: "No items in order" });
     if (!totalAmount || totalAmount <= 0)
       return res.status(400).json({ message: "Invalid total amount" });
-    if (!shippingAddress?.fullName || !shippingAddress?.phone || !shippingAddress?.address || !shippingAddress?.city)
-      return res.status(400).json({ message: "Complete shipping address required" });
+    if (
+      !shippingAddress?.fullName ||
+      !shippingAddress?.phone ||
+      !shippingAddress?.address ||
+      !shippingAddress?.city
+    )
+      return res
+        .status(400)
+        .json({ message: "Complete shipping address required" });
 
     const order = await Order.create({
       user: req.user._id,
@@ -31,12 +42,18 @@ export const createOrder = async (req, res) => {
     // Log activity
     await logActivity(
       req.user._id,
-      `Placed order #${order._id.toString().slice(-6)} - Rs. ${order.totalAmount}`,
+      `Placed order #${order._id.toString().slice(-6)} - Rs. ${
+        order.totalAmount
+      }`,
       "order",
       "FaShoppingBag",
       order._id,
       null,
-      { totalAmount: order.totalAmount, itemCount: order.items.length, paymentMethod: order.paymentMethod }
+      {
+        totalAmount: order.totalAmount,
+        itemCount: order.items.length,
+        paymentMethod: order.paymentMethod,
+      }
     );
 
     // Clear user cart
@@ -44,7 +61,9 @@ export const createOrder = async (req, res) => {
 
     res.status(201).json(order);
   } catch (err) {
-    res.status(500).json({ message: "Failed to create order", error: err.message });
+    res
+      .status(500)
+      .json({ message: "Failed to create order", error: err.message });
   }
 };
 
@@ -55,7 +74,9 @@ export const createOrder = async (req, res) => {
  */
 export const getMyOrders = async (req, res) => {
   try {
-    const orders = await Order.find({ user: req.user._id }).populate("items.product").sort({ createdAt: -1 });
+    const orders = await Order.find({ user: req.user._id })
+      .populate("items.product")
+      .sort({ createdAt: -1 });
     res.json(orders);
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -86,11 +107,14 @@ export const getAllOrders = async (req, res) => {
  */
 export const getOrderById = async (req, res) => {
   try {
-    const order = await Order.findById(req.params.id).populate("user", "name email").populate("items.product");
+    const order = await Order.findById(req.params.id)
+      .populate("user", "name email")
+      .populate("items.product");
     if (!order) return res.status(404).json({ message: "Order not found" });
 
     const isOwner = order.user._id.toString() === req.user._id.toString();
-    if (!isOwner && !req.user.isAdmin) return res.status(403).json({ message: "Not authorized" });
+    if (!isOwner && !req.user.isAdmin)
+      return res.status(403).json({ message: "Not authorized" });
 
     res.json(order);
   } catch (err) {
@@ -118,28 +142,70 @@ export const updateOrderStatus = async (req, res) => {
 };
 
 /**
- * VERIFY ESEWA PAYMENT
+ * VERIFY ESEWA PAYMENT (v2 API)
  * GET /api/orders/esewa/verify
  * Public (callback)
  */
 export const verifyPayment = async (req, res) => {
   try {
-    const { oid, amt, refId } = req.query;
-    const verification = await verifyEsewaPayment(oid, amt, refId);
+    const { data } = req.query; // eSewa v2 returns base64 encoded data
 
-    if (verification.success) {
-      const order = await Order.findById(oid);
-      if (order) {
-        order.paymentStatus = "paid";
-        order.transactionId = refId;
-        order.orderStatus = "processing";
-        await order.save();
+    if (data) {
+      // New v2 API
+      const verification = await verifyEsewaPayment(data);
+
+      if (verification.success) {
+        const order = await Order.findById(verification.orderId);
+        if (order) {
+          order.paymentStatus = "paid";
+          order.transactionId = verification.orderId;
+          order.orderStatus = "processing";
+          await order.save();
+        }
+        return res.redirect(
+          `${process.env.FRONTEND_URL}/payment/success?orderId=${verification.orderId}`
+        );
       }
-      return res.redirect(`${process.env.FRONTEND_URL}/payment/success?orderId=${oid}`);
-    } 
-    res.redirect(`${process.env.FRONTEND_URL}/payment/failed?orderId=${oid}`);
-  } catch (err) {
+    } else {
+      // Legacy API fallback
+      const { oid, amt, refId } = req.query;
+      if (oid) {
+        const order = await Order.findById(oid);
+        if (order) {
+          order.paymentStatus = "paid";
+          order.transactionId = refId || oid;
+          order.orderStatus = "processing";
+          await order.save();
+        }
+        return res.redirect(
+          `${process.env.FRONTEND_URL}/payment/success?orderId=${oid}`
+        );
+      }
+    }
+
     res.redirect(`${process.env.FRONTEND_URL}/payment/failed`);
+  } catch (err) {
+    console.error("Payment verification error:", err);
+    res.redirect(`${process.env.FRONTEND_URL}/payment/failed`);
+  }
+};
+
+/**
+ * GET ESEWA SIGNATURE
+ * POST /api/orders/esewa/signature
+ * Private
+ */
+export const getEsewaSignature = async (req, res) => {
+  try {
+    const { totalAmount, transactionUuid, productCode } = req.body;
+    const signature = generateEsewaSignature(
+      totalAmount,
+      transactionUuid,
+      productCode || "EPAYTEST"
+    );
+    res.json({ signature });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 };
 

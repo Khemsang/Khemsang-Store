@@ -157,31 +157,31 @@ const AdminOrders = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="bg-gradient-to-r from-emerald-500 to-teal-600 rounded-2xl p-8 text-white shadow-xl">
-        <h2 className="text-4xl font-bold mb-2 flex items-center">
-          <FaShoppingCart className="mr-3" />
+      <div className="bg-gradient-to-r from-emerald-500 to-teal-600 rounded-2xl p-4 md:p-8 text-white shadow-xl">
+        <h2 className="text-2xl md:text-4xl font-bold mb-2 flex items-center">
+          <FaShoppingCart className="mr-2 md:mr-3 text-xl md:text-4xl" />
           Orders Management
         </h2>
-        <p className="text-white/90 text-lg">
+        <p className="text-white/90 text-sm md:text-lg">
           Manage and track all customer orders
         </p>
       </div>
 
       {/* Status Filter */}
-      <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg border border-gray-200 dark:border-gray-700">
-        <div className="flex flex-wrap gap-3">
+      <div className="bg-white dark:bg-gray-800 rounded-2xl p-3 md:p-6 shadow-lg border border-gray-200 dark:border-gray-700">
+        <div className="flex flex-wrap gap-2 md:gap-3">
           {statusOptions.map((option) => (
             <button
               key={option.value}
               onClick={() => setStatusFilter(option.value)}
-              className={`px-6 py-3 rounded-xl font-semibold transition-all duration-200 ${
+              className={`px-3 py-2 md:px-6 md:py-3 rounded-lg md:rounded-xl font-medium md:font-semibold text-xs md:text-base transition-all duration-200 ${
                 statusFilter === option.value
                   ? "bg-gradient-to-r from-[var(--root-color)] to-purple-600 text-white shadow-lg scale-105"
                   : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
               }`}
             >
               {option.label}
-              <span className="ml-2 px-2 py-1 bg-white/20 rounded-full text-sm">
+              <span className="ml-1 md:ml-2 px-1.5 md:px-2 py-0.5 md:py-1 bg-white/20 rounded-full text-xs">
                 {option.count}
               </span>
             </button>

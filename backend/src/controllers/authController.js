@@ -109,10 +109,23 @@ export const resendVerification = async (req, res) => {
 export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
+    console.log("Login attempt for:", email);
+
     const user = await User.findOne({ email }).select("+password");
-    if (!user) return res.status(401).json({ message: "Invalid credentials" });
+    if (!user) {
+      console.log("User not found:", email);
+      return res.status(401).json({ message: "Invalid credentials" });
+    }
+
+    console.log(
+      "User found, password hash:",
+      user.password?.substring(0, 10) + "..."
+    );
+    console.log("Password starts with $2:", user.password?.startsWith("$2"));
 
     const isMatch = await user.matchPassword(password);
+    console.log("Password match result:", isMatch);
+
     if (!isMatch)
       return res.status(401).json({ message: "Invalid credentials" });
 
@@ -345,11 +358,9 @@ export const resetPassword = async (req, res) => {
 
     if (!user) {
       if (userWithToken) {
-        return res
-          .status(400)
-          .json({
-            message: "Reset token has expired. Please request a new one.",
-          });
+        return res.status(400).json({
+          message: "Reset token has expired. Please request a new one.",
+        });
       }
       return res.status(400).json({ message: "Invalid reset token" });
     }
