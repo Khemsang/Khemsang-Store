@@ -2,71 +2,117 @@ import nodemailer from "nodemailer";
 import dotenv from "dotenv";
 dotenv.config();
 
-let transporter;
+let transporter = null;
+let isTransporterReady = false;
 
-const createTransporter = () => {
-  const smtpHost = process.env.SMTP_HOST || "smtp-relay.brevo.com";
+const createTransporter = async () => {
+  const smtpHost = process.env.SMTP_HOST?.trim();
   const smtpPort = Number(process.env.SMTP_PORT) || 587;
-  const smtpUser = process.env.SMTP_USER;
-  const smtpPass = process.env.SMTP_PASS;
+  const smtpUser = process.env.SMTP_USER?.trim();
+  const smtpPass = process.env.SMTP_PASS?.trim();
 
-  if (smtpUser && smtpPass) {
+  // Guard: Check all required credentials
+  if (!smtpHost || !smtpUser || !smtpPass) {
+    const missing = [];
+    if (!smtpHost) missing.push("SMTP_HOST");
+    if (!smtpUser) missing.push("SMTP_USER");
+    if (!smtpPass) missing.push("SMTP_PASS");
+    console.log(`⚠️ SMTP not configured. Missing: ${missing.join(", ")}`);
+    return false;
+  }
+
+  // Guard: Validate port
+  if (isNaN(smtpPort) || smtpPort < 1 || smtpPort > 65535) {
+    console.log(`❌ Invalid SMTP_PORT: ${process.env.SMTP_PORT}`);
+    return false;
+  }
+
+  try {
     transporter = nodemailer.createTransport({
       host: smtpHost,
       port: smtpPort,
-      secure: false,
+      secure: smtpPort === 465, // true for 465, false for other ports
       auth: {
         user: smtpUser,
         pass: smtpPass,
       },
+      connectionTimeout: 10000, // 10 seconds
+      greetingTimeout: 10000,
+      socketTimeout: 15000,
     });
 
-    // Verify connection
-    transporter.verify((err) => {
-      if (err) {
-        console.log("❌ SMTP connection failed:", err.message);
-      } else {
-        console.log("✅ Brevo SMTP ready");
-      }
-    });
-  } else {
-    console.log("⚠️ SMTP credentials not configured");
+    // Verify connection with promise
+    await transporter.verify();
+    isTransporterReady = true;
+    console.log("✅ Brevo SMTP ready");
+    return true;
+  } catch (err) {
+    console.log("❌ SMTP connection failed:", err.message);
+    transporter = null;
+    isTransporterReady = false;
+    return false;
   }
 };
 
+// Initialize on load (non-blocking)
+createTransporter().catch(() => {});
+
 createTransporter();
 
-// Generic send function
+// Generic send function with guards
 export const sendEmail = async ({ to, subject, html }) => {
-  if (!transporter) {
-    console.log("⚠️ Email transporter not ready, retrying...");
-    await createTransporter();
+  // Guard: Validate recipient
+  if (!to || typeof to !== "string" || !to.includes("@")) {
+    throw new Error("Invalid recipient email address");
   }
 
-  if (!transporter) {
-    console.error("❌ Email service unavailable");
-    throw new Error("Email service unavailable");
+  // Guard: Validate subject
+  if (!subject || typeof subject !== "string") {
+    throw new Error("Email subject is required");
+  }
+
+  // Guard: Validate content
+  if (!html || typeof html !== "string") {
+    throw new Error("Email content is required");
+  }
+
+  // Guard: Check transporter
+  if (!transporter || !isTransporterReady) {
+    console.log("⚠️ Email transporter not ready, attempting to reconnect...");
+    const connected = await createTransporter();
+    if (!connected) {
+      throw new Error(
+        "Email service unavailable - SMTP not configured or connection failed"
+      );
+    }
+  }
+
+  const fromEmail = process.env.EMAIL_FROM?.trim();
+  if (!fromEmail) {
+    throw new Error("EMAIL_FROM environment variable not configured");
   }
 
   try {
     const info = await transporter.sendMail({
-      from: process.env.EMAIL_FROM || "noreply@test.com",
-      to,
+      from: fromEmail,
+      to: to.trim(),
       subject,
       html,
     });
     console.log(`✅ Email sent to: ${to}`);
 
     // If using Ethereal, show preview URL
-    if (info.messageId && info.envelope) {
-      const previewUrl = nodemailer.getTestMessageUrl(info);
-      if (previewUrl) {
-        console.log(`📧 Preview URL: ${previewUrl}`);
-      }
+    const previewUrl = nodemailer.getTestMessageUrl(info);
+    if (previewUrl) {
+      console.log(`📧 Preview URL: ${previewUrl}`);
     }
+
+    return info;
   } catch (error) {
     console.error("❌ Failed to send email:", error.message);
-    throw new Error("Failed to send email");
+    // Reset transporter on send failure
+    isTransporterReady = false;
+    throw new Error(`Failed to send email: ${error.message}`);
   }
 };
 
@@ -339,15 +385,27 @@ export const sendOTPEmail = async (email, otp) => {
 
 // Test connection
 export const testEmailConnection = async () => {
-  if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
+  if (
+    !process.env.SMTP_HOST ||
+    !process.env.SMTP_USER ||
+    !process.env.SMTP_PASS
+  ) {
     console.log("⚠️ SMTP credentials not configured");
-    return false;
+    return { success: false, error: "Missing SMTP credentials" };
   }
 
-  if (transporter) {
+  if (transporter && isTransporterReady) {
     console.log("✅ Email server ready");
-    return true;
+    return { success: true };
   }
 
-  return false;
+  // Try to reconnect
+  const connected = await createTransporter();
+  return {
+    success: connected,
+    error: connected ? null : "Failed to connect to SMTP server",
+  };
 };
+
+// Export for health checks
+export const isEmailReady = () => isTransporterReady;
