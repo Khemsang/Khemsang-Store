@@ -1,12 +1,10 @@
 import nodemailer from "nodemailer";
 import dotenv from "dotenv";
-dotenv.config(); // Must be first
+dotenv.config();
 
-// Create transporter
 let transporter;
 
 const createTransporter = () => {
-  // Support both SMTP_USER/SMTP_PASS and EMAIL_USER/EMAIL_PASS
   const emailUser = process.env.SMTP_USER || process.env.EMAIL_USER;
   const emailPass = process.env.SMTP_PASS || process.env.EMAIL_PASS;
   const smtpHost = process.env.SMTP_HOST || "smtp.gmail.com";
@@ -16,14 +14,14 @@ const createTransporter = () => {
     transporter = nodemailer.createTransport({
       host: smtpHost,
       port: smtpPort,
-      secure: smtpPort === 465, // true for 465, false for other ports
+      secure: false,
       auth: {
         user: emailUser,
         pass: emailPass,
       },
-      tls: {
-        rejectUnauthorized: false,
-      },
+      connectionTimeout: 10000,
+      greetingTimeout: 10000,
+      socketTimeout: 10000,
     });
     console.log(`✅ SMTP configured (${smtpHost}:${smtpPort})`);
   } else {
@@ -31,7 +29,6 @@ const createTransporter = () => {
   }
 };
 
-// Initialize transporter immediately
 createTransporter();
 
 // Generic send function
