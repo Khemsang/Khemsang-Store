@@ -9,19 +9,23 @@ const createTransporter = () => {
   // Support both SMTP_USER/SMTP_PASS and EMAIL_USER/EMAIL_PASS
   const emailUser = process.env.SMTP_USER || process.env.EMAIL_USER;
   const emailPass = process.env.SMTP_PASS || process.env.EMAIL_PASS;
+  const smtpHost = process.env.SMTP_HOST || "smtp.gmail.com";
+  const smtpPort = Number(process.env.SMTP_PORT) || 587;
 
-  // If Gmail credentials provided, use Gmail
   if (emailUser && emailPass) {
     transporter = nodemailer.createTransport({
-      host: "smtp.gmail.com",
-      port: 465,
-      secure: true,
+      host: smtpHost,
+      port: smtpPort,
+      secure: smtpPort === 465, // true for 465, false for other ports
       auth: {
         user: emailUser,
         pass: emailPass,
       },
+      tls: {
+        rejectUnauthorized: false,
+      },
     });
-    console.log("✅ Gmail SMTP configured");
+    console.log(`✅ SMTP configured (${smtpHost}:${smtpPort})`);
   } else {
     console.log("⚠️ SMTP credentials not configured");
   }
