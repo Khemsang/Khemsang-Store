@@ -5,25 +5,30 @@ dotenv.config();
 let transporter;
 
 const createTransporter = () => {
-  const emailUser = process.env.SMTP_USER || process.env.EMAIL_USER;
-  const emailPass = process.env.SMTP_PASS || process.env.EMAIL_PASS;
-  const smtpHost = process.env.SMTP_HOST || "smtp.gmail.com";
+  const smtpHost = process.env.SMTP_HOST || "smtp-relay.brevo.com";
   const smtpPort = Number(process.env.SMTP_PORT) || 587;
+  const smtpUser = process.env.SMTP_USER;
+  const smtpPass = process.env.SMTP_PASS;
 
-  if (emailUser && emailPass) {
+  if (smtpUser && smtpPass) {
     transporter = nodemailer.createTransport({
       host: smtpHost,
       port: smtpPort,
       secure: false,
       auth: {
-        user: emailUser,
-        pass: emailPass,
+        user: smtpUser,
+        pass: smtpPass,
       },
-      connectionTimeout: 10000,
-      greetingTimeout: 10000,
-      socketTimeout: 10000,
     });
-    console.log(`✅ SMTP configured (${smtpHost}:${smtpPort})`);
+
+    // Verify connection
+    transporter.verify((err) => {
+      if (err) {
+        console.log("❌ SMTP connection failed:", err.message);
+      } else {
+        console.log("✅ Brevo SMTP ready");
+      }
+    });
   } else {
     console.log("⚠️ SMTP credentials not configured");
   }
@@ -332,18 +337,13 @@ export const sendOTPEmail = async (email, otp) => {
   });
 };
 
-// Test connection - skip verify to avoid timeout
+// Test connection
 export const testEmailConnection = async () => {
-  const emailUser = process.env.SMTP_USER || process.env.EMAIL_USER;
-  const emailPass = process.env.SMTP_PASS || process.env.EMAIL_PASS;
-
-  if (!emailUser || !emailPass) {
-    console.log("⚠️ Email credentials not configured");
+  if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
+    console.log("⚠️ SMTP credentials not configured");
     return false;
   }
 
-  // Just check if transporter exists, don't verify connection
-  // Gmail will work when actually sending emails
   if (transporter) {
     console.log("✅ Email server ready");
     return true;
