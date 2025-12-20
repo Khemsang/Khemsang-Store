@@ -1,23 +1,34 @@
 import nodemailer from "nodemailer";
+import dotenv from "dotenv";
+dotenv.config(); // must be at top
 
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST || "smtp-relay.brevo.com",
-  port: Number(process.env.SMTP_PORT) || 587,
-  secure: false,
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
-  },
-  tls: { rejectUnauthorized: false },
-  connectionTimeout: 30000,
-  greetingTimeout: 30000,
-  socketTimeout: 30000,
-});
+let transporter = null;
 
-// Generic function to send email
+// Lazy transporter creation
+const getTransporter = () => {
+  if (!transporter) {
+    transporter = nodemailer.createTransport({
+      host: process.env.SMTP_HOST || "smtp.gmail.com",
+      port: Number(process.env.SMTP_PORT) || 587,
+      secure: false, // 587 TLS
+      auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS, // Gmail App Password
+      },
+      tls: { rejectUnauthorized: false },
+      connectionTimeout: 30000,
+      greetingTimeout: 30000,
+      socketTimeout: 30000,
+    });
+  }
+  return transporter;
+};
+
+// Generic send email
 const sendEmail = async ({ to, subject, html }) => {
   try {
-    await transporter.sendMail({
+    const transport = getTransporter();
+    await transport.sendMail({
       from: process.env.EMAIL_FROM,
       to,
       subject,
@@ -27,7 +38,7 @@ const sendEmail = async ({ to, subject, html }) => {
   } catch (err) {
     console.error("❌ Failed to send email:", err.message);
     if (process.env.NODE_ENV === "development") {
-      console.log("⚠️ Dev mode - email skipped");
+      console.log("⚠️ Dev mode - email fallback, content below:\n", html);
     }
   }
 };
@@ -65,6 +76,17 @@ export const sendPasswordResetEmail = async (email, token) => {
     </div>
   `;
   await sendEmail({ to: email, subject: "🔑 Password Reset Request", html });
+};
+
+// Test SMTP connection
+export const testEmailConnection = async () => {
+  try {
+    const transport = getTransporter();
+    await transport.verify();
+    console.log("✅ SMTP Auth successful!");
+  } catch (err) {
+    console.error("❌ SMTP Auth failed:", err.message);
+  }
 };
 
 export default sendEmail;

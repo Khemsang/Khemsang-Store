@@ -21,6 +21,12 @@ const createTransporter = async () => {
     return false;
   }
 
+  // Skip if placeholder password
+  if (smtpPass.includes("YOUR_") || smtpPass.includes("CHANGE_")) {
+    console.log("⚠️ SMTP password is placeholder - skipping email setup");
+    return false;
+  }
+
   // Guard: Validate port
   if (isNaN(smtpPort) || smtpPort < 1 || smtpPort > 65535) {
     console.log(`❌ Invalid SMTP_PORT: ${process.env.SMTP_PORT}`);
@@ -40,41 +46,24 @@ const createTransporter = async () => {
         rejectUnauthorized: false,
         minVersion: "TLSv1.2",
       },
-      connectionTimeout: 30000, // 30 seconds
+      connectionTimeout: 30000,
       greetingTimeout: 30000,
       socketTimeout: 30000,
       logger: false,
       debug: false,
     });
 
-    // Verify connection with promise
-    await transporter.verify();
+    // Don't verify on startup - just create transporter
     isTransporterReady = true;
-    console.log("✅ SMTP ready");
+    console.log("✅ SMTP transporter created (will verify on first send)");
     return true;
   } catch (err) {
-    console.log("❌ SMTP connection failed:", err.message);
-    // Create transporter anyway for lazy connection
-    transporter = nodemailer.createTransport({
-      host: smtpHost,
-      port: smtpPort,
-      secure: smtpPort === 465,
-      auth: {
-        user: smtpUser,
-        pass: smtpPass,
-      },
-      tls: {
-        rejectUnauthorized: false,
-      },
-    });
-    isTransporterReady = true; // Allow sending attempts
-    console.log("⚠️ SMTP verify failed, will retry on send");
-    return true;
+    console.log("❌ SMTP setup failed:", err.message);
+    return false;
   }
 };
 
-// Initialize on load (non-blocking)
-createTransporter().catch(() => {});
+// Don't initialize on load - create lazily when needed
 
 // Generic send function with guards
 export const sendEmail = async ({ to, subject, html }) => {
