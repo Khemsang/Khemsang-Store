@@ -1,9 +1,11 @@
 import Testimonial from "../models/Testimonial.js";
 
-// Get all active testimonials
+// Get all testimonials (admin gets all, public gets only active)
 export const getAllTestimonials = async (req, res) => {
   try {
-    const testimonials = await Testimonial.find({ isActive: true }).sort({
+    // If admin query param is true, return all testimonials
+    const filter = req.query.all === "true" ? {} : { isActive: true };
+    const testimonials = await Testimonial.find(filter).sort({
       createdAt: -1,
     });
     res.json(testimonials);

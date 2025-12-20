@@ -9,3 +9,6 @@ export * from "./sections";
 
 // Special components
 export { default as EcoProducts } from "./EcoProducts/ecoProducts";
+
+// Order components
+export { default as InvoiceDownload } from "./orders/InvoiceDownload";

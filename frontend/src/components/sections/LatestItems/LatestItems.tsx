@@ -1,9 +1,13 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { motion, useAnimation } from "framer-motion";
 import { useInView } from "react-intersection-observer";
 import { useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../../store/hooks";
 import { fetchProducts } from "../../../store/slices/productsSlice";
+import SimpleProductCard from "../../products/SimpleProductCard";
+import { useCart } from "../../../context/CartContext";
+import { useToast } from "../../../context/ToastContext";
+import { ViewAllButton } from "../../common";
 
 const LatestItems: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -13,7 +17,13 @@ const LatestItems: React.FC = () => {
   );
   const controls = useAnimation();
   const [ref, inView] = useInView({ triggerOnce: true, threshold: 0.1 });
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const { addToCart } = useCart();
+  const { showToast } = useToast();
+
+  const handleAddToCart = (product: any) => {
+    addToCart(product._id, 1);
+    showToast(`${product.title} added to cart!`, "success");
+  };
 
   useEffect(() => {
     dispatch(fetchProducts());
@@ -34,20 +44,6 @@ const LatestItems: React.FC = () => {
       return dateB - dateA;
     })
     .slice(0, 8);
-
-  const itemsPerSlide = 4;
-  const totalSlides = Math.ceil(latestProducts.length / itemsPerSlide);
-
-  // Auto-slide every 5 seconds
-  useEffect(() => {
-    if (latestProducts.length <= itemsPerSlide) return;
-
-    const interval = setInterval(() => {
-      setCurrentIndex((prev) => (prev === totalSlides - 1 ? 0 : prev + 1));
-    }, 5000);
-
-    return () => clearInterval(interval);
-  }, [latestProducts.length, totalSlides, itemsPerSlide]);
 
   if (loading) {
     return (
@@ -97,108 +93,33 @@ const LatestItems: React.FC = () => {
             </p>
           </div>
 
-          {/* Slider Container */}
-          <div className="relative overflow-hidden">
-            <div
-              className="flex transition-transform duration-500 ease-in-out gap-4"
-              style={{
-                transform: `translateX(-${currentIndex * 100}%)`,
-              }}
-            >
-              {Array.from({ length: totalSlides }).map((_, slideIndex) => (
-                <div
-                  key={slideIndex}
-                  className="min-w-full grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 md:gap-4"
-                >
-                  {latestProducts
-                    .slice(
-                      slideIndex * itemsPerSlide,
-                      (slideIndex + 1) * itemsPerSlide
-                    )
-                    .map((item, index) => (
-                      <motion.div
-                        key={item._id}
-                        initial={{ opacity: 0, y: 30 }}
-                        animate={controls}
-                        variants={{
-                          visible: {
-                            opacity: 1,
-                            y: 0,
-                            transition: { delay: index * 0.1, duration: 0.5 },
-                          },
-                        }}
-                        onClick={() => navigate(`/product/${item._id}`)}
-                        className="group bg-white dark:bg-gray-700 rounded-lg md:rounded-xl overflow-hidden shadow-md hover:shadow-xl transition-all duration-300 cursor-pointer border border-gray-200 dark:border-gray-600 hover:border-green-500"
-                      >
-                        <div className="relative h-28 sm:h-36 md:h-48 bg-gray-100 dark:bg-gray-600 overflow-hidden">
-                          <img
-                            src={item.images?.[0] || "/placeholder.jpg"}
-                            alt={item.title}
-                            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                          />
-                          <div className="absolute top-1 right-1 md:top-2 md:right-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white px-1.5 py-0.5 md:px-2 md:py-1 rounded-md md:rounded-lg text-[10px] md:text-xs font-bold shadow-lg flex items-center gap-0.5 md:gap-1">
-                            <svg
-                              className="w-2.5 h-2.5 md:w-3 md:h-3"
-                              fill="none"
-                              stroke="currentColor"
-                              viewBox="0 0 24 24"
-                            >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M13 10V3L4 14h7v7l9-11h-7z"
-                              />
-                            </svg>
-                            New
-                          </div>
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                        </div>
-                        <div className="p-2 md:p-3">
-                          <h3 className="font-bold text-xs md:text-sm text-gray-900 dark:text-white mb-0.5 md:mb-1 line-clamp-1">
-                            {item.title}
-                          </h3>
-                          <p className="text-[10px] md:text-xs text-gray-600 dark:text-gray-400 mb-1 md:mb-2 line-clamp-1">
-                            {item.description}
-                          </p>
-                          <div className="flex items-center justify-between">
-                            <span className="text-sm md:text-lg font-bold text-[var(--root-color)]">
-                              Rs. {item.price?.toLocaleString()}
-                            </span>
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                navigate(`/product/${item._id}`);
-                              }}
-                              className="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-2 py-1 md:px-3 md:py-1.5 rounded-md md:rounded-lg hover:from-green-600 hover:to-emerald-700 transition-all text-[10px] md:text-xs font-medium shadow-md"
-                            >
-                              View
-                            </button>
-                          </div>
-                        </div>
-                      </motion.div>
-                    ))}
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Dots Indicator */}
-          {latestProducts.length > itemsPerSlide && (
-            <div className="flex justify-center gap-2 mt-6">
-              {Array.from({ length: totalSlides }).map((_, index) => (
-                <button
-                  key={index}
-                  onClick={() => setCurrentIndex(index)}
-                  className={`h-2 rounded-full transition-all duration-300 ${
-                    currentIndex === index
-                      ? "w-8 bg-gradient-to-r from-green-500 to-emerald-600"
-                      : "w-2 bg-gray-300 dark:bg-gray-600"
-                  }`}
+          {/* Products Grid */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+            {latestProducts.map((item, index) => (
+              <motion.div
+                key={item._id}
+                initial={{ opacity: 0, y: 30 }}
+                animate={controls}
+                variants={{
+                  visible: {
+                    opacity: 1,
+                    y: 0,
+                    transition: { delay: index * 0.05, duration: 0.5 },
+                  },
+                }}
+              >
+                <SimpleProductCard
+                  product={item}
+                  onAddToCart={handleAddToCart}
+                  badge={
+                    <span className="px-2 py-0.5 bg-gradient-to-r from-green-500 to-emerald-600 text-white text-[10px] font-bold rounded">
+                      NEW
+                    </span>
+                  }
                 />
-              ))}
-            </div>
-          )}
+              </motion.div>
+            ))}
+          </div>
 
           {/* View All Button */}
           <motion.div
@@ -211,27 +132,12 @@ const LatestItems: React.FC = () => {
                 transition: { delay: 0.8, duration: 0.5 },
               },
             }}
-            className="text-center mt-8"
           >
-            <button
-              onClick={() => navigate("/products")}
-              className="inline-flex items-center gap-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white px-6 py-3 rounded-xl hover:from-green-600 hover:to-emerald-700 transition-all duration-300 font-semibold shadow-lg hover:shadow-xl transform hover:scale-105"
-            >
-              <span>View All Products</span>
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M17 8l4 4m0 0l-4 4m4-4H3"
-                />
-              </svg>
-            </button>
+            <ViewAllButton
+              to="/products"
+              label="View All Products"
+              variant="green"
+            />
           </motion.div>
         </motion.div>
       </div>

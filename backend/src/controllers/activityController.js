@@ -1,4 +1,5 @@
 import Activity from "../models/Activity.js";
+import User from "../models/User.js";
 
 // Get latest 20 activities for logged-in user
 export const getUserActivities = async (req, res) => {
@@ -8,6 +9,47 @@ export const getUserActivities = async (req, res) => {
       .populate("relatedProduct", "title images")
       .sort({ createdAt: -1 })
       .limit(20);
+
+    res.json(activities);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// Get all admin activities (Super Admin only)
+export const getAllAdminActivities = async (req, res) => {
+  try {
+    // Get all admin user IDs
+    const admins = await User.find({
+      isAdmin: true,
+      isSuperAdmin: { $ne: true },
+    }).select("_id");
+    const adminIds = admins.map((a) => a._id);
+
+    const activities = await Activity.find({ user: { $in: adminIds } })
+      .populate("user", "name email")
+      .populate("relatedOrder", "totalAmount orderStatus")
+      .populate("relatedProduct", "title images")
+      .sort({ createdAt: -1 })
+      .limit(100);
+
+    res.json(activities);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// Get specific admin's activities (Super Admin only)
+export const getAdminActivitiesById = async (req, res) => {
+  try {
+    const { adminId } = req.params;
+
+    const activities = await Activity.find({ user: adminId })
+      .populate("user", "name email")
+      .populate("relatedOrder", "totalAmount orderStatus")
+      .populate("relatedProduct", "title images")
+      .sort({ createdAt: -1 })
+      .limit(50);
 
     res.json(activities);
   } catch (err) {
@@ -45,7 +87,15 @@ export const logActivity = async (
   metadata = null
 ) => {
   try {
-    await Activity.create({ user: userId, action, type, icon, relatedOrder, relatedProduct, metadata });
+    await Activity.create({
+      user: userId,
+      action,
+      type,
+      icon,
+      relatedOrder,
+      relatedProduct,
+      metadata,
+    });
   } catch (err) {
     console.error("Activity logging error:", err);
   }

@@ -1,4 +1,5 @@
 import User from "../models/User.js";
+import PendingUser from "../models/PendingUser.js";
 import OTP from "../models/OTP.js";
 import crypto from "crypto";
 import { sendVerificationEmail } from "../config/email.js";
@@ -9,7 +10,7 @@ import {
 import { generateToken, setTokenCookie } from "../utils/generateToken.js";
 import { createActivity } from "./activityController.js";
 
-// SIGNUP
+// SIGNUP - Save to PendingUser until email verified
 export const signup = async (req, res) => {
   try {
     const { name, email, password, isAdmin } = req.body;
@@ -18,17 +19,23 @@ export const signup = async (req, res) => {
         .status(400)
         .json({ message: "Provide name, email, and password" });
 
-    const exists = await User.findOne({ email });
-    if (exists) return res.status(400).json({ message: "User already exists" });
+    // Check if user already exists in main User collection
+    const existingUser = await User.findOne({ email });
+    if (existingUser)
+      return res.status(400).json({ message: "User already exists" });
+
+    // Check if pending signup exists - delete old one and create new
+    await PendingUser.deleteMany({ email });
 
     const verificationToken = crypto.randomBytes(32).toString("hex");
     const verificationTokenExpires = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
-    const user = await User.create({
+
+    // Save to PendingUser (NOT User) - will be moved after verification
+    const pendingUser = await PendingUser.create({
       name,
       email,
       password,
       isAdmin: isAdmin || false,
-      isVerified: false,
       verificationToken,
       verificationTokenExpires,
     });
@@ -36,14 +43,15 @@ export const signup = async (req, res) => {
     try {
       await sendVerificationEmail(email, verificationToken);
       return res.status(201).json({
-        message: "Signup successful! Check your email to verify your account.",
-        userId: user._id,
+        message:
+          "Verification email sent! Please check your email to complete signup.",
+        pendingUserId: pendingUser._id,
       });
     } catch {
       const verificationUrl = `${process.env.FRONTEND_URL}/verify-email?token=${verificationToken}`;
       return res.status(201).json({
-        message: "Signup successful! Email service unavailable in dev.",
-        userId: user._id,
+        message: "Verification email sent! (Dev mode - check console)",
+        pendingUserId: pendingUser._id,
         verificationToken:
           process.env.NODE_ENV === "development"
             ? verificationToken
@@ -57,30 +65,135 @@ export const signup = async (req, res) => {
   }
 };
 
-// VERIFY EMAIL
+// VERIFY EMAIL - Move from PendingUser to User
 export const verifyEmail = async (req, res) => {
   try {
     const { token } = req.params;
-    const user = await User.findOne({
-      verificationToken: token,
-      verificationTokenExpires: { $gt: Date.now() },
+    console.log("🔍 Verifying token:", token?.substring(0, 20) + "...");
+
+    // First check in PendingUser collection
+    const pendingUser = await PendingUser.findOne({ verificationToken: token });
+    console.log("📋 PendingUser found:", pendingUser ? "Yes" : "No");
+
+    if (pendingUser) {
+      console.log("⏰ Token expires:", pendingUser.verificationTokenExpires);
+      console.log("⏰ Current time:", new Date());
+      console.log(
+        "⏰ Is expired:",
+        pendingUser.verificationTokenExpires < Date.now()
+      );
+
+      // Check if token expired
+      if (pendingUser.verificationTokenExpires < Date.now()) {
+        await PendingUser.deleteOne({ _id: pendingUser._id });
+        console.log("❌ Token expired, deleted pending user");
+        return res.status(400).json({
+          message: "Verification link expired. Please signup again.",
+          reason: "token_expired",
+        });
+      }
+
+      // Check if email already taken (race condition or double-click)
+      const existingUser = await User.findOne({ email: pendingUser.email });
+      if (existingUser) {
+        await PendingUser.deleteOne({ _id: pendingUser._id });
+        // If user exists and is verified, treat as success (double-click scenario)
+        if (existingUser.isVerified) {
+          const authToken = generateToken(existingUser._id);
+          setTokenCookie(res, authToken);
+          console.log("✅ User already verified (double-click), logging in");
+          return res.json({
+            message: "Email verified successfully!",
+            user: existingUser,
+          });
+        }
+        return res.status(400).json({
+          message: "Email already registered. Please login.",
+        });
+      }
+
+      // Create actual user from pending user - WITHOUT password first to avoid double-hashing
+      const user = new User({
+        name: pendingUser.name,
+        email: pendingUser.email,
+        isAdmin: pendingUser.isAdmin,
+        isVerified: true,
+        lastVerificationToken: token,
+        otpVerifiedAt: new Date(), // Skip OTP for first login after email verification
+      });
+
+      // Set password directly (already hashed in PendingUser) - bypass the pre-save hook
+      user.password = pendingUser.password;
+      await user.save({ validateBeforeSave: false });
+
+      // Delete pending user
+      await PendingUser.deleteOne({ _id: pendingUser._id });
+
+      console.log("✅ User created with correct password hash");
+
+      // Auto-login
+      const authToken = generateToken(user._id);
+      setTokenCookie(res, authToken);
+
+      console.log("✅ User created and verified:", user.email);
+      return res.json({
+        message: "Email verified successfully! Welcome!",
+        user,
+      });
+    }
+
+    // PendingUser not found - check if user was already verified with this token
+    // This handles double-click / React StrictMode double-render scenarios
+    const verifiedUser = await User.findOne({ lastVerificationToken: token });
+
+    if (verifiedUser && verifiedUser.isVerified) {
+      console.log(
+        "✅ Found user verified with this token (double-click), logging in"
+      );
+      const authToken = generateToken(verifiedUser._id);
+      setTokenCookie(res, authToken);
+      return res.json({
+        message: "Email verified successfully!",
+        user: verifiedUser,
+      });
+    }
+
+    // Check if already verified user (for old flow compatibility)
+    const user = await User.findOne({ verificationToken: token });
+    if (user) {
+      if (user.isVerified) {
+        const authToken = generateToken(user._id);
+        setTokenCookie(res, authToken);
+        return res.json({ message: "Email already verified", user });
+      }
+
+      if (
+        user.verificationTokenExpires &&
+        user.verificationTokenExpires < Date.now()
+      ) {
+        return res.status(400).json({
+          message: "Verification link expired. Please request a new one.",
+        });
+      }
+
+      user.isVerified = true;
+      user.verificationToken = undefined;
+      user.verificationTokenExpires = undefined;
+      await user.save();
+
+      const authToken = generateToken(user._id);
+      setTokenCookie(res, authToken);
+
+      return res.json({ message: "Email verified successfully", user });
+    }
+
+    return res.status(400).json({
+      message: "Invalid or expired verification link. Please signup again.",
+      reason: "token_not_found",
     });
-    if (!user)
-      return res
-        .status(400)
-        .json({ message: "Invalid or expired verification link" });
-
-    user.isVerified = true;
-    user.verificationToken = undefined;
-    user.verificationTokenExpires = undefined;
-    await user.save();
-
-    const authToken = generateToken(user._id);
-    setTokenCookie(res, authToken);
-
-    res.json({ message: "Email verified successfully", user });
   } catch (err) {
-    res.status(500).json({ message: err.message });
+    console.error("❌ Verify email error:", err);
+    res.status(500).json({ message: err.message, reason: "server_error" });
   }
 };
 
@@ -114,7 +227,7 @@ export const login = async (req, res) => {
     const user = await User.findOne({ email }).select("+password");
     if (!user) {
       console.log("User not found:", email);
-      return res.status(401).json({ message: "Invalid credentials" });
+      return res.status(404).json({ message: "User not found" });
     }
 
     console.log(
@@ -127,12 +240,39 @@ export const login = async (req, res) => {
     console.log("Password match result:", isMatch);
 
     if (!isMatch)
-      return res.status(401).json({ message: "Invalid credentials" });
+      return res.status(401).json({ message: "Incorrect password" });
 
     if (!user.isVerified)
       return res
         .status(400)
         .json({ message: "Verify your email first", needsVerification: true });
+
+    // Check if user/admin is blocked
+    if (user.isBlocked) {
+      const message = user.isAdmin
+        ? "Your admin account has been suspended. Please contact Super Admin for assistance."
+        : "Your account has been blocked. Please contact support for assistance.";
+      return res.status(403).json({
+        message,
+        isBlocked: true,
+      });
+    }
+
+    // Check if admin status is suspended
+    if (user.isAdmin && user.adminStatus === "suspended") {
+      return res.status(403).json({
+        message:
+          "Your admin account has been suspended. Please contact Super Admin for assistance.",
+        isSuspended: true,
+      });
+    }
+
+    // Super Admin bypasses OTP
+    if (user.isSuperAdmin) {
+      const token = generateToken(user._id);
+      setTokenCookie(res, token);
+      return res.json(user);
+    }
 
     const otpValidMinutes = 15;
     const needsOTP =
@@ -145,7 +285,7 @@ export const login = async (req, res) => {
       await OTP.create({
         email,
         otp: otpCode,
-        expiresAt: new Date(Date.now() + 10 * 60 * 1000),
+        expiresAt: new Date(Date.now() + 15 * 60 * 1000), // 15 minutes
       });
 
       try {
@@ -213,7 +353,7 @@ export const resendOTP = async (req, res) => {
     await OTP.create({
       email,
       otp: otpCode,
-      expiresAt: new Date(Date.now() + 10 * 60 * 1000),
+      expiresAt: new Date(Date.now() + 15 * 60 * 1000), // 15 minutes
     });
 
     try {
@@ -403,4 +543,134 @@ export const getUserStats = async (req, res) => {
     wishlistItems: 0,
     reviewsGiven: 0,
   });
+};
+
+// ADDRESS MANAGEMENT
+export const getAddresses = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    res.json(user.addresses || []);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+export const addAddress = async (req, res) => {
+  try {
+    const { label, fullName, phone, address, city, isDefault } = req.body;
+    const user = await User.findById(req.user._id);
+
+    // If this is default, unset other defaults
+    if (isDefault) {
+      user.addresses = user.addresses.map((addr) => ({
+        ...addr.toObject(),
+        isDefault: false,
+      }));
+    }
+
+    user.addresses.push({ label, fullName, phone, address, city, isDefault });
+    await user.save();
+
+    res.json({ message: "Address added", addresses: user.addresses });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+export const updateAddress = async (req, res) => {
+  try {
+    const { addressId } = req.params;
+    const { label, fullName, phone, address, city, isDefault } = req.body;
+    const user = await User.findById(req.user._id);
+
+    const addrIndex = user.addresses.findIndex(
+      (a) => a._id.toString() === addressId
+    );
+    if (addrIndex === -1)
+      return res.status(404).json({ message: "Address not found" });
+
+    // If setting as default, unset others
+    if (isDefault) {
+      user.addresses = user.addresses.map((addr) => ({
+        ...addr.toObject(),
+        isDefault: false,
+      }));
+    }
+
+    user.addresses[addrIndex] = {
+      ...user.addresses[addrIndex].toObject(),
+      label,
+      fullName,
+      phone,
+      address,
+      city,
+      isDefault,
+    };
+    await user.save();
+
+    res.json({ message: "Address updated", addresses: user.addresses });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+export const deleteAddress = async (req, res) => {
+  try {
+    const { addressId } = req.params;
+    const user = await User.findById(req.user._id);
+
+    user.addresses = user.addresses.filter(
+      (a) => a._id.toString() !== addressId
+    );
+    await user.save();
+
+    res.json({ message: "Address deleted", addresses: user.addresses });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// WISHLIST MANAGEMENT
+export const getWishlist = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id).populate("wishlist");
+    res.json(user.wishlist || []);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+export const addToWishlist = async (req, res) => {
+  try {
+    const { productId } = req.body;
+    const user = await User.findById(req.user._id);
+
+    if (!user.wishlist.includes(productId)) {
+      user.wishlist.push(productId);
+      await user.save();
+    }
+
+    const updatedUser = await User.findById(req.user._id).populate("wishlist");
+    res.json({ message: "Added to wishlist", wishlist: updatedUser.wishlist });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+export const removeFromWishlist = async (req, res) => {
+  try {
+    const { productId } = req.params;
+    const user = await User.findById(req.user._id);
+
+    user.wishlist = user.wishlist.filter((id) => id.toString() !== productId);
+    await user.save();
+
+    const updatedUser = await User.findById(req.user._id).populate("wishlist");
+    res.json({
+      message: "Removed from wishlist",
+      wishlist: updatedUser.wishlist,
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
 };

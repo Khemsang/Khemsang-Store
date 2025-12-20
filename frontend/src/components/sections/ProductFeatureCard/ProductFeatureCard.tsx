@@ -1,51 +1,88 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
+import { FaStar } from "react-icons/fa";
+import { useCart } from "../../../context/CartContext";
+import { useToast } from "../../../context/ToastContext";
 
 interface ProductFeatureCardProps {
+  _id?: string;
   title?: string;
   description?: string;
   image?: string;
   price?: number;
   originalPrice?: number;
   discount?: number;
+  productId?: string;
 }
 
 const ProductFeatureCard: React.FC<ProductFeatureCardProps> = ({
+  _id,
   title = "Product",
-  description = "Product description",
   image = "/placeholder.jpg",
   price = 0,
   originalPrice,
   discount = 0,
+  productId,
 }) => {
+  const navigate = useNavigate();
+  const { addToCart } = useCart();
+  const { showToast } = useToast();
+
+  const handleAddToCart = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (productId) {
+      addToCart({ _id: productId, title, price, images: [image] }, 1);
+      showToast(`${title} added to cart!`, "success");
+    } else {
+      navigate(`/featured/${_id}`);
+    }
+  };
+
   return (
-    <div className="bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2">
-      <div className="relative h-64 bg-gray-100">
-        <img src={image} alt={title} className="w-full h-full object-cover" />
+    <div className="bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-all group h-full flex flex-col">
+      <div
+        className="relative aspect-square cursor-pointer overflow-hidden flex-shrink-0"
+        onClick={() => navigate(`/featured/${_id}`)}
+      >
+        <img
+          src={image}
+          alt={title}
+          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+        />
+        <span className="absolute top-2 left-2 px-2 py-1 bg-gradient-to-r from-yellow-500 to-orange-500 text-white text-xs font-bold rounded-full flex items-center gap-1">
+          <FaStar className="w-3 h-3" />
+          Featured
+        </span>
         {discount > 0 && (
-          <span className="absolute top-2 right-2 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
+          <span className="absolute top-2 right-2 px-2 py-1 bg-red-500 text-white text-xs font-bold rounded-full">
             -{discount}%
           </span>
         )}
       </div>
-      <div className="p-5">
-        <h3 className="font-semibold text-lg text-gray-800 mb-2 line-clamp-1">
+      <div className="p-4 flex flex-col flex-grow">
+        <h3
+          className="font-semibold text-gray-900 dark:text-white text-sm h-10 line-clamp-2 mb-2 cursor-pointer hover:text-purple-600"
+          onClick={() => navigate(`/featured/${_id}`)}
+        >
           {title}
         </h3>
-        <p className="text-sm text-gray-600 mb-4 line-clamp-2">{description}</p>
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <span className="text-2xl font-bold text-primary">
+        <div className="flex items-center justify-between mb-3 mt-auto">
+          <div className="flex flex-col">
+            <span className="text-lg font-bold text-purple-600">
               Rs. {price.toLocaleString()}
             </span>
-            {originalPrice && (
-              <span className="text-sm text-gray-400 line-through ml-2">
+            {originalPrice && originalPrice > price && (
+              <span className="text-xs text-gray-500 line-through">
                 Rs. {originalPrice.toLocaleString()}
               </span>
             )}
           </div>
         </div>
-        <button className="w-full bg-primary text-white py-3 rounded-lg hover:bg-primary/90 transition-colors font-semibold">
-          Add to Cart
+        <button
+          onClick={handleAddToCart}
+          className="w-full py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg text-sm font-medium hover:shadow-lg transition-all"
+        >
+          {productId ? "Add to Cart" : "View Details"}
         </button>
       </div>
     </div>

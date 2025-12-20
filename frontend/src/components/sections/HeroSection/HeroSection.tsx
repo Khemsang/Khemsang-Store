@@ -62,8 +62,7 @@ const HeroSection: React.FC = () => {
 
   return (
     <section
-      style={{ minHeight: "clamp(300px, 45svh, 500px)" }}
-      className="relative md:min-h-[100svh] flex items-center justify-center overflow-hidden bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-gray-900 dark:via-purple-900/20 dark:to-blue-900/20"
+      className="relative min-h-svh flex items-center justify-center overflow-hidden bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-gray-900 dark:via-purple-900/20 dark:to-blue-900/20"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >
@@ -217,16 +216,16 @@ const HeroSection: React.FC = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="flex flex-col sm:flex-row gap-2 md:gap-4 justify-center items-center"
+            className="flex flex-row gap-2 md:gap-4 justify-center items-center"
           >
             <button
               onClick={() => navigate(currentBanner?.buttonLink || "/products")}
-              className="group px-5 py-2.5 md:px-8 md:py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl md:rounded-2xl font-bold text-sm md:text-lg shadow-2xl hover:shadow-purple-500/50 transform hover:scale-105 transition-all duration-300"
+              className="group px-3 py-1.5 sm:px-5 sm:py-2.5 md:px-8 md:py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg sm:rounded-xl md:rounded-2xl font-semibold sm:font-bold text-xs sm:text-sm md:text-lg shadow-xl md:shadow-2xl hover:shadow-purple-500/50 transform hover:scale-105 transition-all duration-300"
             >
-              <span className="flex items-center gap-2">
+              <span className="flex items-center gap-1 sm:gap-2">
                 {currentBanner?.buttonText || "Shop Now"}
                 <svg
-                  className="w-4 h-4 md:w-5 md:h-5 group-hover:translate-x-1 transition-transform"
+                  className="w-3 h-3 sm:w-4 sm:h-4 md:w-5 md:h-5 group-hover:translate-x-1 transition-transform"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -242,7 +241,7 @@ const HeroSection: React.FC = () => {
             </button>
             <button
               onClick={() => navigate("/about")}
-              className="px-5 py-2.5 md:px-8 md:py-4 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm text-gray-900 dark:text-white rounded-xl md:rounded-2xl font-bold text-sm md:text-lg shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300"
+              className="px-3 py-1.5 sm:px-5 sm:py-2.5 md:px-8 md:py-4 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm text-gray-900 dark:text-white rounded-lg sm:rounded-xl md:rounded-2xl font-semibold sm:font-bold text-xs sm:text-sm md:text-lg shadow-lg md:shadow-xl hover:shadow-2xl transform hover:scale-105 transition-all duration-300"
             >
               Learn More
             </button>
@@ -266,29 +265,6 @@ const HeroSection: React.FC = () => {
           ))}
         </div>
       )}
-
-      {/* Scroll Indicator - hidden on mobile */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 1 }}
-        className="hidden md:flex absolute bottom-8 left-1/2 -translate-x-1/2 text-white/80 flex-col items-center gap-2"
-      >
-        <span className="text-sm font-medium">Scroll to explore</span>
-        <svg
-          className="w-6 h-6 animate-bounce"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M19 14l-7 7m0 0l-7-7m7 7V3"
-          />
-        </svg>
-      </motion.div>
 
       <style>{`
         @keyframes blob {

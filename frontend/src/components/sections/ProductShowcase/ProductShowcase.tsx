@@ -1,27 +1,18 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { FaStar } from "react-icons/fa";
 import { api } from "../../../services/api";
-
-interface Product {
-  _id: string;
-  title: string;
-  description: string;
-  price: number;
-  originalPrice?: number;
-  discount?: number;
-  image: string;
-  category: string;
-  isActive: boolean;
-  isFeatured: boolean;
-  productId?: string;
-  createdAt?: string;
-  updatedAt?: string;
-}
+import { useCart } from "../../../context/CartContext";
+import { useToast } from "../../../context/ToastContext";
+import SimpleProductCard from "../../products/SimpleProductCard";
+import { ViewAllButton } from "../../common";
 
 const ProductShowcase = () => {
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const { addToCart } = useCart();
+  const { showToast } = useToast();
 
   useEffect(() => {
     fetchFeaturedProducts();
@@ -121,95 +112,38 @@ const ProductShowcase = () => {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 md:gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
             {products.map((product) => (
-              <div
+              <SimpleProductCard
                 key={product._id}
-                onClick={() => {
-                  navigate(`/featured/${product._id}`);
+                product={product}
+                onAddToCart={() => {
+                  if (product.productId) {
+                    addToCart(product.productId, 1);
+                    showToast(`${product.title} added to cart!`, "success");
+                  } else {
+                    navigate(`/featured/${product._id}`);
+                  }
                 }}
-                className="group bg-white dark:bg-gray-800 rounded-lg md:rounded-xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-300 cursor-pointer border border-gray-200 dark:border-gray-700 hover:border-[var(--root-color)]"
-              >
-                <div className="relative aspect-square bg-gray-100 dark:bg-gray-700 overflow-hidden">
-                  <img
-                    src={
-                      product.images?.[0] || product.image || "/placeholder.jpg"
-                    }
-                    alt={product.title}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                  />
-                  <div className="absolute top-1 right-1 md:top-2 md:right-2 bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-1.5 py-0.5 md:px-2 md:py-1 rounded-md md:rounded-lg text-[10px] md:text-xs font-bold shadow-lg flex items-center gap-0.5 md:gap-1">
-                    <svg
-                      className="w-2.5 h-2.5 md:w-3 md:h-3"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                    >
-                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                    </svg>
-                    <span className="hidden sm:inline">Featured</span>
-                  </div>
-                  {product.discount && product.discount > 0 && (
-                    <div className="absolute top-1 left-1 md:top-2 md:left-2 bg-red-500 text-white px-1.5 py-0.5 md:px-2 md:py-1 rounded-md md:rounded-lg text-[10px] md:text-xs font-bold shadow-lg">
-                      -{product.discount}%
-                    </div>
-                  )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                </div>
-                <div className="p-2 md:p-4">
-                  <span className="inline-block px-1.5 py-0.5 md:px-2 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 rounded text-[10px] md:text-xs font-semibold mb-1 md:mb-2">
-                    {product.category}
+                badge={
+                  <span className="px-2 py-0.5 bg-gradient-to-r from-yellow-500 to-orange-500 text-white text-[10px] font-bold rounded flex items-center gap-1">
+                    <FaStar className="w-2.5 h-2.5" />
+                    Featured
                   </span>
-                  <h3 className="font-bold text-xs md:text-base text-gray-900 dark:text-white mb-0.5 md:mb-1 line-clamp-1">
-                    {product.title}
-                  </h3>
-                  <p className="text-[10px] md:text-sm text-gray-600 dark:text-gray-400 mb-1 md:mb-2 line-clamp-1 md:line-clamp-2">
-                    {product.description}
-                  </p>
-                  <div className="flex items-center justify-between">
-                    <div className="flex flex-col">
-                      <span className="text-sm md:text-lg font-bold text-[var(--root-color)]">
-                        Rs. {product.price.toLocaleString()}
-                      </span>
-                      {product.originalPrice &&
-                        product.originalPrice > product.price && (
-                          <span className="text-[10px] md:text-xs text-gray-500 line-through">
-                            Rs. {product.originalPrice.toLocaleString()}
-                          </span>
-                        )}
-                    </div>
-                    <button className="bg-gradient-to-r from-[var(--root-color)] to-purple-600 text-white px-2 py-1 md:px-3 md:py-1.5 rounded-md md:rounded-lg hover:from-[var(--root-color)] hover:to-purple-700 transition-all text-[10px] md:text-xs font-medium shadow-md">
-                      View
-                    </button>
-                  </div>
-                </div>
-              </div>
+                }
+                linkPrefix="/featured"
+              />
             ))}
           </div>
         )}
 
         {/* View All Button */}
         {products.length > 0 && (
-          <div className="text-center mt-8">
-            <button
-              onClick={() => navigate("/featured-products")}
-              className="inline-flex items-center gap-2 bg-gradient-to-r from-[var(--root-color)] to-purple-600 text-white px-6 py-3 rounded-xl hover:from-[var(--root-color)] hover:to-purple-700 transition-all duration-300 font-semibold shadow-lg hover:shadow-xl transform hover:scale-105"
-            >
-              <span>View All Featured Products</span>
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M17 8l4 4m0 0l-4 4m4-4H3"
-                />
-              </svg>
-            </button>
-          </div>
+          <ViewAllButton
+            to="/featured-products"
+            label="View All Featured Products"
+            variant="primary"
+          />
         )}
       </div>
     </div>

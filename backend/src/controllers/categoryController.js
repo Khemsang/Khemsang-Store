@@ -3,10 +3,20 @@ import Category from "../models/Category.js";
 // Get all active categories
 export const getAllCategories = async (req, res) => {
   try {
-    const categories = await Category.find({ isActive: true }).sort({ name: 1 });
+    const { adminOnly } = req.query;
+    const filter = { isActive: true };
+
+    // Super Admin sees ALL, regular admin sees only their own
+    if (adminOnly === "true" && req.user?.isAdmin && !req.user?.isSuperAdmin) {
+      filter.createdBy = req.user._id;
+    }
+
+    const categories = await Category.find(filter).sort({ name: 1 });
     res.json(categories);
   } catch (err) {
-    res.status(500).json({ message: "Error fetching categories", error: err.message });
+    res
+      .status(500)
+      .json({ message: "Error fetching categories", error: err.message });
   }
 };
 
@@ -14,45 +24,83 @@ export const getAllCategories = async (req, res) => {
 export const getCategoryById = async (req, res) => {
   try {
     const category = await Category.findById(req.params.id);
-    if (!category) return res.status(404).json({ message: "Category not found" });
+    if (!category)
+      return res.status(404).json({ message: "Category not found" });
     res.json(category);
   } catch (err) {
-    res.status(500).json({ message: "Error fetching category", error: err.message });
+    res
+      .status(500)
+      .json({ message: "Error fetching category", error: err.message });
   }
 };
 
 // Create category (admin only)
 export const createCategory = async (req, res) => {
   try {
-    const category = new Category(req.body);
+    const category = new Category({
+      ...req.body,
+      createdBy: req.user._id,
+    });
     await category.save();
     res.status(201).json(category);
   } catch (err) {
-    res.status(400).json({ message: "Error creating category", error: err.message });
+    res
+      .status(400)
+      .json({ message: "Error creating category", error: err.message });
   }
 };
 
-// Update category (admin only)
+// Update category (admin only - own categories only)
 export const updateCategory = async (req, res) => {
   try {
-    const category = await Category.findByIdAndUpdate(req.params.id, req.body, {
+    const category = await Category.findById(req.params.id);
+    if (!category)
+      return res.status(404).json({ message: "Category not found" });
+
+    // Both Super Admin and regular admin can only update their OWN categories
+    if (
+      category.createdBy &&
+      category.createdBy.toString() !== req.user._id.toString()
+    ) {
+      return res
+        .status(403)
+        .json({ message: "You can only update your own categories" });
+    }
+
+    const updated = await Category.findByIdAndUpdate(req.params.id, req.body, {
       new: true,
       runValidators: true,
     });
-    if (!category) return res.status(404).json({ message: "Category not found" });
-    res.json(category);
+    res.json(updated);
   } catch (err) {
-    res.status(400).json({ message: "Error updating category", error: err.message });
+    res
+      .status(400)
+      .json({ message: "Error updating category", error: err.message });
   }
 };
 
-// Delete category (admin only)
+// Delete category (admin only - own categories only)
 export const deleteCategory = async (req, res) => {
   try {
-    const category = await Category.findByIdAndDelete(req.params.id);
-    if (!category) return res.status(404).json({ message: "Category not found" });
+    const category = await Category.findById(req.params.id);
+    if (!category)
+      return res.status(404).json({ message: "Category not found" });
+
+    // Both Super Admin and regular admin can only delete their OWN categories
+    if (
+      category.createdBy &&
+      category.createdBy.toString() !== req.user._id.toString()
+    ) {
+      return res
+        .status(403)
+        .json({ message: "You can only delete your own categories" });
+    }
+
+    await Category.findByIdAndDelete(req.params.id);
     res.json({ message: "Category deleted successfully" });
   } catch (err) {
-    res.status(500).json({ message: "Error deleting category", error: err.message });
+    res
+      .status(500)
+      .json({ message: "Error deleting category", error: err.message });
   }
 };

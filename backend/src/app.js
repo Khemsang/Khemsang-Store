@@ -18,6 +18,9 @@ import contactRoutes from "./routes/contact.js";
 import featureRoutes from "./routes/features.js";
 import uploadRoutes from "./routes/upload.js";
 import activityRoutes from "./routes/activities.js";
+import brandRoutes from "./routes/brands.js";
+import couponRoutes from "./routes/coupons.js";
+import adminManagementRoutes from "./routes/adminManagement.js";
 
 // Middleware imports
 import { errorHandler } from "./middleware/errorHandler.js";
@@ -33,9 +36,15 @@ const app = express();
 // ==========================================
 // MIDDLEWARE SETUP
 // ==========================================
+const allowedOrigins = [
+  "http://localhost:5173",
+  "http://localhost:5174",
+  process.env.FRONTEND_URL,
+].filter(Boolean);
+
 app.use(
   cors({
-    origin: ["http://localhost:5173", "http://localhost:5174"],
+    origin: allowedOrigins,
     credentials: true,
   })
 );
@@ -61,10 +70,21 @@ app.use("/api/contact", contactRoutes);
 app.use("/api/features", featureRoutes);
 app.use("/api/upload", uploadRoutes);
 app.use("/api/activities", activityRoutes);
+app.use("/api/brands", brandRoutes);
+app.use("/api/coupons", couponRoutes);
+app.use("/api/admin-management", adminManagementRoutes);
 
 // ==========================================
 // HEALTH CHECK
 // ==========================================
+app.get("/api/health", (req, res) => {
+  res.json({
+    status: "OK",
+    message: "Server is running",
+    timestamp: new Date().toISOString(),
+  });
+});
+
 app.get("/health", (req, res) => {
   res.json({ status: "OK", message: "Server is running" });
 });

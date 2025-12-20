@@ -4,7 +4,15 @@ import { useCart } from "../../context/CartContext";
 import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../context/ToastContext";
 import { api } from "../../services/api";
+import { FaHeart } from "react-icons/fa";
 import ProductReviews from "../../components/sections/ProductReviews/ProductReviews";
+import { RecentlyViewed, addToRecentlyViewed } from "../../components/sections";
+import {
+  ShareProduct,
+  SizeGuide,
+  EstimatedDelivery,
+  NotifyMe,
+} from "../../components/ui";
 
 interface Product {
   _id: string;
@@ -35,11 +43,18 @@ const ProductDetailsPage: React.FC = () => {
     averageRating: number;
     totalReviews: number;
   } | null>(null);
+  const [isInWishlist, setIsInWishlist] = useState(false);
+  const [wishlistLoading, setWishlistLoading] = useState(false);
 
   useEffect(() => {
     fetchProduct();
     fetchReviewStats();
-  }, [id]);
+    checkWishlist();
+    // Add to recently viewed
+    if (id) {
+      addToRecentlyViewed(id);
+    }
+  }, [id, user]);
 
   const fetchProduct = async () => {
     try {
@@ -58,6 +73,59 @@ const ProductDetailsPage: React.FC = () => {
       setReviewStats(data);
     } catch (err: any) {
       console.error("Failed to fetch review stats:", err);
+    }
+  };
+
+  const checkWishlist = async () => {
+    if (!id) return;
+    if (user) {
+      try {
+        const { data } = await api.get("/auth/wishlist");
+        const ids = data.map((p: any) => p._id);
+        setIsInWishlist(ids.includes(id));
+      } catch {
+        setIsInWishlist(false);
+      }
+    } else {
+      const saved = localStorage.getItem("wishlist");
+      const ids = saved ? JSON.parse(saved) : [];
+      setIsInWishlist(ids.includes(id));
+    }
+  };
+
+  const toggleWishlist = async () => {
+    if (!id) return;
+    setWishlistLoading(true);
+    try {
+      if (user) {
+        if (isInWishlist) {
+          await api.delete(`/auth/wishlist/${id}`);
+          setIsInWishlist(false);
+          success("Removed from wishlist");
+        } else {
+          await api.post("/auth/wishlist", { productId: id });
+          setIsInWishlist(true);
+          success("Added to wishlist");
+        }
+      } else {
+        const saved = localStorage.getItem("wishlist");
+        let ids = saved ? JSON.parse(saved) : [];
+
+        if (isInWishlist) {
+          ids = ids.filter((i: string) => i !== id);
+          setIsInWishlist(false);
+          success("Removed from wishlist");
+        } else {
+          ids.push(id);
+          setIsInWishlist(true);
+          success("Added to wishlist");
+        }
+        localStorage.setItem("wishlist", JSON.stringify(ids));
+      }
+    } catch (err: any) {
+      error(err.response?.data?.message || "Failed to update wishlist");
+    } finally {
+      setWishlistLoading(false);
     }
   };
 
@@ -111,13 +179,70 @@ const ProductDetailsPage: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
-        <div className="flex flex-col items-center gap-4">
-          <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-[var(--root-color)]"></div>
-          <p className="text-gray-600 dark:text-gray-400 text-sm font-medium animate-pulse">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 via-purple-50/30 to-pink-50/30 dark:from-gray-900 dark:via-purple-900/20 dark:to-pink-900/20">
+        <div className="flex flex-col items-center">
+          {/* Product Card Skeleton */}
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-8 max-w-sm w-full mx-4 border border-gray-100 dark:border-gray-700">
+            {/* Image Skeleton */}
+            <div className="relative w-full aspect-square rounded-xl bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 overflow-hidden mb-6">
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 dark:via-white/10 to-transparent animate-shimmer"></div>
+              <div className="absolute inset-0 flex items-center justify-center">
+                <svg
+                  className="w-16 h-16 text-gray-300 dark:text-gray-500"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={1.5}
+                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                  />
+                </svg>
+              </div>
+            </div>
+
+            {/* Title Skeleton */}
+            <div className="h-6 bg-gradient-to-r from-gray-200 to-gray-100 dark:from-gray-700 dark:to-gray-600 rounded-lg mb-3 overflow-hidden relative">
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 dark:via-white/10 to-transparent animate-shimmer"></div>
+            </div>
+            <div className="h-6 w-2/3 bg-gradient-to-r from-gray-200 to-gray-100 dark:from-gray-700 dark:to-gray-600 rounded-lg mb-4 overflow-hidden relative">
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 dark:via-white/10 to-transparent animate-shimmer"></div>
+            </div>
+
+            {/* Price Skeleton */}
+            <div className="h-8 w-1/2 bg-gradient-to-r from-[var(--root-color)]/20 to-purple-500/20 rounded-lg mb-6 overflow-hidden relative">
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 dark:via-white/10 to-transparent animate-shimmer"></div>
+            </div>
+
+            {/* Button Skeleton */}
+            <div className="flex gap-3">
+              <div className="flex-1 h-12 bg-gradient-to-r from-gray-200 to-gray-100 dark:from-gray-700 dark:to-gray-600 rounded-xl overflow-hidden relative">
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 dark:via-white/10 to-transparent animate-shimmer"></div>
+              </div>
+              <div className="flex-1 h-12 bg-gradient-to-r from-[var(--root-color)]/30 to-purple-500/30 rounded-xl overflow-hidden relative">
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 dark:via-white/10 to-transparent animate-shimmer"></div>
+              </div>
+            </div>
+          </div>
+
+          {/* Loading Text */}
+          <p className="mt-6 text-gray-500 dark:text-gray-400 text-sm font-medium">
             Loading product details...
           </p>
         </div>
+
+        {/* Shimmer Animation Style */}
+        <style>{`
+          @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+          }
+          .animate-shimmer {
+            animation: shimmer 1.5s infinite;
+          }
+        `}</style>
       </div>
     );
   }
@@ -141,10 +266,10 @@ const ProductDetailsPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-purple-50/20 to-pink-50/20 dark:from-gray-900 dark:via-purple-900/10 dark:to-pink-900/10 py-8 md:py-12">
-      <div className="container mx-auto px-4 md:px-6 lg:px-8 max-w-7xl">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-purple-50/20 to-pink-50/20 dark:from-gray-900 dark:via-purple-900/10 dark:to-pink-900/10 py-4 sm:py-6 md:py-8 lg:py-12">
+      <div className="container mx-auto px-2 sm:px-4 md:px-6 lg:px-8 max-w-6xl">
         {/* Breadcrumb */}
-        <nav className="flex items-center gap-2 text-sm mb-6 bg-white dark:bg-gray-800 px-4 py-3 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+        <nav className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm mb-3 sm:mb-4 md:mb-6 bg-white dark:bg-gray-800 px-2 sm:px-4 py-2 sm:py-3 rounded-lg sm:rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
           <button
             onClick={() => navigate("/")}
             className="text-gray-600 dark:text-gray-400 hover:text-[var(--root-color)] transition-colors flex items-center gap-1"
@@ -201,10 +326,10 @@ const ProductDetailsPage: React.FC = () => {
           </span>
         </nav>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 md:gap-6 lg:gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 sm:gap-4 md:gap-6">
           {/* Image Gallery */}
-          <div className="lg:col-span-5 space-y-4">
-            <div className="bg-white dark:bg-gray-800 rounded-2xl p-3 sm:p-6 shadow-xl border border-gray-200 dark:border-gray-700">
+          <div className="lg:col-span-5 space-y-2 sm:space-y-3">
+            <div className="bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl p-2 sm:p-4 md:p-6 shadow-lg sm:shadow-xl border border-gray-200 dark:border-gray-700">
               <div className="relative group">
                 <div className="relative w-full aspect-square rounded-xl overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-800">
                   <img
@@ -248,7 +373,7 @@ const ProductDetailsPage: React.FC = () => {
 
               {/* Thumbnail Gallery */}
               {product.images.length > 1 && (
-                <div className="grid grid-cols-4 sm:grid-cols-5 gap-2 mt-3 sm:mt-4">
+                <div className="grid grid-cols-4 sm:grid-cols-5 gap-1 sm:gap-2 mt-2 sm:mt-3">
                   {product.images.map((img, idx) => (
                     <button
                       key={idx}
@@ -272,10 +397,10 @@ const ProductDetailsPage: React.FC = () => {
           </div>
 
           {/* Product Info */}
-          <div className="lg:col-span-7 space-y-4 md:space-y-6">
-            <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 sm:p-6 md:p-8 shadow-xl border border-gray-200 dark:border-gray-700">
-              <div className="flex items-start justify-between mb-4">
-                <span className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[var(--root-color)]/10 to-purple-600/10 text-[var(--root-color)] rounded-full text-sm font-semibold">
+          <div className="lg:col-span-7 space-y-2 sm:space-y-3 md:space-y-4">
+            <div className="bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl p-3 sm:p-4 md:p-6 shadow-lg sm:shadow-xl border border-gray-200 dark:border-gray-700">
+              <div className="flex items-start justify-between mb-2 sm:mb-3 md:mb-4 flex-wrap gap-2">
+                <span className="inline-flex items-center gap-1 sm:gap-2 px-2 sm:px-3 md:px-4 py-1 sm:py-1.5 md:py-2 bg-gradient-to-r from-[var(--root-color)]/10 to-purple-600/10 text-[var(--root-color)] rounded-full text-xs sm:text-sm font-semibold">
                   <svg
                     className="w-4 h-4"
                     fill="none"
@@ -292,7 +417,7 @@ const ProductDetailsPage: React.FC = () => {
                   {product.category}
                 </span>
                 <span
-                  className={`px-4 py-2 rounded-full text-sm font-bold ${
+                  className={`px-2 sm:px-3 md:px-4 py-1 sm:py-1.5 md:py-2 rounded-full text-xs sm:text-sm font-bold ${
                     product.stock > 0
                       ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
                       : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
@@ -304,51 +429,51 @@ const ProductDetailsPage: React.FC = () => {
                 </span>
               </div>
 
-              <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-3 sm:mb-4 leading-tight">
+              <h1 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white mb-2 sm:mb-3 leading-tight">
                 {product.title}
               </h1>
 
               {/* Rating Display */}
               {reviewStats && reviewStats.totalReviews > 0 && (
-                <div className="flex items-center gap-3 mb-6 pb-6 border-b border-gray-200 dark:border-gray-700">
+                <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4 pb-3 sm:pb-4 border-b border-gray-200 dark:border-gray-700">
                   {renderStars(Math.round(Number(reviewStats.averageRating)))}
-                  <span className="text-lg font-bold text-gray-900 dark:text-white">
+                  <span className="text-sm sm:text-base font-bold text-gray-900 dark:text-white">
                     {reviewStats.averageRating}
                   </span>
-                  <span className="text-gray-500 dark:text-gray-400">
+                  <span className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
                     ({reviewStats.totalReviews}{" "}
                     {reviewStats.totalReviews === 1 ? "review" : "reviews"})
                   </span>
                 </div>
               )}
 
-              <p className="text-gray-600 dark:text-gray-400 text-sm sm:text-base leading-relaxed mb-4 sm:mb-6">
+              <p className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm md:text-base leading-relaxed mb-3 sm:mb-4">
                 {product.description}
               </p>
 
-              <div className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-xl p-4 sm:p-6 mb-4 sm:mb-6">
-                <div className="flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-3">
-                  <span className="text-3xl sm:text-4xl md:text-5xl font-bold bg-gradient-to-r from-[var(--root-color)] to-purple-600 bg-clip-text text-transparent">
+              <div className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-lg sm:rounded-xl p-2 sm:p-3 md:p-4 mb-3 sm:mb-4">
+                <div className="flex flex-col sm:flex-row sm:items-baseline gap-0.5 sm:gap-2">
+                  <span className="text-xl sm:text-2xl md:text-3xl font-bold bg-gradient-to-r from-[var(--root-color)] to-purple-600 bg-clip-text text-transparent">
                     Rs. {product.price.toLocaleString()}
                   </span>
-                  <span className="text-gray-500 dark:text-gray-400 text-xs sm:text-sm">
+                  <span className="text-gray-500 dark:text-gray-400 text-[10px] sm:text-xs">
                     Inclusive of all taxes
                   </span>
                 </div>
               </div>
 
               {/* Quantity Selector */}
-              <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mb-4 sm:mb-6">
-                <span className="text-gray-700 dark:text-gray-300 font-semibold text-base sm:text-lg">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-3 mb-3 sm:mb-4">
+                <span className="text-gray-700 dark:text-gray-300 font-semibold text-sm sm:text-base">
                   Quantity:
                 </span>
-                <div className="flex items-center gap-2 bg-gray-100 dark:bg-gray-700 rounded-xl p-1.5 w-fit">
+                <div className="flex items-center gap-1 sm:gap-2 bg-gray-100 dark:bg-gray-700 rounded-lg p-1 w-fit">
                   <button
                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    className="w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-lg bg-white dark:bg-gray-600 text-gray-700 dark:text-gray-200 hover:bg-[var(--root-color)] hover:text-white transition-all shadow-sm"
+                    className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center rounded-md bg-white dark:bg-gray-600 text-gray-700 dark:text-gray-200 hover:bg-[var(--root-color)] hover:text-white transition-all shadow-sm"
                   >
                     <svg
-                      className="w-5 h-5"
+                      className="w-4 h-4"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -361,7 +486,7 @@ const ProductDetailsPage: React.FC = () => {
                       />
                     </svg>
                   </button>
-                  <span className="w-12 sm:w-16 text-center font-bold text-lg sm:text-xl text-gray-900 dark:text-white">
+                  <span className="w-8 sm:w-10 text-center font-bold text-sm sm:text-base text-gray-900 dark:text-white">
                     {quantity}
                   </span>
                   <button
@@ -369,10 +494,10 @@ const ProductDetailsPage: React.FC = () => {
                       setQuantity(Math.min(product.stock, quantity + 1))
                     }
                     disabled={quantity >= product.stock}
-                    className="w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-lg bg-white dark:bg-gray-600 text-gray-700 dark:text-gray-200 hover:bg-[var(--root-color)] hover:text-white transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center rounded-md bg-white dark:bg-gray-600 text-gray-700 dark:text-gray-200 hover:bg-[var(--root-color)] hover:text-white transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <svg
-                      className="w-5 h-5"
+                      className="w-4 h-4"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -388,41 +513,78 @@ const ProductDetailsPage: React.FC = () => {
                 </div>
               </div>
 
+              {/* Size Guide */}
+              <div className="mb-2 sm:mb-3">
+                <SizeGuide />
+              </div>
+
               {/* Action Buttons */}
-              <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
-                <button
-                  onClick={handleAddToCart}
-                  disabled={product.stock === 0}
-                  className="flex-1 py-3 sm:py-4 px-4 sm:px-6 bg-white dark:bg-gray-700 text-gray-900 dark:text-white border-2 border-[var(--root-color)] rounded-xl hover:bg-[var(--root-color)] hover:text-white transition-all duration-200 font-semibold text-sm sm:text-base disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-md hover:shadow-lg"
-                >
-                  <svg
-                    className="w-5 h-5"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
+              {product.stock > 0 ? (
+                <div className="flex flex-col sm:flex-row gap-1.5 sm:gap-2">
+                  <button
+                    onClick={handleAddToCart}
+                    disabled={product.stock === 0}
+                    className="flex-1 py-2 sm:py-2.5 md:py-3 px-3 sm:px-4 bg-white dark:bg-gray-700 text-gray-900 dark:text-white border-2 border-[var(--root-color)] rounded-lg sm:rounded-xl hover:bg-[var(--root-color)] hover:text-white transition-all duration-200 font-semibold text-xs sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1.5 shadow-md hover:shadow-lg"
                   >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
-                    />
-                  </svg>
-                  Add to Cart
-                </button>
-                <button
-                  onClick={handleBuyNow}
-                  disabled={product.stock === 0}
-                  className="flex-1 py-3 sm:py-4 px-4 sm:px-6 bg-gradient-to-r from-[var(--root-color)] to-purple-600 text-white rounded-xl hover:from-[var(--root-color)] hover:to-purple-700 transition-all duration-200 font-semibold text-sm sm:text-base disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transform hover:scale-[1.02]"
-                >
-                  Buy Now
-                </button>
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
+                      />
+                    </svg>
+                    Add to Cart
+                  </button>
+                  <button
+                    onClick={handleBuyNow}
+                    disabled={product.stock === 0}
+                    className="flex-1 py-2 sm:py-2.5 md:py-3 px-3 sm:px-4 bg-gradient-to-r from-[var(--root-color)] to-purple-600 text-white rounded-lg sm:rounded-xl hover:from-[var(--root-color)] hover:to-purple-700 transition-all duration-200 font-semibold text-xs sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transform hover:scale-[1.02]"
+                  >
+                    Buy Now
+                  </button>
+                  <button
+                    onClick={toggleWishlist}
+                    disabled={wishlistLoading}
+                    className={`py-2 sm:py-2.5 md:py-3 px-3 sm:px-4 rounded-lg sm:rounded-xl transition-all duration-200 font-semibold text-xs sm:text-sm flex items-center justify-center gap-1.5 shadow-md hover:shadow-lg ${
+                      isInWishlist
+                        ? "bg-red-500 text-white hover:bg-red-600"
+                        : "bg-white dark:bg-gray-700 text-gray-900 dark:text-white border-2 border-gray-300 dark:border-gray-600 hover:border-red-500 hover:text-red-500"
+                    }`}
+                    title={
+                      isInWishlist ? "Remove from Wishlist" : "Add to Wishlist"
+                    }
+                  >
+                    <FaHeart className={`w-4 h-4 ${isInWishlist ? "" : ""}`} />
+                  </button>
+                  <ShareProduct productTitle={product.title} />
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <NotifyMe
+                    productId={product._id}
+                    productTitle={product.title}
+                  />
+                  <div className="flex justify-center">
+                    <ShareProduct productTitle={product.title} />
+                  </div>
+                </div>
+              )}
+
+              {/* Estimated Delivery */}
+              <div className="mt-3 sm:mt-4">
+                <EstimatedDelivery />
               </div>
             </div>
 
             {/* Product Details Card */}
-            <div className="bg-white dark:bg-gray-800 rounded-2xl p-4 sm:p-6 shadow-xl border border-gray-200 dark:border-gray-700">
-              <h3 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white mb-3 sm:mb-4 flex items-center gap-2">
+            <div className="bg-white dark:bg-gray-800 rounded-xl sm:rounded-2xl p-3 sm:p-4 md:p-5 shadow-lg sm:shadow-xl border border-gray-200 dark:border-gray-700">
+              <h3 className="text-sm sm:text-base font-bold text-gray-900 dark:text-white mb-2 sm:mb-3 flex items-center gap-1.5 sm:gap-2">
                 <svg
                   className="w-5 h-5 text-[var(--root-color)]"
                   fill="none"
@@ -438,11 +600,11 @@ const ProductDetailsPage: React.FC = () => {
                 </svg>
                 Product Information
               </h3>
-              <div className="space-y-2 sm:space-y-3">
-                <div className="flex items-center justify-between py-2 border-b border-gray-100 dark:border-gray-700">
-                  <span className="text-sm sm:text-base text-gray-600 dark:text-gray-400 flex items-center gap-2">
+              <div className="space-y-1.5 sm:space-y-2">
+                <div className="flex items-center justify-between py-1.5 sm:py-2 border-b border-gray-100 dark:border-gray-700">
+                  <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 flex items-center gap-1.5">
                     <svg
-                      className="w-4 h-4"
+                      className="w-3.5 h-3.5"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -456,14 +618,14 @@ const ProductDetailsPage: React.FC = () => {
                     </svg>
                     Category
                   </span>
-                  <span className="font-semibold text-sm sm:text-base text-gray-900 dark:text-white">
+                  <span className="font-semibold text-xs sm:text-sm text-gray-900 dark:text-white">
                     {product.category}
                   </span>
                 </div>
-                <div className="flex items-center justify-between py-2 border-b border-gray-100 dark:border-gray-700">
-                  <span className="text-sm sm:text-base text-gray-600 dark:text-gray-400 flex items-center gap-2">
+                <div className="flex items-center justify-between py-1.5 sm:py-2 border-b border-gray-100 dark:border-gray-700">
+                  <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 flex items-center gap-1.5">
                     <svg
-                      className="w-4 h-4"
+                      className="w-3.5 h-3.5"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -478,7 +640,7 @@ const ProductDetailsPage: React.FC = () => {
                     Stock Status
                   </span>
                   <span
-                    className={`font-semibold text-sm sm:text-base ${
+                    className={`font-semibold text-xs sm:text-sm ${
                       product.stock > 0 ? "text-green-600" : "text-red-600"
                     }`}
                   >
@@ -487,10 +649,10 @@ const ProductDetailsPage: React.FC = () => {
                       : "Out of Stock"}
                   </span>
                 </div>
-                <div className="flex items-center justify-between py-2">
-                  <span className="text-sm sm:text-base text-gray-600 dark:text-gray-400 flex items-center gap-2">
+                <div className="flex items-center justify-between py-1.5 sm:py-2">
+                  <span className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 flex items-center gap-1.5">
                     <svg
-                      className="w-4 h-4"
+                      className="w-3.5 h-3.5"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -504,7 +666,7 @@ const ProductDetailsPage: React.FC = () => {
                     </svg>
                     SKU
                   </span>
-                  <span className="font-mono font-semibold text-sm sm:text-base text-gray-900 dark:text-white">
+                  <span className="font-mono font-semibold text-xs sm:text-sm text-gray-900 dark:text-white">
                     {product._id.slice(-8).toUpperCase()}
                   </span>
                 </div>
@@ -514,8 +676,13 @@ const ProductDetailsPage: React.FC = () => {
         </div>
 
         {/* Reviews Section */}
-        <div className="mt-8">
+        <div className="mt-4 sm:mt-6 md:mt-8">
           <ProductReviews productId={product._id} />
+        </div>
+
+        {/* Recently Viewed Section */}
+        <div className="mt-4 sm:mt-6 md:mt-8">
+          <RecentlyViewed />
         </div>
       </div>
 

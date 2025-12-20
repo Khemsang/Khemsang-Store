@@ -13,12 +13,19 @@ const categorySchema = new mongoose.Schema(
     },
     icon: {
       type: String,
-      required: true,
       default: "FaBox",
+    },
+    image: {
+      type: String,
+      default: "",
     },
     isActive: {
       type: Boolean,
       default: true,
+    },
+    createdBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
     },
   },
   {

@@ -16,6 +16,13 @@ import {
   FaEye,
   FaSignOutAlt,
   FaChevronLeft,
+  FaTrademark,
+  FaTicketAlt,
+  FaUsers,
+  FaWarehouse,
+  FaTruck,
+  FaQuoteLeft,
+  FaShieldAlt,
 } from "react-icons/fa";
 
 const AdminLayout = () => {
@@ -37,7 +44,8 @@ const AdminLayout = () => {
     navigate("/login");
   };
 
-  const adminLinks = [
+  // Links visible to all admins
+  const commonLinks = [
     { name: "Dashboard", path: "/admin/dashboard", icon: FaTachometerAlt },
     { name: "Products", path: "/admin/products", icon: FaBox },
     {
@@ -45,12 +53,29 @@ const AdminLayout = () => {
       path: "/admin/featured-products",
       icon: FaStar,
     },
+    { name: "Inventory", path: "/admin/inventory", icon: FaWarehouse },
     { name: "Orders", path: "/admin/orders", icon: FaShoppingBag },
+    { name: "Shipping", path: "/admin/shipping", icon: FaTruck },
+    { name: "Customers", path: "/admin/customers", icon: FaUsers },
     { name: "Categories", path: "/admin/categories", icon: FaTh },
+    { name: "Coupons", path: "/admin/coupons", icon: FaTicketAlt },
+    { name: "Reviews", path: "/admin/reviews", icon: FaStar },
+    { name: "View Site", path: "/", icon: FaEye },
+  ];
+
+  // Links only for Super Admin
+  const superAdminOnlyLinks = [
     { name: "Banners", path: "/admin/banners", icon: FaImage },
     { name: "About Page", path: "/admin/about", icon: FaInfoCircle },
+    { name: "Brands", path: "/admin/brands", icon: FaTrademark },
     { name: "Contact", path: "/admin/contact", icon: FaEnvelope },
-    { name: "View Site", path: "/", icon: FaEye },
+    { name: "Testimonials", path: "/admin/testimonials", icon: FaQuoteLeft },
+    { name: "Manage Admins", path: "/admin/super-admin", icon: FaShieldAlt },
+  ];
+
+  const adminLinks = [
+    ...commonLinks,
+    ...(user?.isSuperAdmin ? superAdminOnlyLinks : []),
   ];
 
   const isActive = (path: string) => location.pathname === path;

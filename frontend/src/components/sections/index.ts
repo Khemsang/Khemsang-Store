@@ -8,3 +8,6 @@ export { default as ProductShowcase } from "./ProductShowcase/ProductShowcase";
 export { default as TestimonialSection } from "./TestimonialSection/TestimonialSection";
 export { default as SearchResults } from "./SearchResults/SearchResults";
 export { default as BrowseByCategory } from "./BrowseByCategory/BrowseByCategory";
+export { default as StoreHighlights } from "./StoreHighlights/StoreHighlights";
+export { default as RecentlyViewed } from "./RecentlyViewed/RecentlyViewed";
+export { addToRecentlyViewed } from "./RecentlyViewed/RecentlyViewed";

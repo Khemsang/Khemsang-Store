@@ -7,26 +7,62 @@ import { useProducts } from "../../hooks/useProducts";
 import { Pagination } from "../../components/common";
 import ProductFilters from "../../components/products/ProductFilters";
 import ProductCard from "../../components/products/ProductCard";
+import {
+  QuickView,
+  ProductComparison,
+  Breadcrumbs,
+  ProductGridSkeleton,
+} from "../../components/ui";
+import { FaBalanceScale } from "react-icons/fa";
 
 const Products = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
+  const [priceRange, setPriceRange] = useState({ min: 0, max: 500000 });
+  const [quickViewProduct, setQuickViewProduct] = useState<any>(null);
+  const [compareProducts, setCompareProducts] = useState<any[]>([]);
+  const [showCompare, setShowCompare] = useState(false);
   const itemsPerPage = 16;
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { addToCart } = useCart();
   const { user } = useAuth();
   const { success, error } = useToast();
-  const { products, loading } = useProducts(selectedCategory, searchTerm);
+  const {
+    products: allProducts,
+    allCategories,
+    loading,
+  } = useProducts(selectedCategory, searchTerm);
+
+  const handleQuickView = (product: any) => {
+    setQuickViewProduct(product);
+  };
+
+  const handleAddToCompare = (product: any) => {
+    if (compareProducts.find((p) => p._id === product._id)) {
+      setCompareProducts(compareProducts.filter((p) => p._id !== product._id));
+      success("Removed from compare");
+    } else if (compareProducts.length >= 4) {
+      error("You can compare up to 4 products");
+    } else {
+      setCompareProducts([...compareProducts, product]);
+      success("Added to compare");
+    }
+  };
+
+  // Filter products by price range
+  const products = useMemo(() => {
+    return allProducts.filter(
+      (p) => p.price >= priceRange.min && p.price <= priceRange.max
+    );
+  }, [allProducts, priceRange]);
 
   // Read category from URL on mount
   useEffect(() => {
     const categoryFromUrl = searchParams.get("category");
     if (categoryFromUrl) setSelectedCategory(categoryFromUrl);
   }, [searchParams]);
-
-  const categories = [...new Set(products.map((p) => p.category))];
 
   // Paginated products
   const currentItems = useMemo(() => {
@@ -68,20 +104,31 @@ const Products = () => {
           setSearchTerm={setSearchTerm}
           selectedCategory={selectedCategory}
           setSelectedCategory={setSelectedCategory}
-          categories={categories}
+          categories={allCategories}
           totalProducts={products.length}
+          priceRange={priceRange}
+          setPriceRange={setPriceRange}
+          maxPrice={500000}
         />
+
+        {/* Compare Button */}
+        {compareProducts.length > 0 && (
+          <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40">
+            <button
+              onClick={() => setShowCompare(true)}
+              className="flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-full shadow-2xl hover:shadow-purple-500/50 transition-all"
+            >
+              <FaBalanceScale className="w-5 h-5" />
+              <span className="font-semibold">
+                Compare ({compareProducts.length})
+              </span>
+            </button>
+          </div>
+        )}
 
         {/* Products Grid */}
         {loading ? (
-          <div className="flex justify-center items-center py-20">
-            <div className="flex flex-col items-center gap-4">
-              <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-[var(--root-color)]"></div>
-              <p className="text-gray-600 dark:text-gray-400 text-sm font-medium animate-pulse">
-                Loading products...
-              </p>
-            </div>
-          </div>
+          <ProductGridSkeleton count={16} />
         ) : currentItems.length === 0 ? (
           <div className="text-center py-20">
             <svg
@@ -106,12 +153,17 @@ const Products = () => {
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
               {currentItems.map((product) => (
                 <ProductCard
                   key={product._id}
                   product={product}
                   onAddToCart={handleAddToCart}
+                  onQuickView={handleQuickView}
+                  onCompare={handleAddToCompare}
+                  isComparing={compareProducts.some(
+                    (p) => p._id === product._id
+                  )}
                 />
               ))}
             </div>
@@ -129,6 +181,23 @@ const Products = () => {
           </>
         )}
       </div>
+
+      {/* Quick View Modal */}
+      <QuickView
+        product={quickViewProduct}
+        isOpen={!!quickViewProduct}
+        onClose={() => setQuickViewProduct(null)}
+      />
+
+      {/* Product Comparison Modal */}
+      <ProductComparison
+        products={compareProducts}
+        isOpen={showCompare}
+        onClose={() => setShowCompare(false)}
+        onRemove={(id) =>
+          setCompareProducts(compareProducts.filter((p) => p._id !== id))
+        }
+      />
     </section>
   );
 };

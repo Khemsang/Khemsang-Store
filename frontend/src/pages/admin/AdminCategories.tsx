@@ -53,6 +53,7 @@ interface Category {
   name: string;
   description: string;
   icon: string;
+  image: string;
   isActive: boolean;
 }
 
@@ -136,8 +137,10 @@ const AdminCategories: React.FC = () => {
     name: "",
     description: "",
     icon: "FaBox",
+    image: "",
     isActive: true,
   });
+  const [imageUploading, setImageUploading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 9;
 
@@ -159,7 +162,8 @@ const AdminCategories: React.FC = () => {
   const fetchCategories = async () => {
     try {
       setLoading(true);
-      const { data } = await api.get("/categories");
+      // adminOnly=true shows only current admin's categories
+      const { data } = await api.get("/categories?adminOnly=true");
       setCategories(data);
     } catch (err: any) {
       error(err.response?.data?.message || "Failed to fetch categories");
@@ -205,6 +209,7 @@ const AdminCategories: React.FC = () => {
       name: category.name,
       description: category.description,
       icon: category.icon || "FaBox",
+      image: category.image || "",
       isActive: category.isActive,
     });
     setShowModal(true);
@@ -217,8 +222,30 @@ const AdminCategories: React.FC = () => {
       name: "",
       description: "",
       icon: "FaBox",
+      image: "",
       isActive: true,
     });
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const formDataUpload = new FormData();
+    formDataUpload.append("image", file);
+
+    try {
+      setImageUploading(true);
+      const { data } = await api.post("/upload", formDataUpload, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      setFormData({ ...formData, image: data.url });
+      success("Image uploaded successfully");
+    } catch (err: any) {
+      error(err.response?.data?.message || "Failed to upload image");
+    } finally {
+      setImageUploading(false);
+    }
   };
 
   if (loading) {
@@ -251,8 +278,16 @@ const AdminCategories: React.FC = () => {
               key={category._id}
               className="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300"
             >
-              <div className="relative h-20 md:h-32 bg-gradient-to-br from-[var(--root-color)] to-purple-600 flex items-center justify-center">
-                <IconComponent className="text-3xl md:text-6xl text-white opacity-90" />
+              <div className="relative h-20 md:h-32 bg-gradient-to-br from-[var(--root-color)] to-purple-600 flex items-center justify-center overflow-hidden">
+                {category.image ? (
+                  <img
+                    src={category.image}
+                    alt={category.name}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <IconComponent className="text-3xl md:text-6xl text-white opacity-90" />
+                )}
                 <div
                   className={`absolute top-2 right-2 md:top-3 md:right-3 px-2 py-0.5 md:px-3 md:py-1 rounded-full text-[10px] md:text-xs font-bold ${
                     category.isActive
@@ -336,9 +371,55 @@ const AdminCategories: React.FC = () => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Category Icon *
+                  Category Image (Optional - will override icon)
                 </label>
-                <div className="grid grid-cols-5 sm:grid-cols-6 md:grid-cols-8 gap-3 max-h-96 overflow-y-auto p-2 border border-gray-200 dark:border-gray-700 rounded-xl">
+                <div className="flex items-center gap-4">
+                  {formData.image ? (
+                    <div className="relative w-24 h-24 rounded-xl overflow-hidden border-2 border-gray-200 dark:border-gray-600">
+                      <img
+                        src={formData.image}
+                        alt="Category"
+                        className="w-full h-full object-cover"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setFormData({ ...formData, image: "" })}
+                        className="absolute top-1 right-1 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-xs hover:bg-red-600"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ) : (
+                    <label className="w-24 h-24 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl flex flex-col items-center justify-center cursor-pointer hover:border-[var(--root-color)] transition-colors">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageUpload}
+                        className="hidden"
+                        disabled={imageUploading}
+                      />
+                      {imageUploading ? (
+                        <div className="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-[var(--root-color)]"></div>
+                      ) : (
+                        <>
+                          <FaPlus className="text-gray-400 mb-1" />
+                          <span className="text-xs text-gray-400">Upload</span>
+                        </>
+                      )}
+                    </label>
+                  )}
+                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                    Upload an image for the category. If no image is uploaded,
+                    the icon will be used.
+                  </p>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Category Icon {!formData.image && "*"}
+                </label>
+                <div className="grid grid-cols-5 sm:grid-cols-6 md:grid-cols-8 gap-3 max-h-60 overflow-y-auto p-2 border border-gray-200 dark:border-gray-700 rounded-xl">
                   {availableIcons.map((iconItem) => {
                     const IconComp = iconItem.icon;
                     return (
@@ -393,7 +474,9 @@ const AdminCategories: React.FC = () => {
                 </button>
                 <button
                   type="submit"
-                  disabled={!formData.name || !formData.icon}
+                  disabled={
+                    !formData.name || (!formData.icon && !formData.image)
+                  }
                   className="flex-1 px-6 py-3 bg-gradient-to-r from-[var(--root-color)] to-purple-600 text-white rounded-xl hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {editingCategory ? "Update" : "Create"} Category

@@ -9,7 +9,7 @@ const Checkout = () => {
   const { cart, getCartTotal } = useCart();
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { error, warning } = useToast();
+  const { error, warning, success } = useToast();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     fullName: "",
@@ -18,6 +18,13 @@ const Checkout = () => {
     city: "",
   });
   const [paymentMethod, setPaymentMethod] = useState<"esewa" | "cod">("esewa");
+  const [couponCode, setCouponCode] = useState("");
+  const [couponLoading, setCouponLoading] = useState(false);
+  const [appliedCoupon, setAppliedCoupon] = useState<{
+    code: string;
+    discount: number;
+    discountType: string;
+  } | null>(null);
 
   // Check if user is logged in
   useEffect(() => {
@@ -35,6 +42,44 @@ const Checkout = () => {
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const applyCoupon = async () => {
+    if (!couponCode.trim()) {
+      error("Please enter a coupon code");
+      return;
+    }
+    setCouponLoading(true);
+    try {
+      const { data } = await api.post("/coupons/validate", {
+        code: couponCode,
+        cartTotal: getCartTotal(),
+      });
+      setAppliedCoupon({
+        code: data.code,
+        discount: data.discountAmount,
+        discountType: data.discountType,
+      });
+      success(`Coupon applied! You save Rs. ${data.discountAmount}`);
+    } catch (err: any) {
+      error(err.response?.data?.message || "Invalid coupon code");
+      setAppliedCoupon(null);
+    } finally {
+      setCouponLoading(false);
+    }
+  };
+
+  const removeCoupon = () => {
+    setAppliedCoupon(null);
+    setCouponCode("");
+    success("Coupon removed");
+  };
+
+  const getFinalTotal = () => {
+    const subtotal = getCartTotal();
+    const shipping = 100;
+    const discount = appliedCoupon?.discount || 0;
+    return subtotal + shipping - discount;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -61,9 +106,11 @@ const Checkout = () => {
 
       const { data } = await api.post("/orders", {
         items,
-        totalAmount: getCartTotal() + 100,
+        totalAmount: getFinalTotal(),
         shippingAddress: formData,
         paymentMethod: paymentMethod,
+        couponCode: appliedCoupon?.code || undefined,
+        discount: appliedCoupon?.discount || 0,
       });
 
       // If Cash on Delivery, redirect to success page
@@ -561,7 +608,54 @@ const Checkout = () => {
                   );
                 })}
               </div>
-              <div className="space-y-4 pt-6 border-t-2 border-gray-200 dark:border-gray-700">
+              {/* Coupon Code Section */}
+              <div className="pt-4 border-t-2 border-gray-200 dark:border-gray-700 mb-4">
+                <label className="flex items-center gap-2 text-sm font-bold text-gray-700 dark:text-gray-300 mb-3">
+                  <span className="text-lg">🎟️</span>
+                  Have a Coupon?
+                </label>
+                {appliedCoupon ? (
+                  <div className="flex items-center justify-between p-3 bg-green-50 dark:bg-green-900/20 rounded-xl border-2 border-green-500">
+                    <div className="flex items-center gap-2">
+                      <span className="text-green-600 font-bold">
+                        {appliedCoupon.code}
+                      </span>
+                      <span className="text-sm text-green-600">
+                        (-Rs. {appliedCoupon.discount})
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={removeCoupon}
+                      className="text-red-500 hover:text-red-700 text-sm font-semibold"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={couponCode}
+                      onChange={(e) =>
+                        setCouponCode(e.target.value.toUpperCase())
+                      }
+                      placeholder="Enter coupon code"
+                      className="flex-1 px-4 py-3 border-2 border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-300 focus:border-green-500 text-sm font-medium"
+                    />
+                    <button
+                      type="button"
+                      onClick={applyCoupon}
+                      disabled={couponLoading}
+                      className="px-4 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-semibold text-sm hover:from-purple-700 hover:to-pink-700 disabled:opacity-50"
+                    >
+                      {couponLoading ? "..." : "Apply"}
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              <div className="space-y-4 pt-4 border-t-2 border-gray-200 dark:border-gray-700">
                 <div className="flex justify-between items-center text-gray-700 dark:text-gray-300">
                   <span className="text-sm md:text-base">Subtotal</span>
                   <span className="font-bold text-base md:text-lg">
@@ -589,13 +683,23 @@ const Checkout = () => {
                     Rs. 100
                   </span>
                 </div>
+                {appliedCoupon && (
+                  <div className="flex justify-between items-center text-green-600">
+                    <span className="text-sm md:text-base flex items-center gap-2">
+                      🎟️ Coupon Discount
+                    </span>
+                    <span className="font-bold text-base md:text-lg">
+                      -Rs. {appliedCoupon.discount.toLocaleString()}
+                    </span>
+                  </div>
+                )}
                 <div className="flex justify-between items-center pt-4 border-t-2 border-gray-200 dark:border-gray-700">
                   <span className="text-lg md:text-xl font-bold text-gray-900 dark:text-white">
                     Total Amount
                   </span>
                   <div className="text-right">
                     <span className="block text-2xl md:text-3xl font-extrabold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
-                      Rs. {(getCartTotal() + 100).toLocaleString()}
+                      Rs. {getFinalTotal().toLocaleString()}
                     </span>
                     <span className="text-xs text-gray-500 dark:text-gray-400">
                       Including all taxes

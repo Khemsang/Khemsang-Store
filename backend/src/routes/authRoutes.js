@@ -13,6 +13,13 @@ import {
   getUserStats,
   forgotPassword,
   resetPassword,
+  getAddresses,
+  addAddress,
+  updateAddress,
+  deleteAddress,
+  getWishlist,
+  addToWishlist,
+  removeFromWishlist,
 } from "../controllers/authController.js";
 import { auth } from "../middleware/auth.js";
 
@@ -34,5 +41,16 @@ router.get("/me", auth, getMe);
 router.get("/stats", auth, getUserStats);
 router.put("/profile", auth, updateProfile);
 router.put("/change-password", auth, changePassword);
+
+// Address management
+router.get("/addresses", auth, getAddresses);
+router.post("/addresses", auth, addAddress);
+router.put("/addresses/:addressId", auth, updateAddress);
+router.delete("/addresses/:addressId", auth, deleteAddress);
+
+// Wishlist management
+router.get("/wishlist", auth, getWishlist);
+router.post("/wishlist", auth, addToWishlist);
+router.delete("/wishlist/:productId", auth, removeFromWishlist);
 
 export default router;

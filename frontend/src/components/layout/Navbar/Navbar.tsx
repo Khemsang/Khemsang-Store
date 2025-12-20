@@ -18,6 +18,8 @@ import {
   FaChair,
   FaBed,
   FaDoorOpen,
+  FaHeart,
+  FaChevronRight,
 } from "react-icons/fa";
 import ResponsiveMenu from "./Responsive";
 
@@ -203,19 +205,44 @@ const Navbar: React.FC = () => {
 
                 {/* Submenu */}
                 {submenu && hoveredMenu === name && (
-                  <ul className="absolute top-full mt-3 left-0 w-64 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-2xl shadow-2xl py-2 animate-fadeIn z-50">
-                    {submenu.map(({ name: sub, icon: SubIcon }) => (
-                      <li key={sub}>
+                  <div className="absolute top-full mt-2 left-0 w-72 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-xl shadow-2xl overflow-hidden animate-fadeIn z-50">
+                    {/* Header */}
+                    <div className="px-4 py-3 bg-gradient-to-r from-[var(--root-color)]/10 to-purple-600/10 border-b border-gray-100 dark:border-gray-700">
+                      <p className="text-sm font-semibold text-gray-900 dark:text-white">
+                        Shop by Category
+                      </p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                        {submenu.length} categories available
+                      </p>
+                    </div>
+                    {/* Categories Grid */}
+                    <div className="p-2 max-h-80 overflow-y-auto">
+                      {submenu.map(({ name: sub, icon: SubIcon }) => (
                         <button
+                          key={sub}
                           onClick={() => goCategory(sub)}
-                          className="w-full flex items-center gap-4 px-8 py-4 text-gray-700 dark:text-gray-300 hover:bg-gradient-to-r hover:from-[var(--root-color)]/20 hover:to-purple-600/20 hover:text-[var(--root-color)] transition-all duration-200 rounded-xl"
+                          className="w-full flex items-center gap-3 px-3 py-2.5 text-gray-700 dark:text-gray-300 hover:bg-gradient-to-r hover:from-[var(--root-color)]/10 hover:to-purple-600/10 rounded-lg transition-all duration-200 group"
                         >
-                          {SubIcon && <SubIcon className="text-lg" />}
-                          <span className="font-medium">{sub}</span>
+                          <div className="w-9 h-9 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center group-hover:bg-[var(--root-color)] group-hover:text-white transition-all">
+                            {SubIcon && <SubIcon className="text-sm" />}
+                          </div>
+                          <span className="flex-1 text-sm font-medium text-left">
+                            {sub}
+                          </span>
+                          <FaChevronRight className="w-3 h-3 text-gray-400 group-hover:text-[var(--root-color)] group-hover:translate-x-1 transition-all" />
                         </button>
-                      </li>
-                    ))}
-                  </ul>
+                      ))}
+                    </div>
+                    {/* Footer */}
+                    <div className="px-4 py-3 bg-gray-50 dark:bg-gray-700/50 border-t border-gray-100 dark:border-gray-700">
+                      <button
+                        onClick={() => navigate("/products")}
+                        className="w-full text-center text-sm font-semibold text-[var(--root-color)] hover:underline"
+                      >
+                        View All Products →
+                      </button>
+                    </div>
+                  </div>
                 )}
               </li>
             ))}
@@ -231,15 +258,25 @@ const Navbar: React.FC = () => {
               <FaSearch />
             </button>
 
-            {/* Dark Mode */}
-            <div className="hidden md:block">
+            {/* Dark Mode & Language */}
+            <div className="hidden md:flex items-center gap-2">
               <DarkModeToggle />
             </div>
+
+            {/* Wishlist */}
+            <button
+              onClick={() => navigate("/wishlist")}
+              className="hidden md:flex relative items-center justify-center w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gradient-to-r hover:from-red-500 hover:to-pink-500 hover:text-white transition-all"
+              title="Wishlist"
+            >
+              <FaHeart />
+            </button>
 
             {/* Cart */}
             <button
               onClick={() => navigate("/cart")}
               className="relative flex items-center justify-center w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gradient-to-r hover:from-[var(--root-color)] hover:to-purple-600 hover:text-white transition-all"
+              title="Cart"
             >
               <FaShoppingCart />
               {cartItemCount > 0 && (
@@ -367,6 +404,25 @@ const Navbar: React.FC = () => {
                           </p>
                           <p className="text-xs text-gray-500 dark:text-gray-400">
                             Track your orders
+                          </p>
+                        </div>
+                      </button>
+                      <button
+                        onClick={() => {
+                          navigate("/wishlist");
+                          setShowProfileMenu(false);
+                        }}
+                        className="w-full px-4 py-3 text-left hover:bg-gradient-to-r hover:from-red-50 hover:to-pink-50 dark:hover:from-red-900/20 dark:hover:to-pink-900/20 transition-all flex items-center gap-3 group"
+                      >
+                        <div className="w-10 h-10 bg-gradient-to-br from-red-500 to-pink-500 rounded-lg flex items-center justify-center text-white group-hover:scale-110 transition-transform">
+                          <FaHeart className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <p className="font-semibold text-gray-900 dark:text-white">
+                            My Wishlist
+                          </p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">
+                            Saved items
                           </p>
                         </div>
                       </button>

@@ -30,6 +30,22 @@ const userSchema = new mongoose.Schema(
     address: {
       type: String,
     },
+    addresses: [
+      {
+        label: { type: String, default: "Home" },
+        fullName: String,
+        phone: String,
+        address: String,
+        city: String,
+        isDefault: { type: Boolean, default: false },
+      },
+    ],
+    wishlist: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Product",
+      },
+    ],
     isVerified: {
       type: Boolean,
       default: false,
@@ -37,6 +53,70 @@ const userSchema = new mongoose.Schema(
     isAdmin: {
       type: Boolean,
       default: false,
+    },
+    isSuperAdmin: {
+      type: Boolean,
+      default: false,
+    },
+    isBlocked: {
+      type: Boolean,
+      default: false,
+    },
+    adminRole: {
+      type: String,
+      enum: ["admin", "manager", "support"],
+      default: "admin",
+    },
+    adminStatus: {
+      type: String,
+      enum: ["active", "suspended", "pending"],
+      default: "active",
+    },
+    suspendedAt: {
+      type: Date,
+    },
+    suspendedUntil: {
+      type: Date,
+    },
+    suspendReason: {
+      type: String,
+    },
+    // Admin Permissions
+    permissions: {
+      products: {
+        create: { type: Boolean, default: true },
+        edit: { type: Boolean, default: true },
+        delete: { type: Boolean, default: true },
+      },
+      orders: {
+        view: { type: Boolean, default: true },
+        manage: { type: Boolean, default: true },
+      },
+      users: {
+        view: { type: Boolean, default: true },
+        block: { type: Boolean, default: false },
+      },
+      categories: {
+        create: { type: Boolean, default: true },
+        edit: { type: Boolean, default: true },
+        delete: { type: Boolean, default: true },
+      },
+      banners: {
+        manage: { type: Boolean, default: true },
+      },
+      coupons: {
+        manage: { type: Boolean, default: true },
+      },
+      reviews: {
+        manage: { type: Boolean, default: true },
+      },
+      payments: {
+        view: { type: Boolean, default: false },
+      },
+    },
+    createdBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
     },
     verificationToken: {
       type: String,
@@ -56,6 +136,16 @@ const userSchema = new mongoose.Schema(
     resetPasswordExpires: {
       type: Date,
     },
+    lastVerificationToken: {
+      type: String,
+    },
+    warnings: [
+      {
+        message: { type: String },
+        date: { type: Date, default: Date.now },
+        issuedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+      },
+    ],
     cart: [
       {
         product: {

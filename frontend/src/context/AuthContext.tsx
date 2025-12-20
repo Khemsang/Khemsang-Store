@@ -16,7 +16,9 @@ interface User {
   avatar?: string;
   role?: string;
   isAdmin: boolean;
+  isSuperAdmin: boolean;
   isVerified: boolean;
+  adminStatus?: string;
 }
 
 interface AuthContextType {
@@ -99,8 +101,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return data;
   };
 
-  const updateUser = (userData: Partial<User>) => {
-    setUser((prevUser) => (prevUser ? { ...prevUser, ...userData } : null));
+  const updateUser = (userData: Partial<User> | User) => {
+    if (userData && "_id" in userData) {
+      // Full user object - replace entirely
+      setUser(userData as User);
+    } else {
+      // Partial update
+      setUser((prevUser) => (prevUser ? { ...prevUser, ...userData } : null));
+    }
   };
 
   return (

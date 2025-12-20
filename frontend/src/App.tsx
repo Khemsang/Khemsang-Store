@@ -1,7 +1,7 @@
 import { Route, Routes, Navigate } from "react-router-dom";
 import { Provider } from "react-redux";
 import { store } from "./store/store";
-import { Suspense, lazy } from "react";
+import { Suspense, lazy, useEffect, useState } from "react";
 
 // Context Providers
 import { AuthProvider, useAuth } from "./context/AuthContext";
@@ -19,6 +19,8 @@ import {
   ScrollToTop,
 } from "./components";
 import PageLoader from "./components/PageLoader";
+import { BackToTop, ZoomControls } from "./components/ui";
+import { api } from "./services/api";
 
 /**
  * ========================================
@@ -55,6 +57,7 @@ const Sitemap = lazy(() => import("./pages/main/Sitemap"));
 const SubmitTestimonial = lazy(() => import("./pages/main/SubmitTestimonial"));
 const Profile = lazy(() => import("./pages/main/Profile"));
 const FurnitureDoorPage = lazy(() => import("./pages/main/furniture"));
+const MaintenancePage = lazy(() => import("./pages/main/MaintenancePage"));
 
 // Auth Pages
 const Login = lazy(() => import("./pages/auth/login"));
@@ -76,6 +79,31 @@ const AdminCategories = lazy(() => import("./pages/admin/AdminCategories"));
 const AdminBanners = lazy(() => import("./pages/admin/AdminBanners"));
 const AdminAbout = lazy(() => import("./pages/admin/AdminAbout"));
 const AdminContact = lazy(() => import("./pages/admin/AdminContact"));
+const AdminBrands = lazy(() => import("./pages/admin/AdminBrands"));
+const AdminCoupons = lazy(() => import("./pages/admin/AdminCoupons"));
+const AdminCustomers = lazy(() => import("./pages/admin/AdminCustomers"));
+const AdminInventory = lazy(() => import("./pages/admin/AdminInventory"));
+const AdminShipping = lazy(() => import("./pages/admin/AdminShipping"));
+const AdminFeatures = lazy(() => import("./pages/admin/AdminFeatures"));
+const AdminReviews = lazy(() => import("./pages/admin/AdminReviews"));
+const AdminTestimonials = lazy(() => import("./pages/admin/AdminTestimonials"));
+const SuperAdminDashboard = lazy(
+  () => import("./pages/admin/SuperAdminDashboard")
+);
+const Wishlist = lazy(() => import("./pages/main/Wishlist"));
+const OrderTracking = lazy(() => import("./pages/main/OrderTracking"));
+
+// New User Pages
+const Brands = lazy(() => import("./pages/main/Brands"));
+const Categories = lazy(() => import("./pages/main/Categories"));
+const TrackOrder = lazy(() => import("./pages/main/TrackOrder"));
+const Compare = lazy(() => import("./pages/main/Compare"));
+const Deals = lazy(() => import("./pages/main/Deals"));
+const NewArrivals = lazy(() => import("./pages/main/NewArrivals"));
+const BestSellers = lazy(() => import("./pages/main/BestSellers"));
+const HelpCenter = lazy(() => import("./pages/main/HelpCenter"));
+const ReturnPolicy = lazy(() => import("./pages/main/ReturnPolicy"));
+const ShippingInfo = lazy(() => import("./pages/main/ShippingInfo"));
 
 /**
  * ========================================
@@ -85,13 +113,52 @@ const AdminContact = lazy(() => import("./pages/admin/AdminContact"));
  */
 const AppRoutes = () => {
   const { user, loading } = useAuth();
+  const [maintenanceMode, setMaintenanceMode] = useState(false);
+  const [maintenanceMessage, setMaintenanceMessage] = useState("");
+  const [checkingMaintenance, setCheckingMaintenance] = useState(true);
 
-  // Show loading while checking auth
-  if (loading) {
+  // Check maintenance status
+  useEffect(() => {
+    const checkMaintenance = async () => {
+      try {
+        const res = await api.get("/admin-management/maintenance-status");
+        setMaintenanceMode(res.data.maintenanceMode);
+        setMaintenanceMessage(res.data.maintenanceMessage);
+      } catch (err) {
+        console.error("Failed to check maintenance status");
+      } finally {
+        setCheckingMaintenance(false);
+      }
+    };
+    checkMaintenance();
+  }, []);
+
+  // Show loading while checking auth or maintenance
+  if (loading || checkingMaintenance) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        Loading...
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-gradient-to-br from-white via-purple-50/50 to-pink-50/50 dark:from-gray-900 dark:via-purple-900/20 dark:to-gray-900">
+        <div className="text-center">
+          <div className="relative w-20 h-20 mx-auto mb-6">
+            <div className="absolute inset-0 rounded-full border-4 border-gray-200 dark:border-gray-700"></div>
+            <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-[var(--root-color)] border-r-purple-500 animate-spin"></div>
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="w-10 h-10 bg-gradient-to-br from-[var(--root-color)] to-purple-600 rounded-xl animate-pulse"></div>
+            </div>
+          </div>
+          <p className="text-gray-600 dark:text-gray-400 font-medium">
+            Loading...
+          </p>
+        </div>
       </div>
+    );
+  }
+
+  // Show maintenance page for non-super-admin users
+  if (maintenanceMode && !user?.isSuperAdmin) {
+    return (
+      <Suspense fallback={<div className="min-h-screen bg-purple-900" />}>
+        <MaintenancePage message={maintenanceMessage} />
+      </Suspense>
     );
   }
 
@@ -103,8 +170,19 @@ const AppRoutes = () => {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen flex items-center justify-center">
-          Loading...
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-gradient-to-br from-white via-purple-50/50 to-pink-50/50 dark:from-gray-900 dark:via-purple-900/20 dark:to-gray-900">
+          <div className="text-center">
+            <div className="relative w-20 h-20 mx-auto mb-6">
+              <div className="absolute inset-0 rounded-full border-4 border-gray-200 dark:border-gray-700"></div>
+              <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-[var(--root-color)] border-r-purple-500 animate-spin"></div>
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="w-10 h-10 bg-gradient-to-br from-[var(--root-color)] to-purple-600 rounded-xl animate-pulse"></div>
+              </div>
+            </div>
+            <p className="text-gray-600 dark:text-gray-400 font-medium">
+              Loading page...
+            </p>
+          </div>
         </div>
       }
     >
@@ -131,6 +209,15 @@ const AppRoutes = () => {
             <Route path="banners" element={<AdminBanners />} />
             <Route path="about" element={<AdminAbout />} />
             <Route path="contact" element={<AdminContact />} />
+            <Route path="brands" element={<AdminBrands />} />
+            <Route path="coupons" element={<AdminCoupons />} />
+            <Route path="customers" element={<AdminCustomers />} />
+            <Route path="inventory" element={<AdminInventory />} />
+            <Route path="shipping" element={<AdminShipping />} />
+            <Route path="features" element={<AdminFeatures />} />
+            <Route path="reviews" element={<AdminReviews />} />
+            <Route path="testimonials" element={<AdminTestimonials />} />
+            <Route path="super-admin" element={<SuperAdminDashboard />} />
           </Route>
 
           {/* ========== AUTH ROUTES ========== */}
@@ -177,6 +264,8 @@ const AppRoutes = () => {
                     element={<AllFeaturedProducts />}
                   />
                   <Route path="/cart" element={<Cart />} />
+                  <Route path="/wishlist" element={<Wishlist />} />
+                  <Route path="/order/:id" element={<OrderTracking />} />
 
                   {/* Protected Pages */}
                   <Route
@@ -219,6 +308,18 @@ const AppRoutes = () => {
                     element={<TermsOfService />}
                   />
                   <Route path="/sitemap" element={<Sitemap />} />
+
+                  {/* New Pages */}
+                  <Route path="/brands" element={<Brands />} />
+                  <Route path="/categories" element={<Categories />} />
+                  <Route path="/track" element={<TrackOrder />} />
+                  <Route path="/compare" element={<Compare />} />
+                  <Route path="/deals" element={<Deals />} />
+                  <Route path="/new-arrivals" element={<NewArrivals />} />
+                  <Route path="/best-sellers" element={<BestSellers />} />
+                  <Route path="/help" element={<HelpCenter />} />
+                  <Route path="/return-policy" element={<ReturnPolicy />} />
+                  <Route path="/shipping-info" element={<ShippingInfo />} />
                 </Routes>
                 <Footer />
               </>
@@ -246,6 +347,8 @@ const App = () => {
               <CartProvider>
                 <ScrollToTop />
                 <AppRoutes />
+                <BackToTop />
+                <ZoomControls />
               </CartProvider>
             </AuthProvider>
           </LoadingProvider>

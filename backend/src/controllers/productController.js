@@ -4,15 +4,19 @@ import {
   deleteMultipleFromCloudinary,
 } from "../services/cloudinaryService.js";
 
-/**
- * GET ALL PRODUCTS
- * GET /api/products
- * Public
- */
 export const getProducts = async (req, res) => {
   try {
-    const { category, search } = req.query;
+    const { category, search, adminOnly } = req.query;
     const filter = {};
+
+    // Super Admin can VIEW all products but not edit/delete
+    // Regular admin sees only their own products
+    if (adminOnly === "true" && req.user?.isAdmin) {
+      // Super Admin can view all for monitoring, but filter for regular admin
+      if (!req.user?.isSuperAdmin) {
+        filter.createdBy = req.user._id;
+      }
+    }
 
     if (category) filter.category = category;
     if (search) {
@@ -29,14 +33,12 @@ export const getProducts = async (req, res) => {
   }
 };
 
-/**
- * GET SINGLE PRODUCT
- * GET /api/products/:id
- * Public
- */
 export const getProductById = async (req, res) => {
   try {
-    const product = await Product.findById(req.params.id).populate("createdBy", "name email");
+    const product = await Product.findById(req.params.id).populate(
+      "createdBy",
+      "name email"
+    );
     if (!product) return res.status(404).json({ message: "Product not found" });
 
     res.json(product);
@@ -45,11 +47,6 @@ export const getProductById = async (req, res) => {
   }
 };
 
-/**
- * CREATE PRODUCT
- * POST /api/products
- * Admin Only
- */
 export const createProduct = async (req, res) => {
   try {
     const { title, description, price, category, stock } = req.body;
@@ -75,12 +72,6 @@ export const createProduct = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
-
-/**
- * UPDATE PRODUCT
- * PUT /api/products/:id
- * Admin Only
- */
 export const updateProduct = async (req, res) => {
   try {
     const { title, description, price, category, stock } = req.body;
@@ -88,7 +79,16 @@ export const updateProduct = async (req, res) => {
     const product = await Product.findById(req.params.id);
     if (!product) return res.status(404).json({ message: "Product not found" });
 
-    // Upload new images
+    // Both Super Admin and regular admin can only update their OWN products
+    if (
+      req.user.isAdmin &&
+      product.createdBy.toString() !== req.user._id.toString()
+    ) {
+      return res
+        .status(403)
+        .json({ message: "You can only update your own products" });
+    }
+
     let imageUrls = product.images || [];
     if (req.files?.length) {
       const newImages = await uploadMultipleToCloudinary(req.files);
@@ -109,15 +109,20 @@ export const updateProduct = async (req, res) => {
   }
 };
 
-/**
- * DELETE PRODUCT
- * DELETE /api/products/:id
- * Admin Only
- */
 export const deleteProduct = async (req, res) => {
   try {
     const product = await Product.findById(req.params.id);
     if (!product) return res.status(404).json({ message: "Product not found" });
+
+    // Both Super Admin and regular admin can only delete their OWN products
+    if (
+      req.user.isAdmin &&
+      product.createdBy.toString() !== req.user._id.toString()
+    ) {
+      return res
+        .status(403)
+        .json({ message: "You can only delete your own products" });
+    }
 
     if (product.images?.length) {
       await deleteMultipleFromCloudinary(product.images);

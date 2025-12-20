@@ -52,6 +52,27 @@ const orderSchema = new mongoose.Schema(
       address: String,
       city: String,
     },
+    trackingNumber: {
+      type: String,
+      default: "",
+    },
+    trackingHistory: [
+      {
+        status: String,
+        message: String,
+        timestamp: { type: Date, default: Date.now },
+      },
+    ],
+    estimatedDelivery: {
+      type: Date,
+    },
+    couponCode: {
+      type: String,
+    },
+    discount: {
+      type: Number,
+      default: 0,
+    },
   },
   {
     timestamps: true,

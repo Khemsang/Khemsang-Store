@@ -1,11 +1,11 @@
 import express from "express";
 import * as categoryController from "../controllers/categoryController.js";
-import { auth, isAdmin } from "../middleware/auth.js";
+import { auth, isAdmin, optionalAuth } from "../middleware/auth.js";
 
 const router = express.Router();
 
-// Public routes
-router.get("/", categoryController.getAllCategories);
+// Public routes (optionalAuth for admin filtering)
+router.get("/", optionalAuth, categoryController.getAllCategories);
 router.get("/:id", categoryController.getCategoryById);
 
 // Admin routes

@@ -10,6 +10,7 @@ import {
   TestimonialSection,
   BrowseByCategory,
   Counterbar,
+  StoreHighlights,
 } from "../../components";
 
 const fadeUpVariant = {
@@ -67,6 +68,10 @@ const Home = () => {
 
       <AnimatedSection>
         <LatestItems />
+      </AnimatedSection>
+
+      <AnimatedSection>
+        <StoreHighlights />
       </AnimatedSection>
 
       <AnimatedSection>

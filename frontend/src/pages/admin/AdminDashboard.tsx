@@ -56,10 +56,11 @@ const AdminDashboard = () => {
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
+      // adminOnly=true filters data to show only current admin's data
       const [productsRes, ordersRes, categoriesRes] = await Promise.all([
-        api.get("/products"),
+        api.get("/products?adminOnly=true"),
         api.get("/orders"),
-        api.get("/categories"),
+        api.get("/categories?adminOnly=true"),
       ]);
 
       const products = productsRes.data;
@@ -203,13 +204,6 @@ const AdminDashboard = () => {
       icon: FaTruck,
       gradient: "from-emerald-500 to-teal-600",
       link: "/admin/orders",
-    },
-    {
-      title: "View Analytics",
-      description: "Track sales, revenue, and performance metrics",
-      icon: FaChartLine,
-      gradient: "from-purple-500 to-indigo-600",
-      link: "/admin/products",
     },
   ];
 

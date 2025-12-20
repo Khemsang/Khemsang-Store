@@ -8,6 +8,7 @@ import {
   verifyPayment,
   paymentFailure,
   getEsewaSignature,
+  getInvoice,
 } from "../controllers/orderController.js";
 import { auth, isAdmin } from "../middleware/auth.js";
 
@@ -24,6 +25,9 @@ router.post("/esewa/signature", auth, getEsewaSignature);
 
 // Order by ID
 router.get("/:id", auth, getOrderById);
+
+// Invoice
+router.get("/:id/invoice", auth, getInvoice);
 
 // Admin routes
 router.get("/", auth, isAdmin, getAllOrders);

@@ -5,6 +5,15 @@ import {
   generateEsewaSignature,
 } from "../services/esewaService.js";
 import { logActivity } from "./activityController.js";
+import {
+  sendOrderConfirmationEmail,
+  sendOrderShippedEmail,
+  sendOrderDeliveredEmail,
+} from "../services/orderEmailService.js";
+import {
+  generateInvoiceHTML,
+  generateInvoiceData,
+} from "../services/invoiceService.js";
 
 /**
  * CREATE ORDER
@@ -39,6 +48,11 @@ export const createOrder = async (req, res) => {
       orderStatus: "pending",
     });
 
+    // Populate order for email
+    const populatedOrder = await Order.findById(order._id).populate(
+      "items.product"
+    );
+
     // Log activity
     await logActivity(
       req.user._id,
@@ -58,6 +72,9 @@ export const createOrder = async (req, res) => {
 
     // Clear user cart
     await User.findByIdAndUpdate(req.user._id, { cart: [] }).catch(() => {});
+
+    // Send order confirmation email
+    sendOrderConfirmationEmail(populatedOrder, req.user).catch(console.error);
 
     res.status(201).json(order);
   } catch (err) {
@@ -86,14 +103,28 @@ export const getMyOrders = async (req, res) => {
 /**
  * GET ALL ORDERS
  * GET /api/orders
- * Admin only
+ * Admin only (shows orders containing their products)
+ * Super Admin sees ALL orders
  */
 export const getAllOrders = async (req, res) => {
   try {
-    const orders = await Order.find()
+    // Get all orders with populated products
+    let orders = await Order.find()
       .populate("user", "name email")
       .populate("items.product")
       .sort({ createdAt: -1 });
+
+    // Super Admin sees ALL orders, regular admin only their products' orders
+    if (req.user.isAdmin && !req.user.isSuperAdmin) {
+      orders = orders.filter((order) => {
+        // Check if any item in the order belongs to this admin
+        return order.items.some(
+          (item) =>
+            item.product?.createdBy?.toString() === req.user._id.toString()
+        );
+      });
+    }
+
     res.json(orders);
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -129,13 +160,83 @@ export const getOrderById = async (req, res) => {
  */
 export const updateOrderStatus = async (req, res) => {
   try {
-    const { orderStatus } = req.body;
-    const order = await Order.findById(req.params.id);
+    const { orderStatus, trackingNumber, estimatedDelivery } = req.body;
+    const order = await Order.findById(req.params.id).populate(
+      "user",
+      "name email"
+    );
     if (!order) return res.status(404).json({ message: "Order not found" });
 
+    const previousStatus = order.orderStatus;
     order.orderStatus = orderStatus;
+
+    // Update tracking info if provided
+    if (trackingNumber) order.trackingNumber = trackingNumber;
+    if (estimatedDelivery) order.estimatedDelivery = estimatedDelivery;
+
+    // Add to tracking history
+    order.trackingHistory.push({
+      status: orderStatus,
+      message: getStatusMessage(orderStatus),
+      timestamp: new Date(),
+    });
+
     const updatedOrder = await order.save();
+
+    // Send email notifications based on status change
+    if (previousStatus !== orderStatus && order.user) {
+      if (orderStatus === "shipped") {
+        await sendOrderShippedEmail(updatedOrder, order.user);
+      } else if (orderStatus === "delivered") {
+        await sendOrderDeliveredEmail(updatedOrder, order.user);
+      }
+    }
+
     res.json(updatedOrder);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// Helper function for status messages
+const getStatusMessage = (status) => {
+  const messages = {
+    pending: "Order placed and awaiting confirmation",
+    processing: "Order confirmed and being prepared",
+    shipped: "Order has been shipped",
+    delivered: "Order has been delivered",
+    cancelled: "Order has been cancelled",
+  };
+  return messages[status] || "Status updated";
+};
+
+/**
+ * GET INVOICE
+ * GET /api/orders/:id/invoice
+ * Private (owner or admin)
+ */
+export const getInvoice = async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.id)
+      .populate("user", "name email")
+      .populate("items.product");
+    if (!order) return res.status(404).json({ message: "Order not found" });
+
+    const isOwner = order.user._id.toString() === req.user._id.toString();
+    if (!isOwner && !req.user.isAdmin)
+      return res.status(403).json({ message: "Not authorized" });
+
+    const { format } = req.query;
+
+    if (format === "html") {
+      const html = generateInvoiceHTML(order, order.user);
+      res.setHeader("Content-Type", "text/html");
+      return res.send(html);
+    }
+
+    // Return JSON data for frontend PDF generation
+    const invoiceData = generateInvoiceData(order, order.user);
+    res.json(invoiceData);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

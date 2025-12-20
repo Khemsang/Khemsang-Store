@@ -55,6 +55,20 @@ const aboutSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
+    bestProducts: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Product",
+      },
+    ],
+    bestProductsTitle: {
+      type: String,
+      default: "Our Best Products",
+    },
+    bestProductsDescription: {
+      type: String,
+      default: "Handpicked favorites loved by our customers",
+    },
     isActive: {
       type: Boolean,
       default: true,

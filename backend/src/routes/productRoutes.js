@@ -6,13 +6,13 @@ import {
   updateProduct,
   deleteProduct,
 } from "../controllers/productController.js";
-import { auth, isAdmin } from "../middleware/auth.js";
+import { auth, isAdmin, optionalAuth } from "../middleware/auth.js";
 import { upload } from "../middleware/upload.js";
 
 const router = express.Router();
 
-// Public routes
-router.get("/", getProducts);
+// Public routes (optionalAuth for admin filtering)
+router.get("/", optionalAuth, getProducts);
 router.get("/:id", getProductById);
 
 // Admin routes

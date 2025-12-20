@@ -1,10 +1,8 @@
 import FeaturedProduct from "../models/FeaturedProduct.js";
 
-// Get all featured products (active + featured for public, all for admin)
 export const getAllFeaturedProducts = async (req, res) => {
   try {
     const filter = {};
-    // If not admin request, only show active and featured
     if (!req.query.admin) {
       filter.isActive = true;
       filter.isFeatured = true;
