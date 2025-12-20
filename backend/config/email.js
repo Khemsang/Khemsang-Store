@@ -6,15 +6,19 @@ dotenv.config(); // Must be first
 let transporter;
 
 const createTransporter = () => {
+  // Support both SMTP_USER/SMTP_PASS and EMAIL_USER/EMAIL_PASS
+  const emailUser = process.env.SMTP_USER || process.env.EMAIL_USER;
+  const emailPass = process.env.SMTP_PASS || process.env.EMAIL_PASS;
+
   // If Gmail credentials provided, use Gmail
-  if (process.env.SMTP_USER && process.env.SMTP_PASS) {
+  if (emailUser && emailPass) {
     transporter = nodemailer.createTransport({
       host: "smtp.gmail.com",
       port: 465,
       secure: true,
       auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS,
+        user: emailUser,
+        pass: emailPass,
       },
     });
     console.log("✅ Gmail SMTP configured");

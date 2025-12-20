@@ -4,15 +4,12 @@
   "description": "Furniture Store Backend API",
   "main": "server.js",
   "type": "module",
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "scripts": {
     "start": "node src/server.js",
-    "dev": "nodemon src/server.js",
-    "build": "echo 'Backend build complete - No build step required for Node.js'",
-    "seed": "node src/utils/seedData.js",
-    "test:email": "node test-email.js",
-    "test:email:simple": "node test-email-simple.js",
-    "diagnose:email": "node diagnose-email.js",
-    "check:env": "node check-env.js"
+    "dev": "nodemon src/server.js"
   },
   "keywords": [],
   "author": "",
