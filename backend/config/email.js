@@ -57,8 +57,6 @@ const createTransporter = async () => {
 // Initialize on load (non-blocking)
 createTransporter().catch(() => {});
 
-createTransporter();
-
 // Generic send function with guards
 export const sendEmail = async ({ to, subject, html }) => {
   // Guard: Validate recipient
