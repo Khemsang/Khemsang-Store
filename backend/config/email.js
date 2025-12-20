@@ -333,7 +333,10 @@ export const sendOTPEmail = async (email, otp) => {
 
 // Test connection - skip verify to avoid timeout
 export const testEmailConnection = async () => {
-  if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
+  const emailUser = process.env.SMTP_USER || process.env.EMAIL_USER;
+  const emailPass = process.env.SMTP_PASS || process.env.EMAIL_PASS;
+
+  if (!emailUser || !emailPass) {
     console.log("⚠️ Email credentials not configured");
     return false;
   }
@@ -341,7 +344,7 @@ export const testEmailConnection = async () => {
   // Just check if transporter exists, don't verify connection
   // Gmail will work when actually sending emails
   if (transporter) {
-    console.log("✅ Email service ready (Gmail)");
+    console.log("✅ Email server ready");
     return true;
   }
 

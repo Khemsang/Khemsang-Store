@@ -24,9 +24,9 @@ services:
         sync: false
       - key: CLOUDINARY_API_SECRET
         sync: false
-      - key: EMAIL_USER
+      - key: SMTP_USER
         sync: false
-      - key: EMAIL_PASS
+      - key: SMTP_PASS
         sync: false
       - key: FRONTEND_URL
         sync: false
