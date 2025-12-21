@@ -3,9 +3,20 @@ import User from "../models/User.js";
 import AdminLog from "../models/AdminLog.js";
 import SiteSettings from "../models/SiteSettings.js";
 import { auth, isSuperAdmin } from "../middleware/auth.js";
-import { sendEmail } from "../../config/email.js";
+import nodemailer from "nodemailer";
 
 const router = express.Router();
+
+// Create email transporter
+const createTransporter = () => {
+  return nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      user: process.env.GMAIL_USER,
+      pass: process.env.GMAIL_APP_PASSWORD,
+    },
+  });
+};
 
 // Helper function to send admin block notification email
 const sendAdminBlockEmail = async (adminEmail, adminName, reason = "") => {
@@ -91,13 +102,18 @@ const sendAdminBlockEmail = async (adminEmail, adminName, reason = "") => {
   `;
 
   try {
-    await sendEmail({
+    const transporter = createTransporter();
+    await transporter.sendMail({
+      from: `"${process.env.STORE_NAME || "Khemsang Store"}" <${
+        process.env.GMAIL_USER
+      }>`,
       to: adminEmail,
       subject: `🚫 Your Admin Account Has Been Suspended - ${storeName}`,
       html,
     });
+    console.log(`✅ Block email sent to ${adminEmail}`);
   } catch (err) {
-    console.error("Failed to send block notification email:", err);
+    console.error("Failed to send block notification email:", err.message);
   }
 };
 
@@ -170,13 +186,18 @@ const sendAdminUnblockEmail = async (adminEmail, adminName) => {
   `;
 
   try {
-    await sendEmail({
+    const transporter = createTransporter();
+    await transporter.sendMail({
+      from: `"${process.env.STORE_NAME || "Khemsang Store"}" <${
+        process.env.GMAIL_USER
+      }>`,
       to: adminEmail,
       subject: `✅ Your Admin Account Has Been Reactivated - ${storeName}`,
       html,
     });
+    console.log(`✅ Unblock email sent to ${adminEmail}`);
   } catch (err) {
-    console.error("Failed to send unblock notification email:", err);
+    console.error("Failed to send unblock notification email:", err.message);
   }
 };
 
@@ -258,13 +279,21 @@ const sendPasswordResetNotificationEmail = async (
   `;
 
   try {
-    await sendEmail({
+    const transporter = createTransporter();
+    await transporter.sendMail({
+      from: `"${process.env.STORE_NAME || "Khemsang Store"}" <${
+        process.env.GMAIL_USER
+      }>`,
       to: adminEmail,
       subject: `🔑 Your Password Has Been Reset - ${storeName}`,
       html,
     });
+    console.log(`✅ Password reset email sent to ${adminEmail}`);
   } catch (err) {
-    console.error("Failed to send password reset notification email:", err);
+    console.error(
+      "Failed to send password reset notification email:",
+      err.message
+    );
   }
 };
 
@@ -347,13 +376,18 @@ const sendAdminWarningEmail = async (adminEmail, adminName, warningMessage) => {
   `;
 
   try {
-    await sendEmail({
+    const transporter = createTransporter();
+    await transporter.sendMail({
+      from: `"${process.env.STORE_NAME || "Khemsang Store"}" <${
+        process.env.GMAIL_USER
+      }>`,
       to: adminEmail,
       subject: `⚠️ Warning Notice - ${storeName}`,
       html,
     });
+    console.log(`✅ Warning email sent to ${adminEmail}`);
   } catch (err) {
-    console.error("Failed to send warning notification email:", err);
+    console.error("Failed to send warning notification email:", err.message);
   }
 };
 

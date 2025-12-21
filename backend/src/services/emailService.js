@@ -1,92 +1,161 @@
 import nodemailer from "nodemailer";
-import dotenv from "dotenv";
-dotenv.config(); // must be at top
 
-let transporter = null;
-
-// Lazy transporter creation
-const getTransporter = () => {
-  if (!transporter) {
-    transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST || "smtp.gmail.com",
-      port: Number(process.env.SMTP_PORT) || 587,
-      secure: false, // 587 TLS
-      auth: {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS, // Gmail App Password
-      },
-      tls: { rejectUnauthorized: false },
-      connectionTimeout: 30000,
-      greetingTimeout: 30000,
-      socketTimeout: 30000,
-    });
-  }
-  return transporter;
+// Create transporter inline
+const createTransporter = () => {
+  return nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      user: process.env.GMAIL_USER,
+      pass: process.env.GMAIL_APP_PASSWORD,
+    },
+  });
 };
 
-// Generic send email
-const sendEmail = async ({ to, subject, html }) => {
-  try {
-    const transport = getTransporter();
-    await transport.sendMail({
-      from: process.env.EMAIL_FROM,
-      to,
-      subject,
-      html,
-    });
-    console.log(`✅ Email sent to: ${to}`);
-  } catch (err) {
-    console.error("❌ Failed to send email:", err.message);
-    if (process.env.NODE_ENV === "development") {
-      console.log("⚠️ Dev mode - email fallback, content below:\n", html);
-    }
-  }
+// Send verification email
+export const sendVerificationEmail = async (email, token) => {
+  const transporter = createTransporter();
+  const verificationUrl = `${process.env.FRONTEND_URL}/verify-email/${token}`;
+
+  const mailOptions = {
+    from: `"${process.env.STORE_NAME || "Khemsang Store"}" <${
+      process.env.GMAIL_USER
+    }>`,
+    to: email,
+    subject: "Verify Your Email Address",
+    html: `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+          .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
+          .button { display: inline-block; padding: 12px 30px; background: #667eea; color: white; text-decoration: none; border-radius: 5px; margin: 20px 0; }
+          .footer { text-align: center; margin-top: 20px; color: #666; font-size: 12px; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>Welcome! 🎉</h1>
+          </div>
+          <div class="content">
+            <p>Thank you for signing up! Please verify your email address to complete your registration.</p>
+            <p style="text-align: center;">
+              <a href="${verificationUrl}" class="button">Verify Email Address</a>
+            </p>
+            <p>Or copy this link: <br><small>${verificationUrl}</small></p>
+            <p>This link will expire in 15 minutes.</p>
+          </div>
+          <div class="footer">
+            <p>If you didn't create this account, please ignore this email.</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `,
+  };
+
+  await transporter.sendMail(mailOptions);
 };
 
-// Send OTP Email
+// Send OTP email
 export const sendOTPEmail = async (email, otp) => {
-  const html = `
-    <div style="font-family:Arial,sans-serif;max-width:500px;margin:0 auto;padding:20px;">
-      <h2 style="color:#7c3aed;">🔐 Login Verification</h2>
-      <p>Your OTP code is:</p>
-      <div style="background:#f3f4f6;padding:20px;text-align:center;font-size:32px;font-weight:bold;letter-spacing:8px;color:#7c3aed;">
-        ${otp}
-      </div>
-      <p style="color:#6b7280;margin-top:20px;">This code expires in 15 minutes.</p>
-      <p style="color:#ef4444;font-size:12px;">Never share this code with anyone.</p>
-    </div>
-  `;
-  await sendEmail({ to: email, subject: `🔐 Your OTP: ${otp}`, html });
+  const transporter = createTransporter();
+  const mailOptions = {
+    from: `"${process.env.STORE_NAME || "Khemsang Store"}" <${
+      process.env.GMAIL_USER
+    }>`,
+    to: email,
+    subject: "Your Login OTP Code",
+    html: `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+          .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; text-align: center; }
+          .otp { font-size: 32px; font-weight: bold; color: #667eea; letter-spacing: 5px; padding: 20px; background: white; border-radius: 10px; display: inline-block; margin: 20px 0; }
+          .footer { text-align: center; margin-top: 20px; color: #666; font-size: 12px; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>🔐 Login OTP</h1>
+          </div>
+          <div class="content">
+            <p>Your One-Time Password (OTP) for login is:</p>
+            <div class="otp">${otp}</div>
+            <p>This OTP will expire in 15 minutes.</p>
+            <p><strong>Do not share this code with anyone.</strong></p>
+          </div>
+          <div class="footer">
+            <p>If you didn't request this OTP, please ignore this email.</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `,
+  };
+
+  await transporter.sendMail(mailOptions);
 };
 
-// Send Password Reset Email
+// Send password reset email
 export const sendPasswordResetEmail = async (email, token) => {
+  const transporter = createTransporter();
   const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${token}`;
-  const html = `
-    <div style="font-family:Arial,sans-serif;max-width:500px;margin:0 auto;padding:20px;">
-      <h2 style="color:#7c3aed;">🔑 Password Reset</h2>
-      <p>Click the button below to reset your password:</p>
-      <div style="text-align:center;margin:30px 0;">
-        <a href="${resetUrl}" style="background:#7c3aed;color:white;padding:12px 30px;text-decoration:none;border-radius:6px;font-weight:bold;">
-          Reset Password
-        </a>
-      </div>
-      <p style="color:#6b7280;">Or copy this link: ${resetUrl}</p>
-      <p style="color:#ef4444;font-size:12px;">This link expires in 15 minutes.</p>
-    </div>
-  `;
-  await sendEmail({ to: email, subject: "🔑 Password Reset Request", html });
+
+  const mailOptions = {
+    from: `"${process.env.STORE_NAME || "Khemsang Store"}" <${
+      process.env.GMAIL_USER
+    }>`,
+    to: email,
+    subject: "Reset Your Password",
+    html: `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+          .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
+          .button { display: inline-block; padding: 12px 30px; background: #f59e0b; color: white; text-decoration: none; border-radius: 5px; margin: 20px 0; }
+          .footer { text-align: center; margin-top: 20px; color: #666; font-size: 12px; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>🔑 Password Reset</h1>
+          </div>
+          <div class="content">
+            <p>You requested to reset your password. Click the button below to create a new password:</p>
+            <p style="text-align: center;">
+              <a href="${resetUrl}" class="button">Reset Password</a>
+            </p>
+            <p>Or copy this link: <br><small>${resetUrl}</small></p>
+            <p>This link will expire in 15 minutes.</p>
+          </div>
+          <div class="footer">
+            <p>If you didn't request this, please ignore this email.</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `,
+  };
+
+  await transporter.sendMail(mailOptions);
 };
 
-// Test SMTP connection
-export const testEmailConnection = async () => {
-  try {
-    const transport = getTransporter();
-    await transport.verify();
-    console.log("✅ SMTP Auth successful!");
-  } catch (err) {
-    console.error("❌ SMTP Auth failed:", err.message);
-  }
+export default {
+  sendVerificationEmail,
+  sendOTPEmail,
+  sendPasswordResetEmail,
 };
-
-export default sendEmail;

@@ -15,29 +15,22 @@ const otpSchema = new mongoose.Schema(
     expiresAt: {
       type: Date,
       required: true,
-      default: () => new Date(Date.now() + 10 * 60 * 1000), // 10 minutes
+      index: { expires: 0 }, // Auto-delete when expired
     },
   },
-  {
-    timestamps: true,
-  }
+  { timestamps: true }
 );
 
 // Hash OTP before saving
 otpSchema.pre("save", async function (next) {
-  if (!this.isModified("otp")) {
-    next();
-  }
-  const salt = await bcrypt.genSalt(10);
-  this.otp = await bcrypt.hash(this.otp, salt);
+  if (!this.isModified("otp")) return next();
+  this.otp = await bcrypt.hash(this.otp, 10);
+  next();
 });
 
-// Compare OTP
+// Method to compare OTP
 otpSchema.methods.matchOTP = async function (enteredOTP) {
   return await bcrypt.compare(enteredOTP, this.otp);
 };
-
-// Auto-delete expired OTPs
-otpSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 
 export default mongoose.model("OTP", otpSchema);

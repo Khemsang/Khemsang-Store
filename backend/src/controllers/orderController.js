@@ -74,7 +74,12 @@ export const createOrder = async (req, res) => {
     await User.findByIdAndUpdate(req.user._id, { cart: [] }).catch(() => {});
 
     // Send order confirmation email
-    sendOrderConfirmationEmail(populatedOrder, req.user).catch(console.error);
+    try {
+      await sendOrderConfirmationEmail(populatedOrder, req.user);
+      console.log("✅ Order confirmation email sent");
+    } catch (emailError) {
+      console.error("❌ Failed to send order email:", emailError.message);
+    }
 
     res.status(201).json(order);
   } catch (err) {
@@ -185,10 +190,16 @@ export const updateOrderStatus = async (req, res) => {
 
     // Send email notifications based on status change
     if (previousStatus !== orderStatus && order.user) {
-      if (orderStatus === "shipped") {
-        await sendOrderShippedEmail(updatedOrder, order.user);
-      } else if (orderStatus === "delivered") {
-        await sendOrderDeliveredEmail(updatedOrder, order.user);
+      try {
+        if (orderStatus === "shipped") {
+          await sendOrderShippedEmail(updatedOrder, order.user);
+          console.log("✅ Shipped email sent");
+        } else if (orderStatus === "delivered") {
+          await sendOrderDeliveredEmail(updatedOrder, order.user);
+          console.log("✅ Delivered email sent");
+        }
+      } catch (emailError) {
+        console.error("❌ Failed to send status email:", emailError.message);
       }
     }
 

@@ -98,7 +98,7 @@ html {
 
 /* Container responsive */
 .container {
-  width: 100%;
+  width: max-w-6xl;
   margin-left: auto;
   margin-right: auto;
   padding-left: 1rem;
