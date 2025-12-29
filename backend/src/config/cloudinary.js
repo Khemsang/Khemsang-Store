@@ -1,6 +1,6 @@
 import { v2 as cloudinary } from "cloudinary";
 import dotenv from "dotenv";
-dotenv.config(); // Must be first
+dotenv.config(); 
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -9,7 +9,7 @@ cloudinary.config({
 });
 
 if (!process.env.CLOUDINARY_API_KEY) {
-  console.error("❌ Cloudinary API key missing in .env");
+  console.error(" Cloudinary API key missing in .env");
 }
 
 export default cloudinary;

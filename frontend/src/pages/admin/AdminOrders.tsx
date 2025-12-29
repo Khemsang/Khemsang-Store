@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { api } from "../../services/api";
 import { useToast } from "../../context/ToastContext";
-import { Pagination } from "../../components/common";
+import Pagination from "../../components/common/Pagination";
 import {
   FaShoppingCart,
   FaUser,

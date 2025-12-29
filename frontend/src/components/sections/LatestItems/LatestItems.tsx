@@ -7,7 +7,7 @@ import { fetchProducts } from "../../../store/slices/productsSlice";
 import SimpleProductCard from "../../products/SimpleProductCard";
 import { useCart } from "../../../context/CartContext";
 import { useToast } from "../../../context/ToastContext";
-import { ViewAllButton } from "../../common";
+import ViewAllButton from "../../common/ViewAllButton";
 
 const LatestItems: React.FC = () => {
   const dispatch = useAppDispatch();

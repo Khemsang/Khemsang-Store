@@ -1,21 +1,16 @@
 @import "tailwindcss";
 
-@custom-variant dark (&:where(.dark, .dark *));
-
-@theme {
+:root {
+  --root-color: #4f46e5;
   --color-primary: #4f46e5;
   --color-secondary: #9333ea;
   --color-accent: #ec4899;
 }
 
-:root {
-  --root-color: #4f46e5;
-}
-
-/* Dark mode color scheme
+/* Dark mode color scheme */
 .dark {
   color-scheme: dark;
-} */
+}
 
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen",
@@ -70,67 +65,39 @@ body {
   animation: slideDown 0.3s ease-out;
 }
 
-/* Responsive utilities */
-@media (max-width: 768px) {
-  html {
-    font-size: 14px;
-  }
-}
-
-/* Prevent zoom on mobile */
-@media (max-width: 768px) {
-  input[type="text"],
-  input[type="email"],
-  input[type="password"],
-  input[type="number"],
-  input[type="tel"],
-  input[type="search"],
-  textarea,
-  select {
-    font-size: 16px !important;
-  }
-}
-
 /* Smooth scrolling */
 html {
   scroll-behavior: smooth;
 }
 
-/* Container responsive */
+/* Container */
 .container {
-  width: max-w-6xl;
+  width: 100%;
   margin-left: auto;
   margin-right: auto;
-  padding-left: 1rem;
-  padding-right: 1rem;
+  padding-left: 2rem;
+  padding-right: 2rem;
+  max-width: 1280px;
 }
 
-@media (min-width: 640px) {
-  .container {
-    max-width: 640px;
-  }
+/* Hover effects for desktop */
+.hover-scale:hover {
+  transform: scale(1.05);
+  transition: transform 0.3s ease;
 }
 
-@media (min-width: 768px) {
-  .container {
-    max-width: 768px;
-  }
+.hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
 }
 
-@media (min-width: 1024px) {
-  .container {
-    max-width: 1024px;
-  }
-}
-
-@media (min-width: 1280px) {
-  .container {
-    max-width: 1280px;
-  }
-}
-
-@media (min-width: 1536px) {
-  .container {
-    max-width: 1536px;
+/* Performance optimizations */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }

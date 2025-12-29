@@ -5,7 +5,7 @@ import { api } from "../../../services/api";
 import { useCart } from "../../../context/CartContext";
 import { useAuth } from "../../../context/AuthContext";
 import { useToast } from "../../../context/ToastContext";
-import { ViewAllButton } from "../../common";
+import ViewAllButton from "../../common/ViewAllButton";
 import {
   FaShoppingBag,
   FaArrowRight,

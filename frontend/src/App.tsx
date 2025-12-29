@@ -3,33 +3,20 @@ import { Provider } from "react-redux";
 import { store } from "./store/store";
 import { Suspense, lazy, useEffect, useState } from "react";
 
-// Context Providers
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { CartProvider } from "./context/CartContext";
 import { ThemeProvider } from "./context/ThemeContext";
 import { ToastProvider } from "./context/ToastContext";
 import { LoadingProvider } from "./context/LoadingContext";
 
-// Layout Components
-import {
-  Navbar,
-  Footer,
-  SearchResults,
-  ProtectedRoute,
-  ScrollToTop,
-} from "./components";
+import Navbar from "./components/layout/Navbar/Navbar";
+import Footer from "./components/layout/Footer/Footer";
+import SearchResults from "./components/sections/SearchResults/SearchResults";
+import ProtectedRoute from "./components/layout/ProtectedRoute";
+import ScrollToTop from "./components/common/ScrollToTop";
 import PageLoader from "./components/PageLoader";
-import { BackToTop, ZoomControls } from "./components/ui";
+import BackToTop from "./components/ui/BackToTop";
 import { api } from "./services/api";
-
-/**
- * ========================================
- * LAZY LOADED PAGES
- * Better performance - loads only when needed
- * ========================================
- */
-
-// Main Pages
 const Home = lazy(() => import("./pages/main/home"));
 const Products = lazy(() => import("./pages/main/products"));
 const Gallery = lazy(() => import("./pages/main/gallary"));
@@ -59,7 +46,6 @@ const Profile = lazy(() => import("./pages/main/Profile"));
 const FurnitureDoorPage = lazy(() => import("./pages/main/furniture"));
 const MaintenancePage = lazy(() => import("./pages/main/MaintenancePage"));
 
-// Auth Pages
 const Login = lazy(() => import("./pages/auth/login"));
 const Signup = lazy(() => import("./pages/auth/signup"));
 const Dashboard = lazy(() => import("./pages/auth/Dashboard"));
@@ -96,14 +82,14 @@ const OrderTracking = lazy(() => import("./pages/main/OrderTracking"));
 // New User Pages
 const Brands = lazy(() => import("./pages/main/Brands"));
 const Categories = lazy(() => import("./pages/main/Categories"));
-const TrackOrder = lazy(() => import("./pages/main/TrackOrder"));
-const Compare = lazy(() => import("./pages/main/Compare"));
+const TrackOrder = lazy(() => import("./pages/main/OrderTracking"));
 const Deals = lazy(() => import("./pages/main/Deals"));
 const NewArrivals = lazy(() => import("./pages/main/NewArrivals"));
 const BestSellers = lazy(() => import("./pages/main/BestSellers"));
 const HelpCenter = lazy(() => import("./pages/main/HelpCenter"));
 const ReturnPolicy = lazy(() => import("./pages/main/ReturnPolicy"));
 const ShippingInfo = lazy(() => import("./pages/main/ShippingInfo"));
+const Compare = lazy(() => import("./pages/main/Compare"));
 
 /**
  * ========================================
@@ -125,7 +111,6 @@ const AppRoutes = () => {
         setMaintenanceMode(res.data.maintenanceMode);
         setMaintenanceMessage(res.data.maintenanceMessage);
       } catch (err) {
-        console.error("Failed to check maintenance status");
       } finally {
         setCheckingMaintenance(false);
       }
@@ -223,7 +208,7 @@ const AppRoutes = () => {
           {/* ========== AUTH ROUTES ========== */}
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
-          <Route path="/verify-email" element={<VerifyEmail />} />
+          <Route path="/verify-email/:token" element={<VerifyEmail />} />
           <Route path="/verify-otp" element={<VerifyOTP />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
@@ -348,7 +333,6 @@ const App = () => {
                 <ScrollToTop />
                 <AppRoutes />
                 <BackToTop />
-                <ZoomControls />
               </CartProvider>
             </AuthProvider>
           </LoadingProvider>

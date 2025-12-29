@@ -1,7 +1,8 @@
 import { useState, useEffect, useMemo } from "react";
 import { api } from "../../services/api";
 import { useToast } from "../../context/ToastContext";
-import { ConfirmDialog, Pagination } from "../../components/common";
+import ConfirmDialog from "../../components/common/ConfirmDialog";
+import Pagination from "../../components/common/Pagination";
 
 interface Product {
   _id: string;

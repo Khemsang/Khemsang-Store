@@ -1,13 +1,1 @@
-export { default as HeroSection } from "./HeroSection/HeroSection";
-export { default as CallToActionSection } from "./CallToActionSection/CallToActionSection";
-export { default as Counterbar } from "./Counterbar/Counterbar";
-export { default as EventSlider } from "./EventSlider/EventSlider";
-export { default as LatestItems } from "./LatestItems/LatestItems";
-export { default as ProductFeatureCard } from "./ProductFeatureCard/ProductFeatureCard";
-export { default as ProductShowcase } from "./ProductShowcase/ProductShowcase";
-export { default as TestimonialSection } from "./TestimonialSection/TestimonialSection";
-export { default as SearchResults } from "./SearchResults/SearchResults";
-export { default as BrowseByCategory } from "./BrowseByCategory/BrowseByCategory";
-export { default as StoreHighlights } from "./StoreHighlights/StoreHighlights";
-export { default as RecentlyViewed } from "./RecentlyViewed/RecentlyViewed";
-export { addToRecentlyViewed } from "./RecentlyViewed/RecentlyViewed";
+

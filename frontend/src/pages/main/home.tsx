@@ -2,16 +2,14 @@ import React from "react";
 import { motion, useAnimation } from "framer-motion";
 import { useInView } from "react-intersection-observer";
 
-import {
-  CallToActionSection,
-  HeroSection,
-  LatestItems,
-  ProductShowcase,
-  TestimonialSection,
-  BrowseByCategory,
-  Counterbar,
-  StoreHighlights,
-} from "../../components";
+import CallToActionSection from "../../components/sections/CallToActionSection/CallToActionSection";
+import HeroSection from "../../components/sections/HeroSection/HeroSection";
+import LatestItems from "../../components/sections/LatestItems/LatestItems";
+import ProductShowcase from "../../components/sections/ProductShowcase/ProductShowcase";
+import TestimonialSection from "../../components/sections/TestimonialSection/TestimonialSection";
+import BrowseByCategory from "../../components/sections/BrowseByCategory/BrowseByCategory";
+import Counterbar from "../../components/sections/Counterbar/Counterbar";
+import StoreHighlights from "../../components/sections/StoreHighlights/StoreHighlights";
 
 const fadeUpVariant = {
   hidden: { opacity: 0, y: 50 },

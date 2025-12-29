@@ -6,13 +6,11 @@ import { useToast } from "../../context/ToastContext";
 import { api } from "../../services/api";
 import { FaHeart } from "react-icons/fa";
 import ProductReviews from "../../components/sections/ProductReviews/ProductReviews";
-import { RecentlyViewed, addToRecentlyViewed } from "../../components/sections";
-import {
-  ShareProduct,
-  SizeGuide,
-  EstimatedDelivery,
-  NotifyMe,
-} from "../../components/ui";
+import RecentlyViewed, { addToRecentlyViewed } from "../../components/sections/RecentlyViewed/RecentlyViewed";
+import ShareProduct from "../../components/ui/ShareProduct";
+import SizeGuide from "../../components/ui/SizeGuide";
+import EstimatedDelivery from "../../components/ui/EstimatedDelivery";
+import NotifyMe from "../../components/ui/NotifyMe";
 
 interface Product {
   _id: string;

@@ -2,8 +2,9 @@ import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 
-// Route imports
 import authRoutes from "./routes/authRoutes.js";
+import multiVendorAuthRoutes from "./routes/multiVendorAuthRoutes.js";
+import sellerManagementRoutes from "./routes/sellerManagementRoutes.js";
 import productRoutes from "./routes/productRoutes.js";
 import cartRoutes from "./routes/cartRoutes.js";
 import orderRoutes from "./routes/orderRoutes.js";
@@ -22,20 +23,9 @@ import brandRoutes from "./routes/brands.js";
 import couponRoutes from "./routes/coupons.js";
 import adminManagementRoutes from "./routes/adminManagement.js";
 
-// Middleware imports
 import { errorHandler } from "./middleware/errorHandler.js";
 
-/**
- * ========================================
- * EXPRESS APP CONFIGURATION
- * ========================================
- */
-
 const app = express();
-
-// ==========================================
-// MIDDLEWARE SETUP
-// ==========================================
 const allowedOrigins = [
   "http://localhost:5173",
   "http://localhost:5174",
@@ -52,10 +42,10 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-// ==========================================
-// API ROUTES
-// ==========================================
-app.use("/api/auth", authRoutes);
+// API Routes
+app.use("/api/auth", authRoutes); // Legacy auth routes
+app.use("/api/auth", multiVendorAuthRoutes); // New multi-vendor auth routes
+app.use("/api/admin/sellers", sellerManagementRoutes); // Seller management
 app.use("/api/products", productRoutes);
 app.use("/api/cart", cartRoutes);
 app.use("/api/orders", orderRoutes);
@@ -74,9 +64,7 @@ app.use("/api/brands", brandRoutes);
 app.use("/api/coupons", couponRoutes);
 app.use("/api/admin-management", adminManagementRoutes);
 
-// ==========================================
-// HEALTH CHECK
-// ==========================================
+// Health check endpoints
 app.get("/api/health", (req, res) => {
   res.json({
     status: "OK",
@@ -89,9 +77,6 @@ app.get("/health", (req, res) => {
   res.json({ status: "OK", message: "Server is running" });
 });
 
-// ==========================================
-// ERROR HANDLER (must be last)
-// ==========================================
 app.use(errorHandler);
 
 export default app;

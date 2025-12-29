@@ -1,72 +1,107 @@
 import mongoose from "mongoose";
-import bcrypt from "bcryptjs";
 import dotenv from "dotenv";
+import User from "./src/models/User.js";
 
 dotenv.config();
-
-const userSchema = new mongoose.Schema({
-  name: String,
-  email: String,
-  password: String,
-  isAdmin: Boolean,
-  isSuperAdmin: Boolean,
-  isVerified: Boolean,
-  adminStatus: String,
-});
-
-const User = mongoose.model("User", userSchema);
 
 async function createSuperAdmin() {
   try {
     await mongoose.connect(process.env.MONGO_URI);
-    console.log("Connected to DB");
+    console.log("🔗 Connected to MongoDB");
 
     const email = "khemsangrai@gmail.com";
-    const password = "khemsangrai@gmail.com";
+    const password = "superadmin123";
+    const name = "Khemsang Rai";
 
-    // Check if already exists
     const existing = await User.findOne({ email });
 
     if (existing) {
-      // Update password if user exists
-      const hashedPassword = await bcrypt.hash(password, 10);
-      await User.updateOne(
-        { email },
-        {
-          $set: {
-            password: hashedPassword,
-            isAdmin: true,
-            isSuperAdmin: true,
-            isVerified: true,
-            adminStatus: "active",
-          },
-        }
-      );
-      console.log("\n✅ Super Admin password updated!\n");
+      console.log("👤 Updating existing Super Admin...");
+      existing.name = name;
+      existing.password = password;
+      existing.role = "super-admin"; // New role system
+      existing.isAdmin = true; // Legacy compatibility
+      existing.isSuperAdmin = true; // Legacy compatibility
+      existing.isVerified = true;
+      existing.isApproved = true;
+      existing.adminStatus = "active";
+      existing.adminRole = "admin";
+      
+      existing.verificationToken = undefined;
+      existing.verificationTokenExpires = undefined;
+      
+      await existing.save();
+      console.log("✅ Super Admin updated successfully!");
     } else {
-      // Create new super admin
-      const hashedPassword = await bcrypt.hash(password, 10);
-      await User.create({
-        name: "Super Admin",
+      console.log("🆕 Creating new Super Admin...");
+      const superAdmin = new User({
+        name: name,
         email: email,
-        password: hashedPassword,
-        isAdmin: true,
-        isSuperAdmin: true,
+        password: password,
+        role: "super-admin", // New role system
+        isAdmin: true, // Legacy compatibility
+        isSuperAdmin: true, // Legacy compatibility
         isVerified: true,
+        isApproved: true,
         adminStatus: "active",
+        adminRole: "admin",
+        permissions: {
+          products: {
+            create: true,
+            edit: true,
+            delete: true,
+          },
+          orders: {
+            view: true,
+            manage: true,
+          },
+          users: {
+            view: true,
+            block: true,
+          },
+          categories: {
+            create: true,
+            edit: true,
+            delete: true,
+          },
+          banners: {
+            manage: true,
+          },
+          coupons: {
+            manage: true,
+          },
+          reviews: {
+            manage: true,
+          },
+          payments: {
+            view: true,
+          },
+        },
       });
-      console.log("\n✅ Super Admin created successfully!\n");
+      
+      await superAdmin.save();
+      console.log("✅ Super Admin created successfully!");
     }
 
-    console.log("================================");
-    console.log("Email:    " + email);
-    console.log("Password: " + password);
-    console.log("================================\n");
-    console.log("Now login with these credentials!");
+    // Verify the super admin
+    const verifyUser = await User.findOne({ email }).select("+password");
+    console.log("\n🔍 Super Admin Verification:");
+    console.log("📧 Email:", verifyUser.email);
+    console.log("👤 Name:", verifyUser.name);
+    console.log("🎭 Role:", verifyUser.role);
+    console.log("🔐 Is Admin:", verifyUser.isAdmin);
+    console.log("🛡️ Is Super Admin:", verifyUser.isSuperAdmin);
+    console.log("✅ Is Verified:", verifyUser.isVerified);
+    console.log("✅ Is Approved:", verifyUser.isApproved);
+    
+    console.log("\n🎯 Login Credentials:");
+    console.log("Email: khemsangrai@gmail.com");
+    console.log("Password: superadmin123");
+    console.log("Role: super-admin");
 
     process.exit(0);
   } catch (error) {
-    console.error("Error:", error);
+    console.error("❌ Error:", error.message);
     process.exit(1);
   }
 }

@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Header from "./Header";
-import { logo } from "../../../image";
+import logo from "../../../assets/images/logo/logo.png";
 import { api } from "../../../services/api";
 import {
   FaBars,
@@ -25,7 +25,8 @@ import ResponsiveMenu from "./Responsive";
 
 import { useAuth } from "../../../context/AuthContext";
 import { useCart } from "../../../context/CartContext";
-import { DarkModeToggle, ConfirmDialog } from "../../common";
+import DarkModeToggle from "../../common/DarkModeToggle";
+import ConfirmDialog from "../../common/ConfirmDialog";
 
 const Navbar: React.FC = () => {
   const [showMenu, setShowMenu] = useState(false);
@@ -187,7 +188,7 @@ const Navbar: React.FC = () => {
           </div>
 
           {/* Desktop Nav Links */}
-          <ul className="hidden lg:flex items-center gap-1">
+          <ul className="hidden md:flex items-center gap-1">
             {navLinks.map(({ name, path, icon: Icon, submenu }) => (
               <li
                 key={name}
@@ -301,14 +302,14 @@ const Navbar: React.FC = () => {
                     <div className="px-4 py-4 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-t-2xl">
                       <div className="flex items-center gap-3">
                         <div className="w-12 h-12 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg">
-                          {user.name.charAt(0).toUpperCase()}
+                          {user?.name?.charAt(0)?.toUpperCase() || 'U'}
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="font-bold text-gray-900 dark:text-white truncate">
-                            {user.name}
+                            {user?.name || 'User'}
                           </p>
                           <p className="text-xs text-gray-600 dark:text-gray-400 truncate">
-                            {user.email}
+                            {user?.email || 'No email'}
                           </p>
                         </div>
                       </div>

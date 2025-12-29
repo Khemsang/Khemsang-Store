@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { api } from "../../services/api";
 import { useToast } from "../../context/ToastContext";
 import { useAuth } from "../../context/AuthContext";
-import { ConfirmDialog } from "../../components/common";
+import ConfirmDialog from "../../components/common/ConfirmDialog";
 
 interface Warning {
   message: string;

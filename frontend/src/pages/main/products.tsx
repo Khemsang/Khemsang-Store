@@ -4,15 +4,13 @@ import { useCart } from "../../context/CartContext";
 import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../context/ToastContext";
 import { useProducts } from "../../hooks/useProducts";
-import { Pagination } from "../../components/common";
+import Pagination from "../../components/common/Pagination";
 import ProductFilters from "../../components/products/ProductFilters";
 import ProductCard from "../../components/products/ProductCard";
-import {
-  QuickView,
-  ProductComparison,
-  Breadcrumbs,
-  ProductGridSkeleton,
-} from "../../components/ui";
+import QuickView from "../../components/ui/QuickView";
+import ProductComparison from "../../components/ui/ProductComparison";
+import Breadcrumbs from "../../components/ui/Breadcrumbs";
+import { ProductGridSkeleton } from "../../components/ui/SkeletonLoader";
 import { FaBalanceScale } from "react-icons/fa";
 
 const Products = () => {

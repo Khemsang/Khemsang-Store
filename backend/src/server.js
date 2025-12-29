@@ -3,24 +3,20 @@ import path from "path";
 import { fileURLToPath } from "url";
 import fs from "fs";
 
-// Get directory name in ES modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// Load environment variables
 dotenv.config({ path: path.join(__dirname, "../.env") });
 
-// Create uploads folder if it doesn't exist
+// Create uploads directory if it doesn't exist
 if (!fs.existsSync("uploads")) fs.mkdirSync("uploads");
 
-// Handle uncaught errors
+// Error handlers
 process.on("uncaughtException", (err) => {
-  console.error("Uncaught Exception:", err.message);
   process.exit(1);
 });
 
 process.on("unhandledRejection", (err) => {
-  console.error("Unhandled Rejection:", err.message);
   process.exit(1);
 });
 
@@ -33,9 +29,11 @@ try {
 
   await connectDB();
 
-  const PORT = process.env.PORT || 5000;
-  app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+  const PORT = process.env.PORT || 4000;
+  app.listen(PORT, () => {
+    console.log(` Server running on port ${PORT}`);
+  });
 } catch (err) {
-  console.error("Server startup error:", err.message);
+  console.error(" Server startup failed:", err.message);
   process.exit(1);
 }

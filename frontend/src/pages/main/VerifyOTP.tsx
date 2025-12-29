@@ -101,7 +101,7 @@ const VerifyOTP = () => {
     try {
       const data = await resendOTP(email);
       if (data.otp) {
-        console.log("Development Mode OTP:", data.otp);
+        // OTP available in development mode
       }
       success("New OTP sent to your email!");
       setOtp(["", "", "", "", "", ""]);

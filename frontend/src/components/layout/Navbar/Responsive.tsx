@@ -11,10 +11,11 @@ import {
   FaSignOutAlt,
 } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
-import { logo } from "../../../image";
+import logo from "../../../assets/images/logo/logo.png";
 import { useAuth } from "../../../context/AuthContext";
 import { useCart } from "../../../context/CartContext";
-import { DarkModeToggle, ConfirmDialog } from "../../common";
+import DarkModeToggle from "../../common/DarkModeToggle";
+import ConfirmDialog from "../../common/ConfirmDialog";
 
 type ResponsiveMenuProps = {
   showMenu: boolean;
@@ -96,7 +97,7 @@ const ResponsiveMenu = ({ showMenu, onClose }: ResponsiveMenuProps) => {
           <div className="p-4 border-b border-gray-200 dark:border-gray-700">
             <div className="flex items-center gap-3 p-4 bg-gradient-to-r from-[var(--root-color)]/10 to-purple-600/10 rounded-xl">
               <div className="w-12 h-12 bg-gradient-to-r from-[var(--root-color)] to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-lg">
-                {user.name.charAt(0).toUpperCase()}
+                {user.name?.charAt(0)?.toUpperCase() || 'U'}
               </div>
               <div className="flex-1 min-w-0">
                 <p className="font-bold text-gray-900 dark:text-white truncate">

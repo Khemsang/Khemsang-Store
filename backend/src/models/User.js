@@ -50,6 +50,14 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    // Enhanced Role System for Multi-Vendor Platform
+    role: {
+      type: String,
+      enum: ["customer", "seller", "admin", "super-admin"],
+      default: "customer",
+      required: true,
+    },
+    // Legacy fields (keeping for backward compatibility)
     isAdmin: {
       type: Boolean,
       default: false,
@@ -61,6 +69,42 @@ const userSchema = new mongoose.Schema(
     isBlocked: {
       type: Boolean,
       default: false,
+    },
+    // Seller-specific fields
+    isApproved: {
+      type: Boolean,
+      default: false, // Sellers need approval
+    },
+    approvedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+    },
+    approvedAt: {
+      type: Date,
+    },
+    rejectedAt: {
+      type: Date,
+    },
+    rejectionReason: {
+      type: String,
+    },
+    // Business Information for Sellers
+    businessInfo: {
+      businessName: { type: String },
+      businessType: { 
+        type: String, 
+        enum: ["individual", "company", "partnership"],
+      },
+      businessAddress: { type: String },
+      businessPhone: { type: String },
+      businessEmail: { type: String },
+      taxId: { type: String },
+      bankAccount: {
+        accountName: { type: String },
+        accountNumber: { type: String },
+        bankName: { type: String },
+        routingNumber: { type: String },
+      },
     },
     adminRole: {
       type: String,
@@ -182,5 +226,53 @@ userSchema.methods.matchPassword = async function (enteredPassword) {
 userSchema.methods.comparePassword = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };
+
+// Role-based helper methods
+userSchema.methods.isCustomer = function () {
+  return this.role === "customer";
+};
+
+userSchema.methods.isSeller = function () {
+  return this.role === "seller";
+};
+
+userSchema.methods.isAdminRole = function () {
+  return this.role === "admin";
+};
+
+userSchema.methods.isSuperAdminRole = function () {
+  return this.role === "super-admin";
+};
+
+userSchema.methods.isApprovedSeller = function () {
+  return this.role === "seller" && this.isApproved === true;
+};
+
+userSchema.methods.canAccessAdminPanel = function () {
+  return this.role === "admin" || this.role === "super-admin";
+};
+
+userSchema.methods.canManageSellers = function () {
+  return this.role === "admin" || this.role === "super-admin";
+};
+
+// Pre-save middleware to sync legacy fields with new role system
+userSchema.pre("save", function (next) {
+  // Sync legacy fields with new role system
+  if (this.role === "super-admin") {
+    this.isSuperAdmin = true;
+    this.isAdmin = true;
+    this.isApproved = true;
+  } else if (this.role === "admin") {
+    this.isAdmin = true;
+    this.isSuperAdmin = false;
+    this.isApproved = true;
+  } else {
+    this.isAdmin = false;
+    this.isSuperAdmin = false;
+  }
+  
+  next();
+});
 
 export default mongoose.model("User", userSchema);

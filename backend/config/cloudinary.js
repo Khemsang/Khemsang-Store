@@ -8,8 +8,11 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-if (!process.env.CLOUDINARY_API_KEY) {
-  console.error("❌ Cloudinary API key missing in .env");
+// Log Cloudinary connection status
+if (process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_CLOUD_NAME) {
+  console.log(`☁️  Cloudinary Connected: ${process.env.CLOUDINARY_CLOUD_NAME}`);
+} else {
+  console.error("❌ Cloudinary configuration missing in .env");
 }
 
 export default cloudinary;

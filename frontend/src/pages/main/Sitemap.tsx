@@ -1,99 +1,57 @@
-import { Link } from "react-router-dom";
+import React from 'react';
+import { Link } from 'react-router-dom';
 
-const Sitemap = () => {
-  const sitemapSections = [
-    {
-      title: "Main Pages",
-      links: [
-        { name: "Home", path: "/" },
-        { name: "Products", path: "/products" },
-        { name: "Featured Products", path: "/featured-products" },
-        { name: "Gallery", path: "/gallery" },
-        { name: "About Us", path: "/about" },
-        { name: "Contact", path: "/contact" },
-      ],
-    },
-    {
-      title: "Shopping",
-      links: [
-        { name: "Shopping Cart", path: "/cart" },
-        { name: "Checkout", path: "/checkout" },
-        { name: "My Orders", path: "/orders" },
-      ],
-    },
-    {
-      title: "Account",
-      links: [
-        { name: "Login", path: "/login" },
-        { name: "Sign Up", path: "/signup" },
-        { name: "My Profile", path: "/profile" },
-        { name: "Dashboard", path: "/dashboard" },
-      ],
-    },
-    {
-      title: "Information",
-      links: [
-        { name: "Privacy Policy", path: "/privacy-policy" },
-        { name: "Terms of Service", path: "/terms-of-service" },
-        { name: "Submit Testimonial", path: "/submit-testimonial" },
-      ],
-    },
-  ];
-
+const Sitemap: React.FC = () => {
   return (
-    <section className="min-h-screen bg-gray-50 dark:bg-gray-900 py-16 md:py-20">
-      <div className="container mx-auto px-4 md:px-6 lg:px-8 max-w-6xl">
-        <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4">
-          Sitemap
-        </h1>
-        <p className="text-gray-600 dark:text-gray-400 mb-12">
-          Find all the pages and sections of our website
-        </p>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {sitemapSections.map((section, index) => (
-            <div
-              key={index}
-              className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg"
-            >
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4 border-b border-gray-200 dark:border-gray-700 pb-2">
-                {section.title}
-              </h2>
-              <ul className="space-y-3">
-                {section.links.map((link, linkIndex) => (
-                  <li key={linkIndex}>
-                    <Link
-                      to={link.path}
-                      className="text-gray-600 dark:text-gray-400 hover:text-primary dark:hover:text-primary transition-colors flex items-center group"
-                    >
-                      <span className="w-2 h-2 bg-primary rounded-full mr-3 opacity-0 group-hover:opacity-100 transition-opacity"></span>
-                      {link.name}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
-        </div>
-
-        <div className="mt-12 bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg">
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-4">
-            Need Help?
-          </h2>
-          <p className="text-gray-600 dark:text-gray-400">
-            If you can't find what you're looking for, please{" "}
-            <Link
-              to="/contact"
-              className="text-primary hover:underline font-semibold"
-            >
-              contact us
-            </Link>{" "}
-            and we'll be happy to help.
+    <div className="min-h-screen bg-gray-50 py-12">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-12">
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">Sitemap</h1>
+          <p className="text-lg text-gray-600">
+            Find all the pages and sections of our website
           </p>
         </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {/* Main Pages */}
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">Main Pages</h2>
+            <ul className="space-y-2">
+              <li><Link to="/" className="text-blue-600 hover:text-blue-800">Home</Link></li>
+              <li><Link to="/products" className="text-blue-600 hover:text-blue-800">Products</Link></li>
+              <li><Link to="/about" className="text-blue-600 hover:text-blue-800">About</Link></li>
+              <li><Link to="/contact" className="text-blue-600 hover:text-blue-800">Contact</Link></li>
+              <li><Link to="/gallery" className="text-blue-600 hover:text-blue-800">Gallery</Link></li>
+            </ul>
+          </div>
+
+          {/* User Pages */}
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">User Pages</h2>
+            <ul className="space-y-2">
+              <li><Link to="/login" className="text-blue-600 hover:text-blue-800">Login</Link></li>
+              <li><Link to="/signup" className="text-blue-600 hover:text-blue-800">Sign Up</Link></li>
+              <li><Link to="/profile" className="text-blue-600 hover:text-blue-800">Profile</Link></li>
+              <li><Link to="/orders" className="text-blue-600 hover:text-blue-800">Orders</Link></li>
+              <li><Link to="/wishlist" className="text-blue-600 hover:text-blue-800">Wishlist</Link></li>
+            </ul>
+          </div>
+
+          {/* Legal Pages */}
+          <div className="bg-white rounded-lg shadow-md p-6">
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">Legal</h2>
+            <ul className="space-y-2">
+              <li><Link to="/privacy-policy" className="text-blue-600 hover:text-blue-800">Privacy Policy</Link></li>
+              <li><Link to="/terms-of-service" className="text-blue-600 hover:text-blue-800">Terms of Service</Link></li>
+              <li><Link to="/return-policy" className="text-blue-600 hover:text-blue-800">Return Policy</Link></li>
+              <li><Link to="/shipping-info" className="text-blue-600 hover:text-blue-800">Shipping Info</Link></li>
+            </ul>
+          </div>
+        </div>
       </div>
-    </section>
+    </div>
   );
 };
 
 export default Sitemap;
+      

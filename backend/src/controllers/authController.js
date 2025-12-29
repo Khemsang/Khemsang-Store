@@ -6,6 +6,7 @@ import {
   sendVerificationEmail,
   sendOTPEmail,
   sendPasswordResetEmail,
+  sendSuperAdminPasswordResetEmail,
 } from "../services/emailService.js";
 import OTP from "../models/OTP.js";
 
@@ -25,6 +26,7 @@ export const signup = async (req, res) => {
 
     // Generate verification token
     const verificationToken = crypto.randomBytes(32).toString("hex");
+    console.log("🔑 Generated verification token:", verificationToken.substring(0, 10) + "...");
 
     // Create user
     const user = await User.create({
@@ -36,6 +38,9 @@ export const signup = async (req, res) => {
       verificationToken,
       verificationTokenExpires: new Date(Date.now() + 15 * 60 * 1000), // 15 minutes
     });
+
+    console.log("👤 User created:", user.email);
+    console.log("⏰ Token expires at:", user.verificationTokenExpires);
 
     // Send verification email
     try {
@@ -52,8 +57,13 @@ export const signup = async (req, res) => {
       message:
         "Account created! Please check your email to verify your account.",
       email: user.email,
+      // In development, show the verification URL
+      ...(process.env.NODE_ENV === "development" && {
+        verificationUrl: `${process.env.FRONTEND_URL}/verify-email/${verificationToken}`,
+      }),
     });
   } catch (err) {
+    console.error("❌ Signup error:", err);
     res.status(500).json({ message: err.message });
   }
 };
@@ -61,14 +71,41 @@ export const signup = async (req, res) => {
 // VERIFY EMAIL
 export const verifyEmail = async (req, res) => {
   try {
-    const { token } = req.params;
+    // Get token from URL parameter or query parameter
+    const token = req.params.token || req.query.token;
+    console.log("🔍 Verification attempt with token:", token ? token.substring(0, 10) + "..." : "missing");
+    console.log("🔍 Token source:", req.params.token ? "URL parameter" : req.query.token ? "Query parameter" : "Not found");
+
+    if (!token) {
+      console.log("❌ No token provided");
+      return res.status(400).json({
+        message: "Verification token is required.",
+      });
+    }
 
     const user = await User.findOne({
       verificationToken: token,
       verificationTokenExpires: { $gt: Date.now() },
     });
 
+    console.log("👤 User found:", !!user);
+    if (user) {
+      console.log("📧 User email:", user.email);
+      console.log("⏰ Token expires:", user.verificationTokenExpires);
+      console.log("🕐 Current time:", new Date());
+    }
+
     if (!user) {
+      // Check if token exists but expired
+      const expiredUser = await User.findOne({ verificationToken: token });
+      if (expiredUser) {
+        console.log("⚠️ Token found but expired");
+        return res.status(400).json({
+          message: "Verification link has expired. Please request a new verification email.",
+        });
+      }
+      
+      console.log("❌ No user found with this token");
       return res.status(400).json({
         message: "Invalid or expired verification link.",
       });
@@ -82,6 +119,7 @@ export const verifyEmail = async (req, res) => {
     const authToken = generateToken(user._id);
     setTokenCookie(res, authToken);
 
+    console.log("✅ Email verified successfully for:", user.email);
     return res.json({ message: "Email verified successfully!", user });
   } catch (err) {
     console.error("❌ Verify email error:", err);
@@ -93,6 +131,8 @@ export const verifyEmail = async (req, res) => {
 export const resendVerification = async (req, res) => {
   try {
     const { email } = req.body;
+    console.log("🔄 Resend verification request for:", email);
+    
     const user = await User.findOne({ email });
     if (!user) return res.status(404).json({ message: "User not found" });
     if (user.isVerified)
@@ -102,15 +142,26 @@ export const resendVerification = async (req, res) => {
     user.verificationToken = verificationToken;
     user.verificationTokenExpires = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
     await user.save();
+    
+    console.log("🔑 New verification token generated:", verificationToken.substring(0, 10) + "...");
+    
     await sendVerificationEmail(email, verificationToken);
+    console.log("✅ Verification email resent to:", email);
 
-    res.json({ message: "Verification email sent" });
+    res.json({ 
+      message: "Verification email sent",
+      // In development, show the verification URL
+      ...(process.env.NODE_ENV === "development" && {
+        verificationUrl: `${process.env.FRONTEND_URL}/verify-email/${verificationToken}`,
+      }),
+    });
   } catch (err) {
+    console.error("❌ Resend verification error:", err);
     res.status(500).json({ message: err.message });
   }
 };
 
-// LOGIN - Send OTP
+// LOGIN - Send OTP (Skip OTP for Super Admin)
 export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -150,7 +201,40 @@ export const login = async (req, res) => {
       });
     }
 
-    // Generate and send OTP
+    // Skip OTP for Super Admin - direct login
+    if (user.isSuperAdmin) {
+      console.log("🔑 Super Admin login - skipping OTP");
+      
+      // Update last login time
+      user.otpVerifiedAt = new Date();
+      await user.save();
+
+      // Generate token and set cookie
+      const token = generateToken(user._id);
+      setTokenCookie(res, token);
+
+      // Return user data for direct login
+      const userData = {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role || "super-admin", // Add role field
+        isVerified: user.isVerified,
+        isAdmin: user.isAdmin,
+        isSuperAdmin: user.isSuperAdmin,
+        adminStatus: user.adminStatus,
+        isApproved: user.isApproved
+      };
+
+      return res.json({ 
+        message: "Super Admin login successful", 
+        user: userData,
+        needsOTP: false,
+        redirectTo: "/super-admin/dashboard" // Add redirect URL
+      });
+    }
+
+    // Generate and send OTP for regular users and admins
     const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
     await OTP.deleteMany({ email });
     await OTP.create({
@@ -169,14 +253,14 @@ export const login = async (req, res) => {
         return res.json({
           message: "OTP sent (email failed, showing in dev mode)",
           otp: otpCode,
-          requiresOTP: true,
+          needsOTP: true,
         });
       }
     }
 
     res.json({
       message: "OTP sent to your email",
-      requiresOTP: true,
+      needsOTP: true,
     });
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -209,7 +293,30 @@ export const verifyOTP = async (req, res) => {
     const token = generateToken(user._id);
     setTokenCookie(res, token);
 
-    res.json({ message: "OTP verified", user });
+    // Role-based redirect URLs
+    const redirectUrls = {
+      "customer": "/dashboard",
+      "seller": user.isApproved ? "/seller/dashboard" : "/seller/pending",
+      "admin": "/admin/dashboard", 
+      "super-admin": "/super-admin/dashboard"
+    };
+
+    const userRole = user.role || (user.isSuperAdmin ? "super-admin" : user.isAdmin ? "admin" : "customer");
+
+    res.json({ 
+      message: "OTP verified", 
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        role: userRole,
+        isAdmin: user.isAdmin,
+        isSuperAdmin: user.isSuperAdmin,
+        isApproved: user.isApproved,
+        isVerified: user.isVerified
+      },
+      redirectTo: redirectUrls[userRole] || "/dashboard"
+    });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -254,7 +361,14 @@ export const logout = async (req, res) => {
 // GET CURRENT USER
 export const getMe = async (req, res) => {
   const user = await User.findById(req.user._id).select("-password");
-  res.json(user);
+  
+  // Ensure role is properly set
+  const userRole = user.role || (user.isSuperAdmin ? "super-admin" : user.isAdmin ? "admin" : "customer");
+  
+  res.json({
+    ...user.toObject(),
+    role: userRole
+  });
 };
 
 // UPDATE PROFILE
@@ -334,6 +448,56 @@ export const forgotPassword = async (req, res) => {
       });
     }
   } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// SUPER ADMIN FORGOT PASSWORD (Special endpoint for super admin)
+export const superAdminForgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ message: "Email is required" });
+
+    const user = await User.findOne({ email });
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    // Check if user is super admin
+    if (!user.isSuperAdmin) {
+      return res.status(403).json({ 
+        message: "This endpoint is only for Super Admin. Please use regular forgot password." 
+      });
+    }
+
+    // Generate reset token
+    const resetToken = crypto.randomBytes(32).toString("hex");
+    user.resetPasswordToken = resetToken;
+    user.resetPasswordExpires = new Date(Date.now() + 30 * 60 * 1000); // 30 minutes for super admin
+    await user.save();
+
+    try {
+      await sendSuperAdminPasswordResetEmail(email, resetToken);
+      console.log("✅ Super Admin password reset email sent to:", email);
+      res.json({ 
+        message: "Super Admin password reset link sent to your email",
+        note: "Link expires in 30 minutes"
+      });
+    } catch (emailError) {
+      console.error("❌ Failed to send super admin reset email:", emailError.message);
+      // Fallback for dev mode
+      const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
+      res.json({
+        message: "Super Admin password reset link generated",
+        resetToken: process.env.NODE_ENV === "development" ? resetToken : undefined,
+        resetUrl: process.env.NODE_ENV === "development" ? resetUrl : undefined,
+        note: "Link expires in 30 minutes"
+      });
+    }
+
+    // Log the super admin password reset attempt
+    await createActivity(user._id, "super_admin_password_reset_requested", "Super Admin requested password reset");
+    
+  } catch (err) {
+    console.error("❌ Super Admin forgot password error:", err);
     res.status(500).json({ message: err.message });
   }
 };

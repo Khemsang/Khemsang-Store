@@ -1,16 +1,1 @@
-export { default as AdminLayout } from "./AdminLayout";
-export { default as AdminDashboard } from "./AdminDashboard";
-export { default as AdminProducts } from "./AdminProducts";
-export { default as AdminFeaturedProducts } from "./AdminFeaturedProducts";
-export { default as AdminOrders } from "./AdminOrders";
-export { default as AdminCategories } from "./AdminCategories";
-export { default as AdminBanners } from "./AdminBanners";
-export { default as AdminAbout } from "./AdminAbout";
-export { default as AdminContact } from "./AdminContact";
-export { default as AdminFeatures } from "./AdminFeatures";
-export { default as AdminBrands } from "./AdminBrands";
-export { default as AdminCoupons } from "./AdminCoupons";
-export { default as AdminCustomers } from "./AdminCustomers";
-export { default as AdminInventory } from "./AdminInventory";
-export { default as AdminShipping } from "./AdminShipping";
-export { default as SuperAdminDashboard } from "./SuperAdminDashboard";
+

@@ -5,7 +5,7 @@ import { api } from "../../../services/api";
 import { useCart } from "../../../context/CartContext";
 import { useToast } from "../../../context/ToastContext";
 import SimpleProductCard from "../../products/SimpleProductCard";
-import { ViewAllButton } from "../../common";
+import ViewAllButton from "../../common/ViewAllButton";
 
 const ProductShowcase = () => {
   const [products, setProducts] = useState<any[]>([]);
