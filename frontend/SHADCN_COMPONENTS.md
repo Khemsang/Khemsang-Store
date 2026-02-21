@@ -9,15 +9,17 @@ npm install recharts class-variance-authority clsx tailwind-merge lucide-react
 
 ### 1. UI Components (Shadcn Style)
 - `src/components/ui/card.tsx` - Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter
-- `src/components/ui/button.tsx` - Button with variants (default, outline, ghost, destructive)
-- `src/components/ui/badge.tsx` - Badge with variants (default, success, warning, danger, info)
+- `src/components/ui/button.tsx` - Button with variants (default, outline, ghost, destructive) and sizes (default, sm, lg, icon)
+- `src/components/ui/badge.tsx` - Badge with variants (default, success, warning, danger, destructive, info)
+- `src/components/ui/tabs.tsx` - Tabs, TabsList, TabsTrigger, TabsContent
+- `src/components/ui/separator.tsx` - Separator (horizontal/vertical)
 - `src/components/ui/input.tsx` - Input field
 - `src/components/ui/label.tsx` - Form label
 - `src/components/ui/select.tsx` - Select dropdown
 - `src/components/ui/textarea.tsx` - Textarea field
 
 ### 2. Utility Functions
-- `src/lib/utils.ts` - cn() function for className merging
+- `src/lib/utils.ts` - cn() function for className merging with clsx and tailwind-merge
 
 ### 3. Form Components
 - `src/components/forms/ProductForm.tsx` - Example form using shadcn components
@@ -32,6 +34,22 @@ npm install recharts class-variance-authority clsx tailwind-merge lucide-react
   - Line chart for revenue growth
   - Order status cards (Pending, Processing, Shipped, Delivered, Cancelled)
   - Recent orders list
+
+### 5. Product Details Page (Redesigned)
+- `src/pages/main/ProductDetailsPage .tsx` - Modern product details page with:
+  - Image gallery with zoom functionality
+  - Thumbnail navigation
+  - Product information cards
+  - Quantity selector with +/- buttons
+  - Add to cart and Buy now actions
+  - Wishlist integration
+  - Rating and reviews display
+  - Tabbed content (Description, Specifications, Shipping & Returns)
+  - Feature highlights (Free Delivery, Secure Payment, Easy Returns)
+  - Breadcrumb navigation
+  - Full-screen image modal with navigation
+  - Recently viewed products section
+  - Responsive design with shadcn components
 
 ## Usage Examples
 
@@ -69,6 +87,49 @@ import { Badge } from "@/components/ui/badge";
 <Badge variant="success">Active</Badge>
 <Badge variant="danger">Inactive</Badge>
 <Badge variant="warning">Pending</Badge>
+```
+
+### Using Tabs
+```tsx
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+
+const [activeTab, setActiveTab] = useState("tab1");
+
+<Tabs>
+  <TabsList>
+    <TabsTrigger active={activeTab === "tab1"} onClick={() => setActiveTab("tab1")}>
+      Tab 1
+    </TabsTrigger>
+    <TabsTrigger active={activeTab === "tab2"} onClick={() => setActiveTab("tab2")}>
+      Tab 2
+    </TabsTrigger>
+  </TabsList>
+  
+  {activeTab === "tab1" && (
+    <TabsContent>Content for Tab 1</TabsContent>
+  )}
+  {activeTab === "tab2" && (
+    <TabsContent>Content for Tab 2</TabsContent>
+  )}
+</Tabs>
+```
+
+### Using Separator
+```tsx
+import { Separator } from "@/components/ui/separator";
+
+<div>
+  <p>Section 1</p>
+  <Separator />
+  <p>Section 2</p>
+</div>
+
+{/* Vertical separator */}
+<div className="flex">
+  <p>Left</p>
+  <Separator orientation="vertical" />
+  <p>Right</p>
+</div>
 ```
 
 ## Dashboard Features
