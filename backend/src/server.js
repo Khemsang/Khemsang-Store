@@ -45,5 +45,5 @@ try {
 } catch (err) {
   logger.error("❌ Server startup failed:", { message: err.message, stack: err.stack });
   process.exit(1);
-} process.exit(1);
+}
 

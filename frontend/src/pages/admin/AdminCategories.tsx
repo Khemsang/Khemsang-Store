@@ -1,13 +1,15 @@
 import { useState, useEffect } from "react";
 import { api } from "../../services/api";
 import { useToast } from "../../context/ToastContext";
+import { useSelector } from "react-redux";
+import { RootState } from "../../store/store";
 import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import { Badge } from "../../components/ui/badge";
 import { Loading } from "../../components/ui/loading";
-import { Plus, Edit, Trash2, X, FolderOpen } from "lucide-react";
+import { Plus, Edit, Trash2, X, FolderOpen, Lock } from "lucide-react";
 
 interface Category {
   _id: string;
@@ -27,6 +29,10 @@ const AdminCategories = () => {
     isActive: true,
   });
   const { success, error } = useToast();
+  
+  // Get user from Redux store
+  const { user } = useSelector((state: RootState) => state.auth);
+  const isSuperAdmin = user?.isSuperAdmin || false;
 
   useEffect(() => {
     fetchCategories();
@@ -96,16 +102,33 @@ const AdminCategories = () => {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Categories</h1>
-          <p className="text-gray-500 mt-1">{categories.length} total categories</p>
+          <p className="text-gray-500 mt-1">
+            {categories.length} total categories
+            {!isSuperAdmin && <span className="ml-2 text-amber-600">(View Only - Super Admin can manage)</span>}
+          </p>
         </div>
-        <Button onClick={() => setShowForm(!showForm)}>
-          {showForm ? <X className="w-4 h-4 mr-2" /> : <Plus className="w-4 h-4 mr-2" />}
-          {showForm ? "Cancel" : "Add Category"}
-        </Button>
+        {isSuperAdmin && (
+          <Button onClick={() => setShowForm(!showForm)}>
+            {showForm ? <X className="w-4 h-4 mr-2" /> : <Plus className="w-4 h-4 mr-2" />}
+            {showForm ? "Cancel" : "Add Category"}
+          </Button>
+        )}
       </div>
 
+      {/* Super Admin Only Notice */}
+      {!isSuperAdmin && (
+        <Card className="bg-amber-50 dark:bg-amber-950 border-amber-200 dark:border-amber-800">
+          <CardContent className="p-4 flex items-center gap-3">
+            <Lock className="w-5 h-5 text-amber-600" />
+            <p className="text-sm text-amber-800 dark:text-amber-200">
+              Only Super Admin can create, edit, or delete categories. You can view and use existing categories for products.
+            </p>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Form */}
-      {showForm && (
+      {showForm && isSuperAdmin && (
         <Card>
           <CardHeader>
             <CardTitle>{editingId ? "Edit Category" : "New Category"}</CardTitle>
@@ -173,24 +196,26 @@ const AdminCategories = () => {
                   {category.description}
                 </p>
               )}
-              <div className="flex gap-2">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => handleEdit(category)}
-                  className="flex-1"
-                >
-                  <Edit className="w-4 h-4 mr-2" />
-                  Edit
-                </Button>
-                <Button
-                  size="sm"
-                  variant="destructive"
-                  onClick={() => handleDelete(category._id)}
-                >
-                  <Trash2 className="w-4 h-4" />
-                </Button>
-              </div>
+              {isSuperAdmin && (
+                <div className="flex gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleEdit(category)}
+                    className="flex-1"
+                  >
+                    <Edit className="w-4 h-4 mr-2" />
+                    Edit
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="destructive"
+                    onClick={() => handleDelete(category._id)}
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
+              )}
             </CardContent>
           </Card>
         ))}

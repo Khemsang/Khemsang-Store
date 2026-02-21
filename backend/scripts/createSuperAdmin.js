@@ -15,8 +15,9 @@ const createSuperAdmin = async () => {
     await mongoose.connect(process.env.MONGO_URI);
     console.log("✅ MongoDB Connected");
 
-    const email = "cloudsnepal33@gmail.com";
-    const password = "cloudsnepal33@gmail.com";
+    // Get email and password from command line arguments or use defaults
+    const email = process.argv[2] || "cloudsnepal33@gmail.com";
+    const password = process.argv[3] || "Admin@123456";
 
     // Check if super admin already exists
     const existingUser = await User.findOne({ email });

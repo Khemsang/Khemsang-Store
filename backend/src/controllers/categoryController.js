@@ -35,8 +35,16 @@ export const getCategoryById = async (req, res) => {
 };
 
 // Create category (admin only)
+export // Create category (super admin only)
 export const createCategory = async (req, res) => {
   try {
+    // Only super admin can create categories
+    if (!req.user.isSuperAdmin) {
+      return res.status(403).json({
+        message: "Only super admin can create categories"
+      });
+    }
+
     const category = new Category({
       ...req.body,
       createdBy: req.user._id,
@@ -51,21 +59,19 @@ export const createCategory = async (req, res) => {
 };
 
 // Update category (admin only - own categories only)
+export // Update category (super admin only)
 export const updateCategory = async (req, res) => {
   try {
+    // Only super admin can update categories
+    if (!req.user.isSuperAdmin) {
+      return res.status(403).json({
+        message: "Only super admin can update categories"
+      });
+    }
+
     const category = await Category.findById(req.params.id);
     if (!category)
       return res.status(404).json({ message: "Category not found" });
-
-    // Both Super Admin and regular admin can only update their OWN categories
-    if (
-      category.createdBy &&
-      category.createdBy.toString() !== req.user._id.toString()
-    ) {
-      return res
-        .status(403)
-        .json({ message: "You can only update your own categories" });
-    }
 
     const updated = await Category.findByIdAndUpdate(req.params.id, req.body, {
       new: true,
@@ -80,21 +86,19 @@ export const updateCategory = async (req, res) => {
 };
 
 // Delete category (admin only - own categories only)
+export // Delete category (super admin only)
 export const deleteCategory = async (req, res) => {
   try {
+    // Only super admin can delete categories
+    if (!req.user.isSuperAdmin) {
+      return res.status(403).json({
+        message: "Only super admin can delete categories"
+      });
+    }
+
     const category = await Category.findById(req.params.id);
     if (!category)
       return res.status(404).json({ message: "Category not found" });
-
-    // Both Super Admin and regular admin can only delete their OWN categories
-    if (
-      category.createdBy &&
-      category.createdBy.toString() !== req.user._id.toString()
-    ) {
-      return res
-        .status(403)
-        .json({ message: "You can only delete your own categories" });
-    }
 
     await Category.findByIdAndDelete(req.params.id);
     res.json({ message: "Category deleted successfully" });
