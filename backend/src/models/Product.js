@@ -74,11 +74,13 @@ const productSchema = new mongoose.Schema(
     // Variants (e.g., different colors/sizes)
     variants: [
       {
-        name: { type: String },
-        value: { type: String },
+        color: { type: String, required: true },
+        size: { type: String },
+        sku: { type: String },
         price: { type: Number },
-        stock: { type: Number },
-        image: { type: String },
+        stock: { type: Number, default: 0 },
+        images: [{ type: String }],
+        isActive: { type: Boolean, default: true },
       },
     ],
     // SEO
@@ -140,7 +142,15 @@ const productSchema = new mongoose.Schema(
   }
 );
 
-// Index for search
-productSchema.index({ title: "text", description: "text", tags: "text" });
+// Indexes for better query performance
+productSchema.index({ title: "text", description: "text", tags: "text" }); // Text search
+productSchema.index({ category: 1, isActive: 1 }); // Category filtering
+productSchema.index({ price: 1 }); // Price sorting
+productSchema.index({ createdAt: -1 }); // Latest products
+productSchema.index({ isFeatured: 1, isActive: 1 }); // Featured products
+productSchema.index({ isBestSeller: 1, isActive: 1 }); // Best sellers
+productSchema.index({ isNewArrival: 1, isActive: 1 }); // New arrivals
+productSchema.index({ rating: -1 }); // Top rated
+productSchema.index({ sku: 1 }, { unique: true, sparse: true }); // SKU lookup
 
 export default mongoose.model("Product", productSchema);

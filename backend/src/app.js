@@ -1,11 +1,18 @@
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
+import compression from "compression";
+import morgan from "morgan";
+import helmet from "helmet";
+
+import logger from "./config/logger.js";
+import { helmetConfig, sanitizeData, apiLimiter } from "./middleware/security.js";
 
 import authRoutes from "./routes/authRoutes.js";
 import multiVendorAuthRoutes from "./routes/multiVendorAuthRoutes.js";
 import sellerManagementRoutes from "./routes/sellerManagementRoutes.js";
 import productRoutes from "./routes/productRoutes.js";
+import variantRoutes from "./routes/variantRoutes.js";
 import cartRoutes from "./routes/cartRoutes.js";
 import orderRoutes from "./routes/orderRoutes.js";
 import testimonialRoutes from "./routes/testimonials.js";
@@ -26,6 +33,12 @@ import adminManagementRoutes from "./routes/adminManagement.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 
 const app = express();
+
+// Security Middleware
+app.use(helmetConfig);
+app.use(sanitizeData);
+
+// CORS Configuration
 const allowedOrigins = [
   "http://localhost:5173",
   "http://localhost:5174",
@@ -38,15 +51,36 @@ app.use(
     credentials: true,
   })
 );
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+
+// Body Parser & Cookie Parser
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 app.use(cookieParser());
+
+// Compression
+app.use(compression());
+
+// HTTP Request Logging
+if (process.env.NODE_ENV === "development") {
+  app.use(morgan("dev"));
+} else {
+  app.use(
+    morgan("combined", {
+      stream: {
+        write: (message) => logger.info(message.trim()),
+      },
+    })
+  );
+}
+
+// Rate Limiting for all API routes
+app.use("/api", apiLimiter);
 
 // API Routes
 app.use("/api/auth", authRoutes); // Legacy auth routes
-app.use("/api/auth", multiVendorAuthRoutes); // New multi-vendor auth routes
 app.use("/api/admin/sellers", sellerManagementRoutes); // Seller management
 app.use("/api/products", productRoutes);
+app.use("/api/variants", variantRoutes);
 app.use("/api/cart", cartRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/testimonials", testimonialRoutes);

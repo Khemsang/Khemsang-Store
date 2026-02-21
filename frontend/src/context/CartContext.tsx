@@ -31,12 +31,33 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     if (user) {
-      fetchCart();
-      syncCart();
+      // First sync local cart to backend, then fetch
+      syncCartAndFetch();
     } else {
       loadLocalCart();
     }
   }, [user]);
+
+  const syncCartAndFetch = async () => {
+    try {
+      const localCart = localStorage.getItem("cart");
+      if (localCart) {
+        const items = JSON.parse(localCart);
+        if (items.length > 0) {
+          console.log("🔄 Syncing local cart to backend:", items.length, "items");
+          await api.post("/cart/merge", { items });
+          localStorage.removeItem("cart");
+          console.log("✅ Cart synced successfully");
+        }
+      }
+      // Always fetch cart after sync attempt
+      await fetchCart();
+    } catch (error) {
+      console.error("❌ Error syncing cart:", error);
+      // Still try to fetch cart even if sync fails
+      await fetchCart();
+    }
+  };
 
   const loadLocalCart = () => {
     const localCart = localStorage.getItem("cart");

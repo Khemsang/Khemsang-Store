@@ -150,6 +150,12 @@ const ProductDetailsPage: React.FC = () => {
 
   const handleAddToCart = async () => {
     if (!user) {
+      // Store the product ID and quantity to add after login
+      sessionStorage.setItem('pendingCartItem', JSON.stringify({
+        productId: product!._id,
+        quantity: quantity,
+        returnTo: `/product/${id}`
+      }));
       navigate("/login", { state: { from: `/product/${id}` } });
       return;
     }
@@ -163,7 +169,13 @@ const ProductDetailsPage: React.FC = () => {
 
   const handleBuyNow = async () => {
     if (!user) {
-      navigate("/login", { state: { from: `/product/${id}` } });
+      // Store the product ID and quantity for buy now
+      sessionStorage.setItem('pendingCartItem', JSON.stringify({
+        productId: product!._id,
+        quantity: quantity,
+        returnTo: '/checkout'
+      }));
+      navigate("/login", { state: { from: '/checkout' } });
       return;
     }
     try {

@@ -475,6 +475,7 @@ router.post("/create-admin", auth, isSuperAdmin, async (req, res) => {
       email,
       password,
       phone,
+      role: "admin", // Set role field for pre-save hook
       isAdmin: true,
       isVerified: true,
       adminRole: adminRole || "admin",
@@ -549,6 +550,7 @@ router.put("/promote/:userId", auth, isSuperAdmin, async (req, res) => {
     if (user.isSuperAdmin)
       return res.status(400).json({ message: "Cannot modify Super Admin" });
 
+    user.role = "admin"; // Set role field
     user.isAdmin = true;
     user.adminStatus = "active";
     user.adminRole = "admin";
@@ -579,6 +581,7 @@ router.put("/demote/:userId", auth, isSuperAdmin, async (req, res) => {
     if (user.isSuperAdmin)
       return res.status(400).json({ message: "Cannot demote Super Admin" });
 
+    user.role = "customer"; // Reset role field
     user.isAdmin = false;
     user.adminStatus = "active";
     user.adminRole = undefined;

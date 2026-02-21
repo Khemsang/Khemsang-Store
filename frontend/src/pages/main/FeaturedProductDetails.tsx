@@ -26,6 +26,7 @@ const FeaturedProductDetails = () => {
   const [product, setProduct] = useState<FeaturedProduct | null>(null);
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
+  const [imageError, setImageError] = useState(false);
 
   useEffect(() => {
     fetchFeaturedProduct();
@@ -83,7 +84,7 @@ const FeaturedProductDetails = () => {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
-        <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-[var(--root-color)]"></div>
+        <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-600"></div>
       </div>
     );
   }
@@ -97,7 +98,7 @@ const FeaturedProductDetails = () => {
           </h2>
           <button
             onClick={() => navigate("/")}
-            className="px-6 py-3 bg-gradient-to-r from-[var(--root-color)] to-purple-600 text-white rounded-xl hover:from-[var(--root-color)] hover:to-purple-700 transition-all duration-200"
+            className="px-6 py-3 bg-gradient-to-r from-blue-600 to-orange-600 text-white rounded-xl hover:from-blue-700 hover:to-orange-700 transition-all duration-200"
           >
             Back to Home
           </button>
@@ -107,13 +108,13 @@ const FeaturedProductDetails = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-purple-50/20 to-pink-50/20 dark:from-gray-900 dark:via-purple-900/10 dark:to-pink-900/10 py-8 md:py-12">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-orange-50 dark:from-gray-900 dark:via-blue-900/10 dark:to-gray-900 py-8 md:py-12">
       <div className="container mx-auto px-4 md:px-6 lg:px-8 max-w-7xl">
         {/* Breadcrumb */}
         <nav className="flex items-center gap-2 text-sm mb-6 bg-white dark:bg-gray-800 px-4 py-3 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
           <button
             onClick={() => navigate("/")}
-            className="text-gray-600 dark:text-gray-400 hover:text-[var(--root-color)] transition-colors flex items-center gap-1"
+            className="text-gray-600 dark:text-gray-400 hover:text-blue-600 transition-colors flex items-center gap-1"
           >
             <svg
               className="w-4 h-4"
@@ -154,11 +155,30 @@ const FeaturedProductDetails = () => {
             <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-xl border border-gray-200 dark:border-gray-700">
               <div className="relative">
                 <div className="relative w-full aspect-square rounded-xl overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-800">
-                  <img
-                    src={product.image || "/placeholder.jpg"}
-                    alt={product.title}
-                    className="w-full h-full object-contain p-8"
-                  />
+                  {imageError ? (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <svg
+                        className="w-24 h-24 text-gray-400"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
+                        />
+                      </svg>
+                    </div>
+                  ) : (
+                    <img
+                      src={product.image || "/placeholder.jpg"}
+                      alt={product.title}
+                      className="w-full h-full object-contain p-8"
+                      onError={() => setImageError(true)}
+                    />
+                  )}
                   {product.discount && product.discount > 0 && (
                     <div className="absolute top-4 left-4 bg-red-500 text-white px-4 py-2 rounded-xl font-bold text-lg shadow-lg">
                       -{product.discount}% OFF
@@ -183,7 +203,7 @@ const FeaturedProductDetails = () => {
           <div className="lg:col-span-7 space-y-6">
             <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 md:p-8 shadow-xl border border-gray-200 dark:border-gray-700">
               <div className="flex items-start justify-between mb-4">
-                <span className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[var(--root-color)]/10 to-purple-600/10 text-[var(--root-color)] rounded-full text-sm font-semibold">
+                <span className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600/10 to-orange-600/10 text-blue-600 rounded-full text-sm font-semibold">
                   <svg
                     className="w-4 h-4"
                     fill="none"
@@ -209,9 +229,9 @@ const FeaturedProductDetails = () => {
                 {product.description}
               </p>
 
-              <div className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-xl p-6 mb-6">
+              <div className="bg-gradient-to-r from-blue-50 to-orange-50 dark:from-blue-900/20 dark:to-orange-900/20 rounded-xl p-6 mb-6">
                 <div className="flex items-baseline gap-3">
-                  <span className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-[var(--root-color)] to-purple-600 bg-clip-text text-transparent">
+                  <span className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-blue-600 to-orange-600 bg-clip-text text-transparent">
                     Rs. {product.price.toLocaleString()}
                   </span>
                   {product.originalPrice &&
@@ -240,7 +260,7 @@ const FeaturedProductDetails = () => {
                 <div className="flex items-center gap-2 bg-gray-100 dark:bg-gray-700 rounded-xl p-1.5">
                   <button
                     onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    className="w-10 h-10 flex items-center justify-center rounded-lg bg-white dark:bg-gray-600 text-gray-700 dark:text-gray-200 hover:bg-[var(--root-color)] hover:text-white transition-all shadow-sm"
+                    className="w-10 h-10 flex items-center justify-center rounded-lg bg-white dark:bg-gray-600 text-gray-700 dark:text-gray-200 hover:bg-blue-600 hover:text-white transition-all shadow-sm"
                   >
                     <svg
                       className="w-5 h-5"
@@ -261,7 +281,7 @@ const FeaturedProductDetails = () => {
                   </span>
                   <button
                     onClick={() => setQuantity(quantity + 1)}
-                    className="w-10 h-10 flex items-center justify-center rounded-lg bg-white dark:bg-gray-600 text-gray-700 dark:text-gray-200 hover:bg-[var(--root-color)] hover:text-white transition-all shadow-sm"
+                    className="w-10 h-10 flex items-center justify-center rounded-lg bg-white dark:bg-gray-600 text-gray-700 dark:text-gray-200 hover:bg-blue-600 hover:text-white transition-all shadow-sm"
                   >
                     <svg
                       className="w-5 h-5"
@@ -285,7 +305,7 @@ const FeaturedProductDetails = () => {
                 <button
                   onClick={handleAddToCart}
                   disabled={!product.productId}
-                  className="flex-1 py-4 px-6 bg-white dark:bg-gray-700 text-gray-900 dark:text-white border-2 border-[var(--root-color)] rounded-xl hover:bg-[var(--root-color)] hover:text-white transition-all duration-200 font-semibold disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-md hover:shadow-lg"
+                  className="flex-1 py-4 px-6 bg-white dark:bg-gray-700 text-gray-900 dark:text-white border-2 border-blue-600 rounded-xl hover:bg-blue-600 hover:text-white transition-all duration-200 font-semibold disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-md hover:shadow-lg"
                 >
                   <svg
                     className="w-5 h-5"
@@ -305,7 +325,7 @@ const FeaturedProductDetails = () => {
                 <button
                   onClick={handleBuyNow}
                   disabled={!product.productId}
-                  className="flex-1 py-4 px-6 bg-gradient-to-r from-[var(--root-color)] to-purple-600 text-white rounded-xl hover:from-[var(--root-color)] hover:to-purple-700 transition-all duration-200 font-semibold disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transform hover:scale-[1.02]"
+                  className="flex-1 py-4 px-6 bg-gradient-to-r from-blue-600 to-orange-600 text-white rounded-xl hover:from-blue-700 hover:to-orange-700 transition-all duration-200 font-semibold disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transform hover:scale-[1.02]"
                 >
                   Buy Now
                 </button>

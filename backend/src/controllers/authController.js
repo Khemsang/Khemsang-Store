@@ -13,7 +13,7 @@ import OTP from "../models/OTP.js";
 // SIGNUP - With email verification
 export const signup = async (req, res) => {
   try {
-    const { name, email, password, isAdmin } = req.body;
+    const { name, email, password } = req.body;
     if (!name || !email || !password)
       return res
         .status(400)
@@ -28,12 +28,13 @@ export const signup = async (req, res) => {
     const verificationToken = crypto.randomBytes(32).toString("hex");
     console.log("🔑 Generated verification token:", verificationToken.substring(0, 10) + "...");
 
-    // Create user
+    // Create user - always as customer, admins can only be created by super admin
     const user = await User.create({
       name,
       email,
       password,
-      isAdmin: isAdmin || false,
+      role: "customer",
+      isAdmin: false,
       isVerified: false,
       verificationToken,
       verificationTokenExpires: new Date(Date.now() + 15 * 60 * 1000), // 15 minutes
@@ -116,11 +117,15 @@ export const verifyEmail = async (req, res) => {
     user.verificationTokenExpires = undefined;
     await user.save();
 
-    const authToken = generateToken(user._id);
-    setTokenCookie(res, authToken);
-
     console.log("✅ Email verified successfully for:", user.email);
-    return res.json({ message: "Email verified successfully!", user });
+    
+    // Don't auto-login on email verification, just verify the email
+    // User should go to login page to complete authentication
+    return res.json({ 
+      message: "Email verified successfully! Please login to continue.",
+      verified: true,
+      redirectTo: "/login"
+    });
   } catch (err) {
     console.error("❌ Verify email error:", err);
     res.status(500).json({ message: err.message });
@@ -161,7 +166,7 @@ export const resendVerification = async (req, res) => {
   }
 };
 
-// LOGIN - Send OTP (Skip OTP for Super Admin)
+// LOGIN - Send OTP (All users including Super Admin)
 export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -201,40 +206,7 @@ export const login = async (req, res) => {
       });
     }
 
-    // Skip OTP for Super Admin - direct login
-    if (user.isSuperAdmin) {
-      console.log("🔑 Super Admin login - skipping OTP");
-      
-      // Update last login time
-      user.otpVerifiedAt = new Date();
-      await user.save();
-
-      // Generate token and set cookie
-      const token = generateToken(user._id);
-      setTokenCookie(res, token);
-
-      // Return user data for direct login
-      const userData = {
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role || "super-admin", // Add role field
-        isVerified: user.isVerified,
-        isAdmin: user.isAdmin,
-        isSuperAdmin: user.isSuperAdmin,
-        adminStatus: user.adminStatus,
-        isApproved: user.isApproved
-      };
-
-      return res.json({ 
-        message: "Super Admin login successful", 
-        user: userData,
-        needsOTP: false,
-        redirectTo: "/super-admin/dashboard" // Add redirect URL
-      });
-    }
-
-    // Generate and send OTP for regular users and admins
+    // Generate and send OTP for ALL users (including Super Admin)
     const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
     await OTP.deleteMany({ email });
     await OTP.create({
@@ -419,7 +391,7 @@ export const changePassword = async (req, res) => {
   res.json({ message: "Password changed successfully" });
 };
 
-// FORGOT PASSWORD
+// FORGOT PASSWORD (For all users including Super Admin)
 export const forgotPassword = async (req, res) => {
   try {
     const { email } = req.body;
@@ -428,76 +400,54 @@ export const forgotPassword = async (req, res) => {
     const user = await User.findOne({ email });
     if (!user) return res.status(404).json({ message: "User not found" });
 
-    // Generate reset token
+    // Generate reset token (longer expiry for super admin)
     const resetToken = crypto.randomBytes(32).toString("hex");
+    const expiryTime = user.isSuperAdmin ? 30 : 15; // 30 min for super admin, 15 min for others
+    
     user.resetPasswordToken = resetToken;
-    user.resetPasswordExpires = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
+    user.resetPasswordExpires = new Date(Date.now() + expiryTime * 60 * 1000);
     await user.save();
 
+    // Log the password reset attempt BEFORE sending response
     try {
-      await sendPasswordResetEmail(email, resetToken);
-      res.json({ message: "Password reset link sent to your email" });
-    } catch {
-      // Fallback for dev mode
-      const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
-      res.json({
-        message: "Password reset link sent",
-        resetToken:
-          process.env.NODE_ENV === "development" ? resetToken : undefined,
-        resetUrl: process.env.NODE_ENV === "development" ? resetUrl : undefined,
-      });
-    }
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-};
-
-// SUPER ADMIN FORGOT PASSWORD (Special endpoint for super admin)
-export const superAdminForgotPassword = async (req, res) => {
-  try {
-    const { email } = req.body;
-    if (!email) return res.status(400).json({ message: "Email is required" });
-
-    const user = await User.findOne({ email });
-    if (!user) return res.status(404).json({ message: "User not found" });
-
-    // Check if user is super admin
-    if (!user.isSuperAdmin) {
-      return res.status(403).json({ 
-        message: "This endpoint is only for Super Admin. Please use regular forgot password." 
-      });
+      await createActivity(
+        user._id, 
+        user.isSuperAdmin ? "super_admin_password_reset_requested" : "password_reset_requested",
+        user.isSuperAdmin ? "Super Admin requested password reset" : "User requested password reset"
+      );
+    } catch (activityError) {
+      console.error("❌ Failed to log activity:", activityError.message);
+      // Continue even if activity logging fails
     }
 
-    // Generate reset token
-    const resetToken = crypto.randomBytes(32).toString("hex");
-    user.resetPasswordToken = resetToken;
-    user.resetPasswordExpires = new Date(Date.now() + 30 * 60 * 1000); // 30 minutes for super admin
-    await user.save();
-
     try {
-      await sendSuperAdminPasswordResetEmail(email, resetToken);
-      console.log("✅ Super Admin password reset email sent to:", email);
+      // Use appropriate email template based on user type
+      if (user.isSuperAdmin) {
+        await sendSuperAdminPasswordResetEmail(email, resetToken);
+        console.log("✅ Super Admin password reset email sent to:", email);
+      } else {
+        await sendPasswordResetEmail(email, resetToken);
+        console.log("✅ Password reset email sent to:", email);
+      }
+      
       res.json({ 
-        message: "Super Admin password reset link sent to your email",
-        note: "Link expires in 30 minutes"
+        message: "Password reset link sent to your email",
+        note: user.isSuperAdmin ? "Link expires in 30 minutes" : "Link expires in 15 minutes"
       });
     } catch (emailError) {
-      console.error("❌ Failed to send super admin reset email:", emailError.message);
+      console.error("❌ Failed to send reset email:", emailError.message);
       // Fallback for dev mode
       const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
       res.json({
-        message: "Super Admin password reset link generated",
+        message: "Password reset link generated",
         resetToken: process.env.NODE_ENV === "development" ? resetToken : undefined,
         resetUrl: process.env.NODE_ENV === "development" ? resetUrl : undefined,
-        note: "Link expires in 30 minutes"
+        note: user.isSuperAdmin ? "Link expires in 30 minutes" : "Link expires in 15 minutes"
       });
     }
-
-    // Log the super admin password reset attempt
-    await createActivity(user._id, "super_admin_password_reset_requested", "Super Admin requested password reset");
     
   } catch (err) {
-    console.error("❌ Super Admin forgot password error:", err);
+    console.error("❌ Forgot password error:", err);
     res.status(500).json({ message: err.message });
   }
 };

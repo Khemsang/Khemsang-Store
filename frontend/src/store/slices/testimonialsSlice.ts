@@ -1,41 +1,47 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { testimonialsApi } from "../../services/api";
+import { api } from "../../services/api";
 
 interface Testimonial {
   _id: string;
   name: string;
-  role: string;
-  imageUrl: string;
-  quote: string;
+  email: string;
   rating: number;
-  isActive: boolean;
+  message: string;
+  isApproved: boolean;
+  createdAt: string;
 }
 
 interface TestimonialsState {
   items: Testimonial[];
   loading: boolean;
   error: string | null;
+  lastFetch: number | null;
 }
 
 const initialState: TestimonialsState = {
   items: [],
   loading: false,
   error: null,
+  lastFetch: null,
 };
 
-// Async thunks
 export const fetchTestimonials = createAsyncThunk(
-  "testimonials/fetchAll",
+  "testimonials/fetchTestimonials",
   async () => {
-    const response = await testimonialsApi.getAll();
-    return response.data;
+    const { data } = await api.get("/testimonials");
+    return data;
   }
 );
 
 const testimonialsSlice = createSlice({
   name: "testimonials",
   initialState,
-  reducers: {},
+  reducers: {
+    clearTestimonials: (state) => {
+      state.items = [];
+      state.lastFetch = null;
+    },
+  },
   extraReducers: (builder) => {
     builder
       .addCase(fetchTestimonials.pending, (state) => {
@@ -45,6 +51,7 @@ const testimonialsSlice = createSlice({
       .addCase(fetchTestimonials.fulfilled, (state, action) => {
         state.loading = false;
         state.items = action.payload;
+        state.lastFetch = Date.now();
       })
       .addCase(fetchTestimonials.rejected, (state, action) => {
         state.loading = false;
@@ -53,4 +60,5 @@ const testimonialsSlice = createSlice({
   },
 });
 
+export const { clearTestimonials } = testimonialsSlice.actions;
 export default testimonialsSlice.reducer;

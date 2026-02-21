@@ -14,18 +14,35 @@ export const getCart = async (req, res) => {
 export const mergeCart = async (req, res) => {
   try {
     const { items } = req.body;
+    console.log("🔄 Merging cart items:", items);
+    
     const user = await User.findById(req.user._id);
 
+    if (!items || items.length === 0) {
+      const updatedUser = await User.findById(req.user._id).populate("cart.product");
+      return res.json(updatedUser.cart);
+    }
+
     items.forEach(item => {
-      const existing = user.cart.find(c => c.product.toString() === item.product);
-      if (existing) existing.quantity += item.quantity;
-      else user.cart.push(item);
+      // Handle both formats: {product: {_id: "..."}, quantity: 1} and {product: "id", quantity: 1}
+      const productId = typeof item.product === 'object' ? item.product._id : item.product;
+      
+      const existing = user.cart.find(c => c.product.toString() === productId);
+      if (existing) {
+        existing.quantity += item.quantity;
+        console.log(`✅ Updated existing item ${productId}: quantity ${existing.quantity}`);
+      } else {
+        user.cart.push({ product: productId, quantity: item.quantity });
+        console.log(`✅ Added new item ${productId}: quantity ${item.quantity}`);
+      }
     });
 
     await user.save();
     const updatedUser = await User.findById(req.user._id).populate("cart.product");
+    console.log("✅ Cart merged successfully. Total items:", updatedUser.cart.length);
     res.json(updatedUser.cart);
   } catch (err) {
+    console.error("❌ Error merging cart:", err);
     res.status(500).json({ message: err.message });
   }
 };

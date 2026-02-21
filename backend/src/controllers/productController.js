@@ -51,10 +51,17 @@ export const createProduct = async (req, res) => {
   try {
     const { title, description, price, category, stock } = req.body;
 
+    console.log("Creating product:", title);
+    console.log("Files received:", req.files?.length || 0);
+
     // Upload images
     let imageUrls = [];
     if (req.files?.length) {
+      console.log("Uploading images to Cloudinary...");
       imageUrls = await uploadMultipleToCloudinary(req.files);
+      console.log("Images uploaded:", imageUrls.length);
+    } else {
+      console.warn("No images provided for product:", title);
     }
 
     const product = await Product.create({
@@ -67,8 +74,10 @@ export const createProduct = async (req, res) => {
       createdBy: req.user._id,
     });
 
+    console.log("Product created with images:", product.images.length);
     res.status(201).json(product);
   } catch (err) {
+    console.error("Error creating product:", err);
     res.status(500).json({ message: err.message });
   }
 };

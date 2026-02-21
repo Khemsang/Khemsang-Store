@@ -1,12 +1,17 @@
 import nodemailer from "nodemailer";
 
-// Create transporter inline
+// Create transporter with better configuration
 const createTransporter = () => {
   return nodemailer.createTransport({
-    service: "gmail",
+    host: process.env.SMTP_HOST || "smtp.gmail.com",
+    port: parseInt(process.env.SMTP_PORT) || 587,
+    secure: false, // true for 465, false for other ports
     auth: {
-      user: process.env.GMAIL_USER,
-      pass: process.env.GMAIL_APP_PASSWORD,
+      user: process.env.SMTP_USER,
+      pass: process.env.SMTP_PASS,
+    },
+    tls: {
+      rejectUnauthorized: false, // For development
     },
   });
 };
@@ -14,42 +19,158 @@ const createTransporter = () => {
 // Send verification email
 export const sendVerificationEmail = async (email, token) => {
   const transporter = createTransporter();
-  const verificationUrl = `${process.env.FRONTEND_URL}/verify-email/${token}`;
+  const verificationUrl = `${process.env.FRONTEND_URL}/verify-email?token=${token}`;
 
   const mailOptions = {
     from: `"${process.env.STORE_NAME || "Khemsang Store"}" <${
-      process.env.GMAIL_USER
+      process.env.EMAIL_FROM || process.env.SMTP_USER
     }>`,
     to: email,
-    subject: "Verify Your Email Address",
+    subject: "✅ Verify Your Email Address - Khemsang Store",
     html: `
       <!DOCTYPE html>
       <html>
       <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <style>
-          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-          .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
-          .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
-          .button { display: inline-block; padding: 12px 30px; background: #667eea; color: white; text-decoration: none; border-radius: 5px; margin: 20px 0; }
-          .footer { text-align: center; margin-top: 20px; color: #666; font-size: 12px; }
+          body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            line-height: 1.6; 
+            color: #333; 
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+          }
+          .email-wrapper {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+          }
+          .header { 
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%); 
+            color: white; 
+            padding: 40px 30px; 
+            text-align: center;
+          }
+          .header h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 700;
+          }
+          .header p {
+            margin: 10px 0 0 0;
+            font-size: 16px;
+            opacity: 0.9;
+          }
+          .content { 
+            background: #ffffff; 
+            padding: 40px 30px;
+          }
+          .content h2 {
+            color: #10b981;
+            font-size: 22px;
+            margin-top: 0;
+          }
+          .content p {
+            font-size: 16px;
+            color: #555;
+            margin: 15px 0;
+          }
+          .button-container {
+            text-align: center;
+            margin: 35px 0;
+          }
+          .button { 
+            display: inline-block; 
+            padding: 16px 40px; 
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white !important; 
+            text-decoration: none; 
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 16px;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+            transition: all 0.3s ease;
+          }
+          .button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+          }
+          .info-box {
+            background: #f0fdf4;
+            border-left: 4px solid #10b981;
+            padding: 15px 20px;
+            margin: 25px 0;
+            border-radius: 4px;
+          }
+          .info-box p {
+            margin: 5px 0;
+            font-size: 14px;
+            color: #065f46;
+          }
+          .footer { 
+            text-align: center; 
+            padding: 30px; 
+            background-color: #f9fafb;
+            color: #6b7280; 
+            font-size: 13px;
+            border-top: 1px solid #e5e7eb;
+          }
+          .footer p {
+            margin: 5px 0;
+          }
+          .divider {
+            height: 1px;
+            background: linear-gradient(to right, transparent, #e5e7eb, transparent);
+            margin: 30px 0;
+          }
+          .icon {
+            font-size: 48px;
+            margin-bottom: 10px;
+          }
         </style>
       </head>
       <body>
-        <div class="container">
+        <div class="email-wrapper">
           <div class="header">
-            <h1>Welcome! 🎉</h1>
+            <div class="icon">🎉</div>
+            <h1>Welcome to Khemsang Store!</h1>
+            <p>You're just one step away from getting started</p>
           </div>
+          
           <div class="content">
-            <p>Thank you for signing up! Please verify your email address to complete your registration.</p>
-            <p style="text-align: center;">
-              <a href="${verificationUrl}" class="button">Verify Email Address</a>
+            <h2>Verify Your Email Address</h2>
+            <p>Thank you for signing up! To complete your registration and start shopping, please verify your email address by clicking the button below:</p>
+            
+            <div class="button-container">
+              <a href="${verificationUrl}" class="button">✅ Verify Email Address</a>
+            </div>
+            
+            <div class="info-box">
+              <p><strong>⏰ Important:</strong> This verification link will expire in 15 minutes.</p>
+              <p><strong>🔒 Security:</strong> If you didn't create this account, please ignore this email.</p>
+            </div>
+            
+            <div class="divider"></div>
+            
+            <p style="font-size: 14px; color: #6b7280;">
+              <strong>Button not working?</strong> Copy and paste this link into your browser:
             </p>
-            <p>Or copy this link: <br><small>${verificationUrl}</small></p>
-            <p>This link will expire in 15 minutes.</p>
+            <p style="font-size: 13px; color: #10b981; word-break: break-all; background: #f0fdf4; padding: 12px; border-radius: 6px; font-family: monospace;">
+              ${verificationUrl}
+            </p>
           </div>
+          
           <div class="footer">
-            <p>If you didn't create this account, please ignore this email.</p>
+            <p><strong>Khemsang Store</strong></p>
+            <p>Your trusted online furniture store</p>
+            <p style="margin-top: 15px;">
+              Need help? Contact us at <a href="mailto:${process.env.EMAIL_FROM || process.env.SMTP_USER}" style="color: #10b981; text-decoration: none;">${process.env.EMAIL_FROM || process.env.SMTP_USER}</a>
+            </p>
+            <p style="margin-top: 10px; font-size: 12px; color: #9ca3af;">
+              © ${new Date().getFullYear()} Khemsang Store. All rights reserved.
+            </p>
           </div>
         </div>
       </body>

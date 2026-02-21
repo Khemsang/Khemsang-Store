@@ -10,22 +10,41 @@ const Login: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const { login, user, logout } = useAuth();
+  const { login, user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const { info, error: showError } = useToast();
+  const { success, error: showError } = useToast();
 
-  // Don't auto-redirect if already logged in - show profile instead
-  // React.useEffect(() => {
-  //   if (user) {
-  //     if (user.isAdmin) {
-  //       navigate("/admin/dashboard");
-  //     } else {
-  //       const from = location.state?.from || "/";
-  //       navigate(from);
-  //     }
-  //   }
-  // }, [user, navigate, location]);
+  // Auto-redirect admins to dashboard, but show profile for regular users
+  React.useEffect(() => {
+    if (user && !authLoading) {
+      if (user.isAdmin || user.isSuperAdmin) {
+        navigate("/admin/dashboard", { replace: true });
+      }
+      // Regular users stay on this page to see their profile
+    }
+  }, [user, authLoading, navigate]);
+
+  // Show loading while checking auth status
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+        <div className="text-center">
+          <div className="relative w-20 h-20 mx-auto mb-6">
+            <div className="absolute inset-0 rounded-full bg-gradient-to-r from-[var(--root-color)] to-purple-600 animate-spin"></div>
+            <div className="absolute inset-1 rounded-full bg-white dark:bg-gray-900"></div>
+            <div className="absolute inset-3 rounded-full border-4 border-transparent border-t-[var(--root-color)] border-r-purple-600 animate-spin" style={{ animationDirection: 'reverse', animationDuration: '1s' }}></div>
+            <div className="absolute inset-0 flex items-center justify-center">
+              <svg className="w-8 h-8 text-[var(--root-color)] animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
+            </div>
+          </div>
+          <p className="text-gray-600 dark:text-gray-400 font-medium">Checking authentication...</p>
+        </div>
+      </div>
+    );
+  }
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,39 +56,47 @@ const Login: React.FC = () => {
 
       // Check if OTP is required
       if (data.needsOTP) {
-        if (data.otp) {
-        } else {
-          info(
-            "OTP verification required! Please check your email for the OTP code."
-          );
+        // Store the intended redirect path before going to OTP
+        const intendedPath = location.state?.from;
+        if (intendedPath && intendedPath !== '/login' && intendedPath !== '/signup') {
+          sessionStorage.setItem('redirectAfterLogin', intendedPath);
         }
-        navigate("/verify-otp", { state: { email } });
+        // Navigate to OTP page with redirect info
+        navigate("/verify-otp", { state: { email, from: intendedPath } });
         return;
       }
 
       // Direct login successful (Super Admin or OTP not required)
       if (data.user) {
-        // Use redirectTo from backend response if available
+        // This should not happen anymore as all users need OTP
+        // But keeping for backward compatibility
+        success("Login successful! Redirecting...");
+        
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        
+        const intendedPath = location.state?.from || sessionStorage.getItem('redirectAfterLogin');
+        sessionStorage.removeItem('redirectAfterLogin');
+        
         if (data.redirectTo) {
-          navigate(data.redirectTo);
+          window.location.href = data.redirectTo;
         } else {
-          // Fallback role-based navigation
           const userRole = data.user.role || (data.user.isSuperAdmin ? "super-admin" : data.user.isAdmin ? "admin" : "customer");
           
           switch (userRole) {
             case "super-admin":
-              navigate("/super-admin/dashboard");
-              break;
             case "admin":
-              navigate("/admin/dashboard");
+              window.location.href = "/admin/dashboard";
               break;
             case "seller":
-              navigate(data.user.isApproved ? "/seller/dashboard" : "/seller/pending");
+              window.location.href = data.user.isApproved ? "/seller/dashboard" : "/seller/pending";
               break;
             case "customer":
             default:
-              const from = location.state?.from || "/";
-              navigate(from);
+              if (intendedPath && intendedPath !== '/login' && intendedPath !== '/signup' && intendedPath !== '/verify-otp') {
+                navigate(intendedPath, { replace: true });
+              } else {
+                navigate("/", { replace: true });
+              }
               break;
           }
         }
@@ -77,15 +104,23 @@ const Login: React.FC = () => {
     } catch (err: any) {
       if (err.response?.data?.needsVerification) {
         setError("Please verify your email first");
+        showError("Please verify your email first");
       } else if (err.response?.data?.needsOTP) {
         // OTP required but error occurred
         const otpData = err.response.data;
         if (otpData.otp) {
           console.log("Development Mode OTP:", otpData.otp);
         }
-        navigate("/verify-otp", { state: { email } });
+        // Store redirect path before going to OTP
+        const intendedPath = location.state?.from;
+        if (intendedPath && intendedPath !== '/login' && intendedPath !== '/signup') {
+          sessionStorage.setItem('redirectAfterLogin', intendedPath);
+        }
+        navigate("/verify-otp", { state: { email, from: intendedPath } });
       } else {
-        setError(err.response?.data?.message || "Invalid credentials");
+        const errorMsg = err.response?.data?.message || "Invalid credentials";
+        setError(errorMsg);
+        showError(errorMsg);
       }
     } finally {
       setLoading(false);
@@ -95,33 +130,33 @@ const Login: React.FC = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 py-16 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-10">
-        {/* Show profile if user is already logged in */}
         {user ? (
+          // Show profile if user is already logged in
           <div className="text-center">
-            <div className="mx-auto h-20 w-20 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center shadow-lg transform hover:scale-105 transition-transform duration-300 mb-6">
+            <div className="mx-auto h-20 w-20 bg-gradient-to-br from-blue-500 to-orange-600 rounded-2xl flex items-center justify-center shadow-lg mb-6">
               <span className="text-2xl font-bold text-white">
-                {user?.name?.charAt(0)?.toUpperCase() || 'U'}
+                {user?.name ? user.name.charAt(0).toUpperCase() : 'U'}
               </span>
             </div>
             <h2 className="text-3xl font-extrabold text-gray-900 dark:text-white mb-2">
               Welcome Back!
             </h2>
-            <p className="text-lg text-green-600 dark:text-green-400 font-semibold mb-6">
-              ✅ Email Verified & Logged In
+            <p className="text-lg bg-gradient-to-r from-blue-600 to-orange-600 bg-clip-text text-transparent font-semibold mb-6">
+              You're already logged in
             </p>
 
-            <div className="bg-white dark:bg-gray-800 shadow-2xl rounded-2xl p-8 space-y-6 border border-gray-100 dark:border-gray-700">
+            <div className="bg-white dark:bg-gray-800 shadow-2xl rounded-2xl p-8 space-y-6 border border-gray-200 dark:border-gray-700">
               {/* Profile Info */}
               <div className="text-center space-y-4">
-                <div className="w-24 h-24 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-bold text-2xl mx-auto shadow-lg">
-                  {user.name.charAt(0).toUpperCase()}
+                <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-orange-600 rounded-full flex items-center justify-center text-white font-bold text-2xl mx-auto shadow-lg">
+                  {user?.name ? user.name.charAt(0).toUpperCase() : 'U'}
                 </div>
                 <div>
                   <h3 className="text-xl font-bold text-gray-900 dark:text-white">
-                    {user.name}
+                    {user?.name || 'User'}
                   </h3>
                   <p className="text-gray-600 dark:text-gray-400">
-                    {user.email}
+                    {user?.email || ''}
                   </p>
                   {user.isVerified && (
                     <div className="inline-flex items-center gap-2 px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-full text-sm font-medium mt-2">
@@ -184,33 +219,6 @@ const Login: React.FC = () => {
                   <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Orders</span>
                 </button>
               </div>
-
-              {/* Admin Dashboard Button */}
-              {user.isAdmin && (
-                <button
-                  onClick={() => navigate("/admin/dashboard")}
-                  className="w-full flex items-center justify-center gap-3 py-4 px-4 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-xl font-semibold hover:from-indigo-600 hover:to-purple-700 transition-all shadow-lg hover:shadow-xl transform hover:scale-[1.02]"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                  </svg>
-                  Admin Dashboard
-                </button>
-              )}
-
-              {/* Logout Button */}
-              <button
-                onClick={async () => {
-                  await logout();
-                  navigate("/login");
-                }}
-                className="w-full flex items-center justify-center gap-3 py-3 px-4 border-2 border-red-200 dark:border-red-800 text-red-600 dark:text-red-400 rounded-xl font-semibold hover:bg-red-50 dark:hover:bg-red-900/20 transition-all"
-              >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                </svg>
-                Logout
-              </button>
             </div>
           </div>
         ) : (

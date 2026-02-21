@@ -1,10 +1,22 @@
-export const errorHandler = (err, req, res, next) => {
-  console.error(err.stack);
+import logger from "../config/logger.js";
 
-  const statusCode = res.statusCode === 200 ? 500 : res.statusCode;
+export const errorHandler = (err, req, res, next) => {
+  // Log error with details
+  logger.error("Error occurred:", {
+    message: err.message,
+    stack: err.stack,
+    url: req.originalUrl,
+    method: req.method,
+    ip: req.ip,
+    userId: req.user?._id,
+  });
+
+  const statusCode = err.statusCode || res.statusCode !== 200 ? res.statusCode : 500;
 
   res.status(statusCode).json({
-    message: err.message,
-    stack: process.env.NODE_ENV === "production" ? null : err.stack,
+    success: false,
+    message: err.message || "Internal Server Error",
+    ...(process.env.NODE_ENV !== "production" && { stack: err.stack }),
   });
 };
+

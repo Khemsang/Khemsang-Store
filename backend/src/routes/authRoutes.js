@@ -1,4 +1,5 @@
 import express from "express";
+import { authLimiter, strictLimiter } from "../middleware/security.js";
 import User from "../models/User.js";
 import {
   signup,
@@ -13,7 +14,6 @@ import {
   changePassword,
   getUserStats,
   forgotPassword,
-  superAdminForgotPassword,
   resetPassword,
   getAddresses,
   addAddress,
@@ -27,18 +27,17 @@ import { auth } from "../middleware/auth.js";
 
 const router = express.Router();
 
-// Public routes
-router.post("/signup", signup);
+// Public routes - with rate limiting
+router.post("/signup", authLimiter, signup);
 router.get("/verify-email/:token", verifyEmail); // URL parameter format
 router.get("/verify-email", verifyEmail); // Query parameter format
-router.post("/resend-verification", resendVerification);
-router.post("/login", login);
-router.post("/verify-otp", verifyOTP);
-router.post("/resend-otp", resendOTP);
+router.post("/resend-verification", authLimiter, resendVerification);
+router.post("/login", authLimiter, login);
+router.post("/verify-otp", authLimiter, verifyOTP);
+router.post("/resend-otp", authLimiter, resendOTP);
 router.post("/logout", logout);
-router.post("/forgot-password", forgotPassword);
-router.post("/super-admin/forgot-password", superAdminForgotPassword);
-router.post("/reset-password", resetPassword);
+router.post("/forgot-password", strictLimiter, forgotPassword);
+router.post("/reset-password", authLimiter, resetPassword);
 
 // Debug route (development only)
 if (process.env.NODE_ENV === "development") {

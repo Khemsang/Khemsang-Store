@@ -16,20 +16,41 @@ const Signup: React.FC = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const { signup, user } = useAuth();
+  const { signup, user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const { success, info } = useToast();
 
   // Redirect if already logged in
   React.useEffect(() => {
-    if (user) {
+    if (user && !authLoading) {
       if (user.isAdmin) {
         navigate("/admin/dashboard");
       } else {
         navigate("/");
       }
     }
-  }, [user, navigate]);
+  }, [user, authLoading, navigate]);
+
+  // Show loading while checking auth status
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+        <div className="text-center">
+          <div className="relative w-20 h-20 mx-auto mb-6">
+            <div className="absolute inset-0 rounded-full bg-gradient-to-r from-green-500 to-emerald-600 animate-spin"></div>
+            <div className="absolute inset-1 rounded-full bg-white dark:bg-gray-900"></div>
+            <div className="absolute inset-3 rounded-full border-4 border-transparent border-t-green-500 border-r-emerald-600 animate-spin" style={{ animationDirection: 'reverse', animationDuration: '1s' }}></div>
+            <div className="absolute inset-0 flex items-center justify-center">
+              <svg className="w-8 h-8 text-green-600 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+              </svg>
+            </div>
+          </div>
+          <p className="text-gray-600 dark:text-gray-400 font-medium">Checking authentication...</p>
+        </div>
+      </div>
+    );
+  }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
@@ -57,22 +78,20 @@ const Signup: React.FC = () => {
         formData.isAdmin
       );
 
-      // Show appropriate message based on response
-      if (response.verificationUrl) {
-        // Development mode - show verification link
-        info(
-          `Verification email sent! Development Mode: Check console or use this link: ${response.verificationUrl}`
-        );
-      } else {
-        info(
-          "Verification email sent! Please check your email to verify your account."
-        );
-      }
+      // Show success notification
+      success("Account created successfully! Please check your email to verify.");
 
-      // Check if user is admin and redirect accordingly
-      // Note: Admin users still need to verify email and login first
-      // The admin check will happen during login
-      navigate("/login");
+      // Store redirect path if coming from cart/checkout
+      const intendedPath = location.state?.from;
+      if (intendedPath && intendedPath !== '/login' && intendedPath !== '/signup') {
+        sessionStorage.setItem('redirectAfterLogin', intendedPath);
+      }
+      
+      // Wait for user to see the message
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // Redirect to login page, preserving the intended destination
+      navigate("/login", { state: { from: intendedPath } });
     } catch (err: any) {
       setError(err.response?.data?.message || "Signup failed");
     } finally {
@@ -287,8 +306,8 @@ const Signup: React.FC = () => {
               </div>
             </div>
 
-            {/* Admin Checkbox */}
-            <div className="flex items-center">
+            {/* Admin Checkbox - Hidden, only super admin can create admins */}
+            {/* <div className="flex items-center">
               <input
                 type="checkbox"
                 name="isAdmin"
@@ -306,7 +325,7 @@ const Signup: React.FC = () => {
                   (For store management)
                 </span>
               </label>
-            </div>
+            </div> */}
 
             {/* Submit Button */}
             <button

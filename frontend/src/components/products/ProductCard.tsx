@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { formatCurrency } from "../../utils/constants";
-import { FaEye, FaBalanceScale, FaHeart } from "react-icons/fa";
+import { FaEye, FaBalanceScale, FaHeart, FaShoppingCart } from "react-icons/fa";
 import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../context/ToastContext";
 import { api } from "../../services/api";
@@ -35,6 +35,7 @@ const ProductCard = ({
   const { success, error } = useToast();
   const [isInWishlist, setIsInWishlist] = useState(false);
   const [wishlistLoading, setWishlistLoading] = useState(false);
+  const [imageError, setImageError] = useState(false);
 
   useEffect(() => {
     checkWishlist();
@@ -95,14 +96,21 @@ const ProductCard = ({
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 border border-gray-100 dark:border-gray-700 group">
       <div
-        className="relative aspect-square overflow-hidden cursor-pointer"
+        className="relative aspect-square overflow-hidden cursor-pointer bg-gray-100 dark:bg-gray-800"
         onClick={() => navigate(`/product/${product._id}`)}
       >
-        <img
-          src={product.images?.[0] || "/placeholder.jpg"}
-          alt={product.title}
-          className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-300"
-        />
+        {imageError ? (
+          <div className="w-full h-full flex items-center justify-center">
+            <FaShoppingCart className="w-12 h-12 text-gray-400" />
+          </div>
+        ) : (
+          <img
+            src={product.images?.[0] || "/placeholder.jpg"}
+            alt={product.title}
+            className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-300"
+            onError={() => setImageError(true)}
+          />
+        )}
 
         {/* Wishlist Button */}
         <button
@@ -147,7 +155,7 @@ const ProductCard = ({
               }}
               className={`flex-1 py-1 rounded text-[10px] font-medium flex items-center justify-center gap-1 ${
                 isComparing
-                  ? "bg-purple-500 text-white"
+                  ? "bg-blue-500 text-white"
                   : "bg-white/90 dark:bg-gray-800/90 text-gray-700 dark:text-gray-300 hover:bg-white"
               }`}
             >
@@ -168,14 +176,14 @@ const ProductCard = ({
 
       <div className="p-2">
         <h3
-          className="text-xs sm:text-sm font-semibold text-gray-900 dark:text-white mb-0.5 line-clamp-2 cursor-pointer hover:text-[var(--root-color)] transition-colors leading-tight"
+          className="text-xs sm:text-sm font-semibold text-gray-900 dark:text-white mb-0.5 line-clamp-2 cursor-pointer hover:text-blue-600 transition-colors leading-tight"
           onClick={() => navigate(`/product/${product._id}`)}
         >
           {product.title}
         </h3>
 
         <div className="flex items-center justify-between mb-1.5">
-          <span className="text-sm sm:text-base font-bold text-[var(--root-color)]">
+          <span className="text-sm sm:text-base font-bold text-blue-600">
             {formatCurrency(product.price)}
           </span>
         </div>
@@ -183,7 +191,7 @@ const ProductCard = ({
         <button
           onClick={() => onAddToCart(product._id)}
           disabled={product.stock === 0}
-          className="w-full py-1.5 bg-gradient-to-r from-[var(--root-color)] to-purple-600 text-white rounded text-[10px] sm:text-xs hover:from-[var(--root-color)] hover:to-purple-700 transition-all font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1"
+          className="w-full py-1.5 bg-gradient-to-r from-blue-600 to-orange-600 text-white rounded text-[10px] sm:text-xs hover:from-blue-700 hover:to-orange-700 transition-all font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-1"
         >
           <svg
             className="w-3 h-3"

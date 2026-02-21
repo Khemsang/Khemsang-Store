@@ -51,7 +51,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       const { data } = await api.get("/auth/me");
       setUser(data);
-    } catch (error) {
+    } catch (error: any) {
+      console.error("Auth check failed:", error?.response?.data?.message || error.message);
       setUser(null);
     } finally {
       setLoading(false);
@@ -75,9 +76,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const login = async (email: string, password: string) => {
     const { data } = await api.post("/auth/login", { email, password });
-    // Only set user if OTP is not required
-    if (!data.needsOTP) {
-      setUser(data);
+    // Set user immediately if OTP is not required (Super Admin case)
+    if (!data.needsOTP && data.user) {
+      setUser(data.user);
     }
     return data;
   };

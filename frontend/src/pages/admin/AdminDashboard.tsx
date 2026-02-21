@@ -3,315 +3,272 @@ import { useNavigate } from "react-router-dom";
 import { api } from "../../services/api";
 import { useToast } from "../../context/ToastContext";
 import {
-  FaBox,
-  FaShoppingCart,
-  FaDollarSign,
-  FaChartLine,
-  FaCheckCircle,
-  FaClock,
-  FaTruck,
-  FaExclamationTriangle,
-  FaTags,
-} from "react-icons/fa";
-import StatCard from "../../components/admin/StatCard";
-import OrderCard from "../../components/admin/OrderCard";
-import LowStockCard from "../../components/admin/LowStockCard";
-import QuickActionCard from "../../components/admin/QuickActionCard";
+  AreaChart,
+  Area,
+  BarChart,
+  Bar,
+  PieChart,
+  Pie,
+  Cell,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
+import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card";
+import { Button } from "../../components/ui/button";
+import { Badge } from "../../components/ui/badge";
+import {
+  DollarSign,
+  ShoppingCart,
+  Package,
+  Users,
+  Download,
+  RefreshCw,
+  TrendingUp,
+} from "lucide-react";
 import { formatCurrency } from "../../utils/constants";
-
-interface Stats {
-  totalProducts: number;
-  totalOrders: number;
-  totalRevenue: number;
-  pendingOrders: number;
-  completedOrders: number;
-  lowStockProducts: number;
-  processingOrders: number;
-  shippedOrders: number;
-  totalCategories: number;
-}
+import { exportAnalyticsToExcel } from "../../utils/excelExport";
+import { Loading } from "../../components/ui/loading";
 
 const AdminDashboard = () => {
   const { error } = useToast();
   const navigate = useNavigate();
-  const [stats, setStats] = useState<Stats>({
-    totalProducts: 0,
-    totalOrders: 0,
-    totalRevenue: 0,
-    pendingOrders: 0,
-    completedOrders: 0,
-    lowStockProducts: 0,
-    processingOrders: 0,
-    shippedOrders: 0,
-    totalCategories: 0,
-  });
-  const [recentOrders, setRecentOrders] = useState<any[]>([]);
-  const [lowStockProducts, setLowStockProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [analytics, setAnalytics] = useState<any>(null);
 
   useEffect(() => {
-    fetchDashboardData();
+    fetchAnalytics();
   }, []);
 
-  const fetchDashboardData = async () => {
+  const fetchAnalytics = async () => {
     try {
       setLoading(true);
-      // adminOnly=true filters data to show only current admin's data
-      const [productsRes, ordersRes, categoriesRes] = await Promise.all([
-        api.get("/products?adminOnly=true"),
-        api.get("/orders"),
-        api.get("/categories?adminOnly=true"),
-      ]);
-
-      const products = productsRes.data;
-      const orders = ordersRes.data;
-      const categories = categoriesRes.data;
-
-      // Calculate stats
-      const totalRevenue = orders.reduce(
-        (sum: number, order: any) => sum + (order.totalAmount || 0),
-        0
-      );
-      const lowStock = products.filter((p: any) => p.stock < 10);
-
-      setStats({
-        totalProducts: products.length,
-        totalOrders: orders.length,
-        totalRevenue,
-        pendingOrders: orders.filter((o: any) => o.orderStatus === "pending")
-          .length,
-        processingOrders: orders.filter(
-          (o: any) => o.orderStatus === "processing"
-        ).length,
-        shippedOrders: orders.filter((o: any) => o.orderStatus === "shipped")
-          .length,
-        completedOrders: orders.filter(
-          (o: any) => o.orderStatus === "delivered"
-        ).length,
-        lowStockProducts: lowStock.length,
-        totalCategories: categories.length,
-      });
-
-      setRecentOrders(orders.slice(0, 5));
-      setLowStockProducts(lowStock.slice(0, 5));
+      const res = await api.get("/stats/analytics");
+      setAnalytics(res.data);
     } catch (err: any) {
-      error(err.response?.data?.message || "Failed to fetch dashboard data");
+      error(err.response?.data?.message || "Failed to fetch analytics");
     } finally {
       setLoading(false);
     }
   };
 
-  const statCards = [
+  if (loading) return <Loading message="Loading analytics..." />;
+  if (!analytics) return <div className="p-8 text-center text-gray-500">No data available</div>;
+
+  const stats = [
     {
-      title: "Total Products",
-      value: stats.totalProducts,
-      icon: FaBox,
-      gradient: "from-blue-500 to-blue-600",
-      bgColor: "bg-blue-50 dark:bg-blue-900/20",
-      textColor: "text-blue-600 dark:text-blue-400",
-      link: "/admin/products",
-    },
-    {
-      title: "Categories",
-      value: stats.totalCategories,
-      icon: FaTags,
-      gradient: "from-pink-500 to-pink-600",
-      bgColor: "bg-pink-50 dark:bg-pink-900/20",
-      textColor: "text-pink-600 dark:text-pink-400",
-      link: "/admin/categories",
+      title: "Total Revenue",
+      value: formatCurrency(analytics.totalRevenue || 0),
+      icon: DollarSign,
+      color: "from-green-500 to-emerald-600",
+      change: "+12.5%",
     },
     {
       title: "Total Orders",
-      value: stats.totalOrders,
-      icon: FaShoppingCart,
-      gradient: "from-green-500 to-green-600",
-      bgColor: "bg-green-50 dark:bg-green-900/20",
-      textColor: "text-green-600 dark:text-green-400",
-      link: "/admin/orders",
+      value: analytics.totalOrders || 0,
+      icon: ShoppingCart,
+      color: "from-blue-500 to-cyan-600",
+      change: "+8.2%",
     },
     {
-      title: "Total Revenue",
-      value: formatCurrency(stats.totalRevenue),
-      icon: FaDollarSign,
-      gradient: "from-purple-500 to-purple-600",
-      bgColor: "bg-purple-50 dark:bg-purple-900/20",
-      textColor: "text-purple-600 dark:text-purple-400",
+      title: "Products",
+      value: analytics.totalProducts || 0,
+      icon: Package,
+      color: "from-orange-500 to-amber-600",
+      change: "+3.1%",
     },
     {
-      title: "Pending Orders",
-      value: stats.pendingOrders,
-      icon: FaClock,
-      gradient: "from-yellow-500 to-yellow-600",
-      bgColor: "bg-yellow-50 dark:bg-yellow-900/20",
-      textColor: "text-yellow-600 dark:text-yellow-400",
-      link: "/admin/orders",
-    },
-    {
-      title: "Processing",
-      value: stats.processingOrders,
-      icon: FaChartLine,
-      gradient: "from-orange-500 to-orange-600",
-      bgColor: "bg-orange-50 dark:bg-orange-900/20",
-      textColor: "text-orange-600 dark:text-orange-400",
-      link: "/admin/orders",
-    },
-    {
-      title: "Shipped",
-      value: stats.shippedOrders,
-      icon: FaTruck,
-      gradient: "from-indigo-500 to-indigo-600",
-      bgColor: "bg-indigo-50 dark:bg-indigo-900/20",
-      textColor: "text-indigo-600 dark:text-indigo-400",
-      link: "/admin/orders",
-    },
-    {
-      title: "Completed",
-      value: stats.completedOrders,
-      icon: FaCheckCircle,
-      gradient: "from-emerald-500 to-emerald-600",
-      bgColor: "bg-emerald-50 dark:bg-emerald-900/20",
-      textColor: "text-emerald-600 dark:text-emerald-400",
-    },
-    {
-      title: "Low Stock Items",
-      value: stats.lowStockProducts,
-      icon: FaExclamationTriangle,
-      gradient: "from-red-500 to-red-600",
-      bgColor: "bg-red-50 dark:bg-red-900/20",
-      textColor: "text-red-600 dark:text-red-400",
-      link: "/admin/products",
+      title: "Customers",
+      value: analytics.totalCustomers || 0,
+      icon: Users,
+      color: "from-gray-600 to-gray-800",
+      change: "+5.4%",
     },
   ];
 
-  const quickActions = [
-    {
-      title: "Manage Products",
-      description: "Add, edit, or remove products from your inventory",
-      icon: FaBox,
-      gradient: "from-blue-500 to-blue-600",
-      link: "/admin/products",
-    },
-    {
-      title: "Manage Categories",
-      description: "Create and organize product categories",
-      icon: FaTags,
-      gradient: "from-pink-500 to-rose-600",
-      link: "/admin/categories",
-    },
-    {
-      title: "Process Orders",
-      description: "View and update order status, manage deliveries",
-      icon: FaTruck,
-      gradient: "from-emerald-500 to-teal-600",
-      link: "/admin/orders",
-    },
-  ];
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[var(--root-color)]"></div>
-      </div>
-    );
-  }
+  const orderStatusData = analytics.ordersByStatus?.map((item: any) => {
+    const colors: Record<string, string> = {
+      pending: "#f59e0b",
+      processing: "#3b82f6",
+      shipped: "#8b5cf6",
+      delivered: "#10b981",
+      cancelled: "#ef4444",
+    };
+    return {
+      name: item.status.charAt(0).toUpperCase() + item.status.slice(1),
+      value: item.count,
+      color: colors[item.status] || "#6b7280",
+    };
+  }) || [];
 
   return (
-    <div className="space-y-6">
+    <div className="p-6 space-y-6">
       {/* Header */}
-      <div className="bg-gradient-to-r from-[var(--root-color)] to-purple-600 rounded-2xl p-4 md:p-8 text-white shadow-xl">
-        <h1 className="text-2xl md:text-4xl font-bold mb-2">
-          Dashboard Overview
-        </h1>
-        <p className="text-white/90 text-sm md:text-lg">
-          Welcome back! Here's what's happening with your store today.
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
+          <p className="text-gray-500 dark:text-gray-400 mt-1">Welcome back! Here's your overview</p>
+        </div>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={fetchAnalytics}>
+            <RefreshCw className="w-4 h-4 mr-2" />
+            Refresh
+          </Button>
+          <Button size="sm" onClick={() => exportAnalyticsToExcel(analytics)}>
+            <Download className="w-4 h-4 mr-2" />
+            Export
+          </Button>
+        </div>
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        {statCards.map((stat, index) => (
-          <StatCard
-            key={index}
-            {...stat}
-            onClick={() => stat.link && navigate(stat.link)}
-          />
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {stats.map((stat, i) => (
+          <Card key={i}>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">{stat.title}</p>
+                  <h3 className="text-2xl font-bold mt-2">{stat.value}</h3>
+                  <Badge variant="success" className="mt-2">
+                    <TrendingUp className="w-3 h-3 mr-1" />
+                    {stat.change}
+                  </Badge>
+                </div>
+                <div className={`p-3 rounded-xl bg-gradient-to-br ${stat.color}`}>
+                  <stat.icon className="w-6 h-6 text-white" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         ))}
       </div>
 
-      {/* Recent Orders & Low Stock */}
+      {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Recent Orders */}
-        <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg border border-gray-200 dark:border-gray-700">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center">
-              <FaShoppingCart className="mr-2 text-[var(--root-color)]" />
-              Recent Orders
-            </h2>
-            <button
-              onClick={() => navigate("/admin/orders")}
-              className="text-[var(--root-color)] hover:underline text-sm font-medium"
-            >
-              View All →
-            </button>
-          </div>
-          {recentOrders.length === 0 ? (
-            <div className="text-center py-12">
-              <FaShoppingCart className="mx-auto text-5xl text-gray-300 dark:text-gray-600 mb-4" />
-              <p className="text-gray-500 dark:text-gray-400">No orders yet</p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {recentOrders.map((order) => (
-                <OrderCard
-                  key={order._id}
-                  order={order}
-                  onClick={() => navigate("/admin/orders")}
+        {/* Revenue Trend */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Revenue Trend</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <AreaChart data={analytics.monthlyRevenue || []}>
+                <defs>
+                  <linearGradient id="revenue" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8} />
+                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" className="stroke-gray-200 dark:stroke-gray-700" />
+                <XAxis dataKey="month" className="text-xs" />
+                <YAxis className="text-xs" />
+                <Tooltip formatter={(value: any) => formatCurrency(value)} />
+                <Area type="monotone" dataKey="revenue" stroke="#3b82f6" fill="url(#revenue)" />
+              </AreaChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        {/* Order Status */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Order Status Distribution</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={orderStatusData} layout="vertical">
+                <CartesianGrid strokeDasharray="3 3" className="stroke-gray-200 dark:stroke-gray-700" />
+                <XAxis type="number" className="text-xs" />
+                <YAxis type="category" dataKey="name" className="text-xs" width={80} />
+                <Tooltip 
+                  formatter={(value: any) => [`${value} orders`, 'Count']}
+                  contentStyle={{ 
+                    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                    border: '1px solid #e5e7eb',
+                    borderRadius: '8px'
+                  }}
                 />
-              ))}
+                <Bar dataKey="value" radius={[0, 8, 8, 0]}>
+                  {orderStatusData.map((entry: any, index: number) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+            
+            {/* Legend with totals */}
+            <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+              <div className="grid grid-cols-2 gap-3">
+                {orderStatusData.map((item: any, index: number) => {
+                  const total = orderStatusData.reduce((sum: number, i: any) => sum + i.value, 0);
+                  const percentage = total > 0 ? ((item.value / total) * 100).toFixed(0) : 0;
+                  
+                  return (
+                    <div key={index} className="flex items-center gap-2">
+                      <div 
+                        className="w-3 h-3 rounded-full flex-shrink-0" 
+                        style={{ backgroundColor: item.color }}
+                      />
+                      <span className="text-xs text-gray-600 dark:text-gray-400">
+                        {item.name}: <span className="font-semibold">{item.value}</span> ({percentage}%)
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
-          )}
-        </div>
+          </CardContent>
+        </Card>
 
-        {/* Low Stock Products */}
-        <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg border border-gray-200 dark:border-gray-700">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center">
-              <FaExclamationTriangle className="mr-2 text-red-500" />
-              Low Stock Alert
-            </h2>
-            <button
-              onClick={() => navigate("/admin/products")}
-              className="text-[var(--root-color)] hover:underline text-sm font-medium"
-            >
-              View All →
-            </button>
-          </div>
-          {lowStockProducts.length === 0 ? (
-            <div className="text-center py-12">
-              <FaCheckCircle className="mx-auto text-5xl text-green-300 dark:text-green-600 mb-4" />
-              <p className="text-gray-500 dark:text-gray-400">
-                All products are well stocked!
-              </p>
-            </div>
-          ) : (
+        {/* Monthly Revenue Bar */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Monthly Revenue</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={analytics.monthlyRevenue || []}>
+                <CartesianGrid strokeDasharray="3 3" className="stroke-gray-200 dark:stroke-gray-700" />
+                <XAxis dataKey="month" />
+                <YAxis />
+                <Tooltip formatter={(value: any) => formatCurrency(value)} />
+                <Bar dataKey="revenue" fill="#3b82f6" radius={[8, 8, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        {/* Recent Orders */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Recent Orders</CardTitle>
+          </CardHeader>
+          <CardContent>
             <div className="space-y-3">
-              {lowStockProducts.map((product) => (
-                <LowStockCard key={product._id} product={product} />
+              {analytics.recentOrders?.slice(0, 5).map((order: any) => (
+                <div
+                  key={order._id}
+                  className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer transition-colors"
+                  onClick={() => navigate("/admin/orders")}
+                >
+                  <div>
+                    <p className="font-medium">#{order._id.slice(-6)}</p>
+                    <p className="text-sm text-gray-500">{new Date(order.createdAt).toLocaleDateString()}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-bold">{formatCurrency(order.totalAmount)}</p>
+                    <Badge variant={order.orderStatus === "delivered" ? "success" : "info"}>
+                      {order.orderStatus}
+                    </Badge>
+                  </div>
+                </div>
               ))}
             </div>
-          )}
-        </div>
-      </div>
-
-      {/* Quick Actions */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {quickActions.map((action, index) => (
-          <QuickActionCard
-            key={index}
-            {...action}
-            onClick={() => navigate(action.link)}
-          />
-        ))}
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

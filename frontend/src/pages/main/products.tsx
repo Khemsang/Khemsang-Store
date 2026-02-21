@@ -11,6 +11,7 @@ import QuickView from "../../components/ui/QuickView";
 import ProductComparison from "../../components/ui/ProductComparison";
 import Breadcrumbs from "../../components/ui/Breadcrumbs";
 import { ProductGridSkeleton } from "../../components/ui/SkeletonLoader";
+import { Loading } from "../../components/ui/loading";
 import { FaBalanceScale } from "react-icons/fa";
 
 const Products = () => {
@@ -89,7 +90,7 @@ const Products = () => {
         {/* Header */}
         <div className="text-center mb-12 md:mb-16">
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4">
-            Our <span className="text-[var(--root-color)]">Products</span>
+            Our <span className="bg-gradient-to-r from-blue-600 to-orange-600 bg-clip-text text-transparent">Products</span>
           </h1>
           <p className="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
             Discover our collection of premium products crafted with care
@@ -114,7 +115,7 @@ const Products = () => {
           <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40">
             <button
               onClick={() => setShowCompare(true)}
-              className="flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-full shadow-2xl hover:shadow-purple-500/50 transition-all"
+              className="flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-blue-600 to-orange-600 text-white rounded-full shadow-2xl hover:shadow-blue-500/50 transition-all"
             >
               <FaBalanceScale className="w-5 h-5" />
               <span className="font-semibold">

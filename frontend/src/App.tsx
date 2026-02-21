@@ -1,6 +1,6 @@
 import { Route, Routes, Navigate } from "react-router-dom";
 import { Provider } from "react-redux";
-import { store } from "./store/store";
+import { store } from "./store";
 import { Suspense, lazy, useEffect, useState } from "react";
 
 import { AuthProvider, useAuth } from "./context/AuthContext";
@@ -16,6 +16,7 @@ import ProtectedRoute from "./components/layout/ProtectedRoute";
 import ScrollToTop from "./components/common/ScrollToTop";
 import PageLoader from "./components/PageLoader";
 import BackToTop from "./components/ui/BackToTop";
+import ErrorBoundary from "./components/ErrorBoundary";
 import { api } from "./services/api";
 const Home = lazy(() => import("./pages/main/home"));
 const Products = lazy(() => import("./pages/main/products"));
@@ -121,18 +122,40 @@ const AppRoutes = () => {
   // Show loading while checking auth or maintenance
   if (loading || checkingMaintenance) {
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-gradient-to-br from-white via-purple-50/50 to-pink-50/50 dark:from-gray-900 dark:via-purple-900/20 dark:to-gray-900">
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-gradient-to-br from-white via-blue-50/30 to-orange-50/30 dark:from-gray-900 dark:via-blue-900/10 dark:to-gray-900">
         <div className="text-center">
-          <div className="relative w-20 h-20 mx-auto mb-6">
-            <div className="absolute inset-0 rounded-full border-4 border-gray-200 dark:border-gray-700"></div>
-            <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-[var(--root-color)] border-r-purple-500 animate-spin"></div>
+          {/* Modern e-commerce loader */}
+          <div className="relative w-32 h-32 mx-auto mb-8">
+            {/* Outer rotating gradient ring */}
+            <div className="absolute inset-0 rounded-full bg-gradient-to-r from-blue-500 via-purple-500 to-orange-500 animate-spin" style={{ animationDuration: '2s' }}></div>
+            <div className="absolute inset-1 rounded-full bg-white dark:bg-gray-900"></div>
+            
+            {/* Inner counter-rotating ring */}
+            <div className="absolute inset-4 rounded-full border-4 border-transparent border-t-blue-600 border-r-orange-600 animate-spin" style={{ animationDirection: 'reverse', animationDuration: '1.5s' }}></div>
+            
+            {/* Center shopping bag icon */}
             <div className="absolute inset-0 flex items-center justify-center">
-              <div className="w-10 h-10 bg-gradient-to-br from-[var(--root-color)] to-purple-600 rounded-xl animate-pulse"></div>
+              <div className="bg-gradient-to-br from-blue-600 to-orange-600 p-5 rounded-2xl shadow-2xl">
+                <svg className="w-10 h-10 text-white animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                </svg>
+              </div>
             </div>
           </div>
-          <p className="text-gray-600 dark:text-gray-400 font-medium">
-            Loading...
+          
+          <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-orange-600 bg-clip-text text-transparent mb-3">
+            Loading Store
+          </h2>
+          <p className="text-gray-600 dark:text-gray-400 font-medium mb-6">
+            Please wait while we prepare everything...
           </p>
+          
+          {/* Animated progress dots */}
+          <div className="flex justify-center gap-2">
+            <div className="w-3 h-3 bg-blue-600 rounded-full animate-bounce shadow-lg" style={{ animationDelay: "0ms" }}></div>
+            <div className="w-3 h-3 bg-purple-600 rounded-full animate-bounce shadow-lg" style={{ animationDelay: "150ms" }}></div>
+            <div className="w-3 h-3 bg-orange-600 rounded-full animate-bounce shadow-lg" style={{ animationDelay: "300ms" }}></div>
+          </div>
         </div>
       </div>
     );
@@ -147,32 +170,53 @@ const AppRoutes = () => {
     );
   }
 
-  // Redirect admin to dashboard
-  if (user?.isAdmin && window.location.pathname === "/") {
-    return <Navigate to="/admin/dashboard" replace />;
+  // Redirect admin to dashboard immediately if they're on non-admin pages
+  if (user?.isAdmin) {
+    const isAdminRoute = window.location.pathname.startsWith("/admin");
+    const isAuthRoute = ["/login", "/verify-otp", "/signup", "/forgot-password", "/reset-password"].includes(window.location.pathname);
+    
+    if (!isAdminRoute && !isAuthRoute) {
+      return <Navigate to="/admin/dashboard" replace />;
+    }
   }
 
   return (
     <Suspense
       fallback={
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-gradient-to-br from-white via-purple-50/50 to-pink-50/50 dark:from-gray-900 dark:via-purple-900/20 dark:to-gray-900">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-gradient-to-br from-white via-blue-50/30 to-orange-50/30 dark:from-gray-900 dark:via-blue-900/10 dark:to-gray-900">
           <div className="text-center">
-            <div className="relative w-20 h-20 mx-auto mb-6">
-              <div className="absolute inset-0 rounded-full border-4 border-gray-200 dark:border-gray-700"></div>
-              <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-[var(--root-color)] border-r-purple-500 animate-spin"></div>
+            {/* Modern e-commerce page loader */}
+            <div className="relative w-28 h-28 mx-auto mb-8">
+              {/* Outer rotating gradient ring */}
+              <div className="absolute inset-0 rounded-full bg-gradient-to-r from-blue-500 to-orange-500 animate-spin" style={{ animationDuration: '1.5s' }}></div>
+              <div className="absolute inset-1 rounded-full bg-white dark:bg-gray-900"></div>
+              
+              {/* Inner pulsing ring */}
+              <div className="absolute inset-3 rounded-full border-4 border-transparent border-t-blue-600 border-b-orange-600 animate-spin" style={{ animationDirection: 'reverse' }}></div>
+              
+              {/* Center icon */}
               <div className="absolute inset-0 flex items-center justify-center">
-                <div className="w-10 h-10 bg-gradient-to-br from-[var(--root-color)] to-purple-600 rounded-xl animate-pulse"></div>
+                <div className="bg-gradient-to-br from-blue-600 to-orange-600 p-4 rounded-xl shadow-xl">
+                  <svg className="w-8 h-8 text-white animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                  </svg>
+                </div>
               </div>
             </div>
-            <p className="text-gray-600 dark:text-gray-400 font-medium">
+            
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
               Loading page...
-            </p>
+            </h3>
+            <div className="flex justify-center gap-2 mt-4">
+              <div className="w-2.5 h-2.5 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: "0ms" }}></div>
+              <div className="w-2.5 h-2.5 bg-orange-600 rounded-full animate-bounce" style={{ animationDelay: "150ms" }}></div>
+              <div className="w-2.5 h-2.5 bg-blue-600 rounded-full animate-bounce" style={{ animationDelay: "300ms" }}></div>
+            </div>
           </div>
         </div>
       }
     >
-      <PageLoader>
-        <Routes>
+      <Routes>
           {/* ========== ADMIN ROUTES ========== */}
           <Route
             path="/admin"
@@ -208,7 +252,7 @@ const AppRoutes = () => {
           {/* ========== AUTH ROUTES ========== */}
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
-          <Route path="/verify-email/:token" element={<VerifyEmail />} />
+          <Route path="/verify-email" element={<VerifyEmail />} />
           <Route path="/verify-otp" element={<VerifyOTP />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
@@ -311,8 +355,7 @@ const AppRoutes = () => {
             }
           />
         </Routes>
-      </PageLoader>
-    </Suspense>
+      </Suspense>
   );
 };
 
@@ -324,21 +367,23 @@ const AppRoutes = () => {
  */
 const App = () => {
   return (
-    <Provider store={store}>
-      <ThemeProvider>
-        <ToastProvider>
-          <LoadingProvider>
-            <AuthProvider>
-              <CartProvider>
-                <ScrollToTop />
-                <AppRoutes />
-                <BackToTop />
-              </CartProvider>
-            </AuthProvider>
-          </LoadingProvider>
-        </ToastProvider>
-      </ThemeProvider>
-    </Provider>
+    <ErrorBoundary>
+      <Provider store={store}>
+        <ThemeProvider>
+          <ToastProvider>
+            <LoadingProvider>
+              <AuthProvider>
+                <CartProvider>
+                  <ScrollToTop />
+                  <AppRoutes />
+                  <BackToTop />
+                </CartProvider>
+              </AuthProvider>
+            </LoadingProvider>
+          </ToastProvider>
+        </ThemeProvider>
+      </Provider>
+    </ErrorBoundary>
   );
 };
 

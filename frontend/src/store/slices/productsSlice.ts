@@ -9,43 +9,58 @@ interface Product {
   images: string[];
   category: string;
   stock: number;
-  createdAt?: string;
-  updatedAt?: string;
+  variants?: any[];
+  isActive?: boolean;
 }
 
 interface ProductsState {
   items: Product[];
   loading: boolean;
   error: string | null;
-  selectedProduct: Product | null;
+  lastFetch: number | null;
 }
 
 const initialState: ProductsState = {
   items: [],
   loading: false,
   error: null,
-  selectedProduct: null,
+  lastFetch: null,
 };
 
-// Fetch all products
+// Async thunks
 export const fetchProducts = createAsyncThunk(
   "products/fetchProducts",
-  async ({ category, search }: { category?: string; search?: string } = {}) => {
-    const params = new URLSearchParams();
-    if (category) params.append("category", category);
-    if (search) params.append("search", search);
-
-    const response = await api.get(`/products?${params.toString()}`);
-    return response.data;
+  async (params?: { adminOnly?: boolean; category?: string }) => {
+    const queryParams = new URLSearchParams();
+    if (params?.adminOnly) queryParams.append("adminOnly", "true");
+    if (params?.category) queryParams.append("category", params.category);
+    
+    const { data } = await api.get(`/products?${queryParams.toString()}`);
+    return data;
   }
 );
 
-// Fetch single product
-export const fetchProductById = createAsyncThunk(
-  "products/fetchProductById",
+export const createProduct = createAsyncThunk(
+  "products/createProduct",
+  async (formData: FormData) => {
+    const { data } = await api.post("/products", formData);
+    return data;
+  }
+);
+
+export const updateProduct = createAsyncThunk(
+  "products/updateProduct",
+  async ({ id, formData }: { id: string; formData: FormData }) => {
+    const { data } = await api.put(`/products/${id}`, formData);
+    return data;
+  }
+);
+
+export const deleteProduct = createAsyncThunk(
+  "products/deleteProduct",
   async (id: string) => {
-    const response = await api.get(`/products/${id}`);
-    return response.data;
+    await api.delete(`/products/${id}`);
+    return id;
   }
 );
 
@@ -53,13 +68,14 @@ const productsSlice = createSlice({
   name: "products",
   initialState,
   reducers: {
-    clearSelectedProduct: (state) => {
-      state.selectedProduct = null;
+    clearProducts: (state) => {
+      state.items = [];
+      state.lastFetch = null;
     },
   },
   extraReducers: (builder) => {
     builder
-      // Fetch all products
+      // Fetch products
       .addCase(fetchProducts.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -67,26 +83,29 @@ const productsSlice = createSlice({
       .addCase(fetchProducts.fulfilled, (state, action) => {
         state.loading = false;
         state.items = action.payload;
+        state.lastFetch = Date.now();
       })
       .addCase(fetchProducts.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message || "Failed to fetch products";
       })
-      // Fetch single product
-      .addCase(fetchProductById.pending, (state) => {
-        state.loading = true;
-        state.error = null;
+      // Create product
+      .addCase(createProduct.fulfilled, (state, action) => {
+        state.items.unshift(action.payload);
       })
-      .addCase(fetchProductById.fulfilled, (state, action) => {
-        state.loading = false;
-        state.selectedProduct = action.payload;
+      // Update product
+      .addCase(updateProduct.fulfilled, (state, action) => {
+        const index = state.items.findIndex((p) => p._id === action.payload._id);
+        if (index !== -1) {
+          state.items[index] = action.payload;
+        }
       })
-      .addCase(fetchProductById.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.error.message || "Failed to fetch product";
+      // Delete product
+      .addCase(deleteProduct.fulfilled, (state, action) => {
+        state.items = state.items.filter((p) => p._id !== action.payload);
       });
   },
 });
 
-export const { clearSelectedProduct } = productsSlice.actions;
+export const { clearProducts } = productsSlice.actions;
 export default productsSlice.reducer;

@@ -1,17 +1,22 @@
 import mongoose from "mongoose";
 import dotenv from "dotenv";
-import User from "./src/models/User.js";
+import path from "path";
+import { fileURLToPath } from "url";
+import User from "../src/models/User.js";
 
-dotenv.config();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+dotenv.config({ path: path.join(__dirname, "../.env") });
 
 async function createSuperAdmin() {
   try {
     await mongoose.connect(process.env.MONGO_URI);
     console.log("🔗 Connected to MongoDB");
 
-    const email = "khemsangrai@gmail.com";
-    const password = "superadmin123";
-    const name = "Khemsang Rai";
+    const email = "cloudsnepalweb33@gmail.com";
+    const password = "cloudsnepalweb33@gmail.com";
+    const name = "Clouds Nepal Web";
 
     const existing = await User.findOne({ email });
 
@@ -95,8 +100,8 @@ async function createSuperAdmin() {
     console.log("✅ Is Approved:", verifyUser.isApproved);
     
     console.log("\n🎯 Login Credentials:");
-    console.log("Email: khemsangrai@gmail.com");
-    console.log("Password: superadmin123");
+    console.log("Email: cloudsnepalweb33@gmail.com");
+    console.log("Password: cloudsnepalweb33@gmail.com");
     console.log("Role: super-admin");
 
     process.exit(0);

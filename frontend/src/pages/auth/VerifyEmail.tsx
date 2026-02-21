@@ -31,24 +31,15 @@ const VerifyEmail: React.FC = () => {
     try {
       const { data } = await api.get(`/auth/verify-email?token=${token}`);
       
-      if (data.user) {
-        // Set full user object for proper login state
-        updateUser(data.user);
+      if (data.verified) {
+        setStatus("success");
+        setMessage("Email verified successfully! Redirecting to login...");
         toast.success("Email verified successfully!");
         
-        // Redirect immediately based on user role
+        // Wait for user to see success message, then redirect to login
         setTimeout(() => {
-          if (data.user.isSuperAdmin) {
-            navigate("/admin/super-admin", { replace: true });
-          } else if (data.user.isAdmin) {
-            navigate("/admin/dashboard", { replace: true });
-          } else {
-            navigate("/", { replace: true });
-          }
-        }, 1000);
-        
-        setStatus("success");
-        setMessage("Redirecting...");
+          navigate("/login");
+        }, 2000);
       }
     } catch (error: any) {
       setStatus("error");
