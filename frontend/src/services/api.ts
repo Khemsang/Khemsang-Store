@@ -16,8 +16,25 @@ api.interceptors.response.use(
     const isAuthEndpoint = error.config?.url?.includes("/auth/");
 
     if (error.response?.status === 401 && !isAuthEndpoint) {
-      // Redirect to login if unauthorized
-      window.location.href = "/login";
+      const sessionExpired = error.response?.data?.sessionExpired;
+      
+      if (sessionExpired) {
+        // Clear any stored auth data
+        localStorage.removeItem("user");
+        
+        // Show session expired message
+        const currentPath = window.location.pathname;
+        if (currentPath !== "/login") {
+          // Store the intended destination
+          sessionStorage.setItem("redirectAfterLogin", currentPath);
+          
+          // Redirect to login with session expired message
+          window.location.href = "/login?session=expired";
+        }
+      } else {
+        // Regular unauthorized - redirect to login
+        window.location.href = "/login";
+      }
     }
     return Promise.reject(error);
   }

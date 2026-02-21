@@ -48,9 +48,11 @@ const orderSchema = new mongoose.Schema(
     },
     shippingAddress: {
       fullName: String,
+      email: String,
       phone: String,
       address: String,
       city: String,
+      postalCode: String,
     },
     trackingNumber: {
       type: String,
@@ -73,6 +75,22 @@ const orderSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    isRead: {
+      type: Boolean,
+      default: false,
+    },
+    readBy: [
+      {
+        admin: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "User",
+        },
+        readAt: {
+          type: Date,
+          default: Date.now,
+        },
+      },
+    ],
   },
   {
     timestamps: true,

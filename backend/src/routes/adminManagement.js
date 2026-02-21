@@ -786,8 +786,13 @@ router.put("/reset-password/:userId", auth, isSuperAdmin, async (req, res) => {
 // ==================== USER MANAGEMENT ====================
 
 // Get all regular users
-router.get("/users", auth, isSuperAdmin, async (req, res) => {
+router.get("/users", auth, async (req, res) => {
   try {
+    // Allow both super admin and regular admin to view users
+    if (!req.user.isAdmin && !req.user.isSuperAdmin) {
+      return res.status(403).json({ message: "Access denied. Admin privileges required." });
+    }
+
     const users = await User.find({ isAdmin: false })
       .select("-password -verificationToken -resetPasswordToken")
       .sort({ createdAt: -1 });

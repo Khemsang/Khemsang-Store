@@ -10,6 +10,7 @@ router.get("/", statsController.getAllStats);
 // Admin routes
 router.get("/users", auth, isAdmin, statsController.getAllUsers);
 router.get("/analytics", auth, isAdmin, statsController.getAnalytics);
+router.get("/notifications", auth, isAdmin, statsController.getNotifications);
 router.get("/:id", statsController.getStatById);
 router.post("/", statsController.createStat);
 router.put("/:id", statsController.updateStat);

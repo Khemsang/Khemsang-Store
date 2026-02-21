@@ -1,5 +1,6 @@
 import User from "../models/User.js";
 import crypto from "crypto";
+import jwt from "jsonwebtoken";
 import { generateToken, setTokenCookie } from "../utils/generateToken.js";
 import { createActivity } from "./activityController.js";
 import {
@@ -206,8 +207,44 @@ export const login = async (req, res) => {
       });
     }
 
+    // Check if OTP was verified within last 15 minutes - skip OTP if yes
+    const fifteenMinutesAgo = new Date(Date.now() - 15 * 60 * 1000);
+    if (user.otpVerifiedAt && user.otpVerifiedAt > fifteenMinutesAgo) {
+      console.log("✅ OTP verified within 15 minutes - skipping OTP for:", email);
+      
+      // Generate token and login directly
+      const token = generateToken(user._id);
+      setTokenCookie(res, token);
+
+      const userRole = user.role || (user.isSuperAdmin ? "super-admin" : user.isAdmin ? "admin" : "customer");
+      const redirectUrls = {
+        "customer": "/dashboard",
+        "seller": user.isApproved ? "/seller/dashboard" : "/seller/pending",
+        "admin": "/admin/dashboard", 
+        "super-admin": "/super-admin/dashboard"
+      };
+
+      return res.json({ 
+        message: "Login successful", 
+        user: {
+          _id: user._id,
+          name: user.name,
+          email: user.email,
+          role: userRole,
+          isAdmin: user.isAdmin,
+          isSuperAdmin: user.isSuperAdmin,
+          isApproved: user.isApproved,
+          isVerified: user.isVerified
+        },
+        redirectTo: redirectUrls[userRole] || "/dashboard",
+        needsOTP: false
+      });
+    }
+
     // Generate and send OTP for ALL users (including Super Admin)
     const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+    console.log("🔑 Generated OTP:", otpCode, "for email:", email);
+    
     await OTP.deleteMany({ email });
     await OTP.create({
       email,
@@ -243,17 +280,36 @@ export const login = async (req, res) => {
 export const verifyOTP = async (req, res) => {
   try {
     const { email, otp } = req.body;
+    console.log("🔍 OTP Verification attempt:");
+    console.log("  Email:", email);
+    console.log("  OTP received:", otp, "Type:", typeof otp);
+    
     const otpRecord = await OTP.findOne({ email }).sort({ createdAt: -1 });
-    if (!otpRecord)
+    if (!otpRecord) {
+      console.log("❌ No OTP record found for:", email);
       return res.status(400).json({ message: "OTP not found or expired" });
+    }
+
+    console.log("  OTP record found, expires at:", otpRecord.expiresAt);
+    console.log("  Current time:", new Date());
 
     if (new Date() > otpRecord.expiresAt) {
       await OTP.deleteOne({ _id: otpRecord._id });
+      console.log("❌ OTP expired");
       return res.status(400).json({ message: "OTP expired" });
     }
 
-    if (!(await otpRecord.matchOTP(otp)))
+    // Convert OTP to string if it's a number
+    const otpString = String(otp);
+    console.log("  OTP as string:", otpString);
+    
+    const isMatch = await otpRecord.matchOTP(otpString);
+    console.log("  OTP match result:", isMatch);
+    
+    if (!isMatch) {
+      console.log("❌ Invalid OTP");
       return res.status(400).json({ message: "Invalid OTP" });
+    }
 
     const user = await User.findOne({ email });
     if (!user) return res.status(404).json({ message: "User not found" });
@@ -660,5 +716,134 @@ export const removeFromWishlist = async (req, res) => {
     });
   } catch (err) {
     res.status(500).json({ message: err.message });
+  }
+};
+
+// ============ REFRESH TOKEN FUNCTIONALITY ============
+
+/**
+ * Refresh access token using refresh token
+ */
+export const refreshAccessToken = async (req, res) => {
+  try {
+    const refreshToken = req.cookies.refreshToken;
+
+    if (!refreshToken) {
+      return res.status(401).json({
+        success: false,
+        message: "Refresh token not found",
+      });
+    }
+
+    // Verify refresh token
+    let decoded;
+    try {
+      decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
+    } catch (error) {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid or expired refresh token",
+      });
+    }
+
+    // Verify token type
+    if (decoded.type !== "refresh") {
+      return res.status(401).json({
+        success: false,
+        message: "Invalid token type",
+      });
+    }
+
+    // Find user and check if refresh token exists
+    const user = await User.findById(decoded.id);
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    // Hash the refresh token to compare
+    const hashedToken = crypto.createHash("sha256").update(refreshToken).digest("hex");
+    
+    // Check if refresh token exists in user's tokens
+    const tokenExists = user.refreshTokens.some(
+      (t) => t.token === hashedToken && new Date() < t.expiresAt
+    );
+
+    if (!tokenExists) {
+      return res.status(401).json({
+        success: false,
+        message: "Refresh token invalid or expired",
+      });
+    }
+
+    // Generate new access token
+    const { generateAccessToken, setAuthCookies } = await import("../middleware/auth.unified.js");
+    const newAccessToken = generateAccessToken(user._id);
+
+    // Set only access token cookie (refresh token remains the same)
+    const isProduction = process.env.NODE_ENV === "production";
+    res.cookie("token", newAccessToken, {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: isProduction ? "strict" : "lax",
+      maxAge: 15 * 60 * 1000, // 15 minutes
+    });
+
+    res.json({
+      success: true,
+      message: "Access token refreshed",
+    });
+  } catch (err) {
+    console.error("❌ Refresh token error:", err);
+    res.status(500).json({ message: err.message });
+  }
+};
+
+/**
+ * Logout and invalidate refresh token
+ */
+export const logoutWithRefreshToken = async (req, res) => {
+  try {
+    const refreshToken = req.cookies.refreshToken;
+
+    if (refreshToken && req.user) {
+      // Hash the refresh token
+      const hashedToken = crypto.createHash("sha256").update(refreshToken).digest("hex");
+      
+      // Remove refresh token from user's tokens
+      await User.findByIdAndUpdate(req.user._id, {
+        $pull: { refreshTokens: { token: hashedToken } },
+      });
+    }
+
+    // Clear cookies
+    res.cookie("token", "", { httpOnly: true, expires: new Date(0) });
+    res.cookie("refreshToken", "", { httpOnly: true, expires: new Date(0), path: "/api/auth/refresh" });
+    
+    res.json({ message: "Logged out successfully" });
+  } catch (err) {
+    console.error("❌ Logout error:", err);
+    res.status(500).json({ message: err.message });
+  }
+};
+
+/**
+ * Clean up expired refresh tokens (call this periodically)
+ */
+export const cleanupExpiredTokens = async () => {
+  try {
+    const result = await User.updateMany(
+      {},
+      {
+        $pull: {
+          refreshTokens: { expiresAt: { $lt: new Date() } },
+        },
+      }
+    );
+    console.log(`🧹 Cleaned up expired refresh tokens from ${result.modifiedCount} users`);
+  } catch (err) {
+    console.error("❌ Token cleanup error:", err);
   }
 };

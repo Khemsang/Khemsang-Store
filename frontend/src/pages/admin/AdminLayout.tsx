@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Outlet, Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import { api } from "../../services/api";
 import ConfirmDialog from "../../components/common/ConfirmDialog";
 import DarkModeToggle from "../../components/common/DarkModeToggle";
 import {
@@ -24,6 +25,7 @@ import {
   FaTruck,
   FaQuoteLeft,
   FaShieldAlt,
+  FaInbox,
 } from "react-icons/fa";
 
 const AdminLayout = () => {
@@ -33,6 +35,35 @@ const AdminLayout = () => {
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
+  const [notifications, setNotifications] = useState({
+    newOrders: 0,
+    pendingReviews: 0,
+    pendingTestimonials: 0,
+    unreadMessages: 0,
+  });
+
+  // Fetch notification counts
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      try {
+        const [statsData, messagesData] = await Promise.all([
+          api.get("/stats/notifications"),
+          api.get("/messages/unread/count"),
+        ]);
+        setNotifications({
+          ...statsData.data,
+          unreadMessages: messagesData.data.count,
+        });
+      } catch (error) {
+        console.error("Failed to fetch notifications:", error);
+      }
+    };
+
+    fetchNotifications();
+    // Refresh every 30 seconds
+    const interval = setInterval(fetchNotifications, 30000);
+    return () => clearInterval(interval);
+  }, []);
 
   const handleLogoutClick = () => {
     setShowLogoutConfirm(true);
@@ -55,22 +86,23 @@ const AdminLayout = () => {
       icon: FaStar,
     },
     { name: "Inventory", path: "/admin/inventory", icon: FaWarehouse },
-    { name: "Orders", path: "/admin/orders", icon: FaShoppingBag },
+    { name: "Orders", path: "/admin/orders", icon: FaShoppingBag, badge: notifications.newOrders },
+    { name: "Inbox", path: "/admin/inbox", icon: FaInbox, badge: notifications.unreadMessages },
     { name: "Shipping", path: "/admin/shipping", icon: FaTruck },
     { name: "Customers", path: "/admin/customers", icon: FaUsers },
-    { name: "Categories", path: "/admin/categories", icon: FaTh },
     { name: "Coupons", path: "/admin/coupons", icon: FaTicketAlt },
-    { name: "Reviews", path: "/admin/reviews", icon: FaStar },
+    { name: "Reviews", path: "/admin/reviews", icon: FaStar, badge: notifications.pendingReviews },
     { name: "View Site", path: "/", icon: FaEye },
   ];
 
   // Links only for Super Admin
   const superAdminOnlyLinks = [
+    { name: "Categories", path: "/admin/categories", icon: FaTh },
     { name: "Banners", path: "/admin/banners", icon: FaImage },
     { name: "About Page", path: "/admin/about", icon: FaInfoCircle },
     { name: "Brands", path: "/admin/brands", icon: FaTrademark },
     { name: "Contact", path: "/admin/contact", icon: FaEnvelope },
-    { name: "Testimonials", path: "/admin/testimonials", icon: FaQuoteLeft },
+    { name: "Testimonials", path: "/admin/testimonials", icon: FaQuoteLeft, badge: notifications.pendingTestimonials },
     { name: "Manage Admins", path: "/admin/super-admin", icon: FaShieldAlt },
   ];
 
@@ -122,14 +154,28 @@ const AdminLayout = () => {
               <Link
                 key={link.path}
                 to={link.path}
-                className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-medium ${
+                className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-medium relative ${
                   isActive(link.path)
                     ? "bg-gradient-to-r from-[var(--root-color)] to-purple-600 text-white shadow-lg"
                     : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                 }`}
               >
                 <link.icon className="text-lg flex-shrink-0" />
-                {sidebarOpen && <span>{link.name}</span>}
+                {sidebarOpen && (
+                  <>
+                    <span className="flex-1">{link.name}</span>
+                    {link.badge && link.badge > 0 && (
+                      <span className="flex items-center justify-center min-w-[20px] h-5 px-2 text-xs font-bold bg-red-500 text-white rounded-full">
+                        {link.badge > 99 ? '99+' : link.badge}
+                      </span>
+                    )}
+                  </>
+                )}
+                {!sidebarOpen && link.badge && link.badge > 0 && (
+                  <span className="absolute -top-1 -right-1 flex items-center justify-center w-5 h-5 text-xs font-bold bg-red-500 text-white rounded-full border-2 border-white dark:border-gray-800">
+                    {link.badge > 9 ? '9+' : link.badge}
+                  </span>
+                )}
               </Link>
             ))}
           </div>
@@ -216,14 +262,19 @@ const AdminLayout = () => {
                       key={link.path}
                       to={link.path}
                       onClick={() => setShowMobileMenu(false)}
-                      className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all font-medium ${
+                      className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all font-medium relative ${
                         isActive(link.path)
                           ? "bg-gradient-to-r from-[var(--root-color)] to-purple-600 text-white"
                           : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                       }`}
                     >
                       <link.icon className="text-lg" />
-                      <span>{link.name}</span>
+                      <span className="flex-1">{link.name}</span>
+                      {link.badge && link.badge > 0 && (
+                        <span className="flex items-center justify-center min-w-[20px] h-5 px-2 text-xs font-bold bg-red-500 text-white rounded-full">
+                          {link.badge > 99 ? '99+' : link.badge}
+                        </span>
+                      )}
                     </Link>
                   ))}
                 </div>

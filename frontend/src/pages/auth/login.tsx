@@ -15,6 +15,16 @@ const Login: React.FC = () => {
   const location = useLocation();
   const { success, error: showError } = useToast();
 
+  // Check for session expired message
+  React.useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (params.get("session") === "expired") {
+      showError("तपाईंको सत्र समाप्त भयो। कृपया फेरि लगइन गर्नुहोस्। (Your session expired. Please login again.)");
+      // Clear the query parameter
+      navigate("/login", { replace: true });
+    }
+  }, [location.search, showError, navigate]);
+
   // Auto-redirect admins to dashboard, but show profile for regular users
   React.useEffect(() => {
     if (user && !authLoading) {

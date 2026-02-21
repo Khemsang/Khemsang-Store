@@ -9,13 +9,9 @@ export const getProducts = async (req, res) => {
     const { category, search, adminOnly } = req.query;
     const filter = {};
 
-    // Super Admin can VIEW all products but not edit/delete
-    // Regular admin sees only their own products
+    // ALL admins (including Super Admin) see only their OWN products
     if (adminOnly === "true" && req.user?.isAdmin) {
-      // Super Admin can view all for monitoring, but filter for regular admin
-      if (!req.user?.isSuperAdmin) {
-        filter.createdBy = req.user._id;
-      }
+      filter.createdBy = req.user._id;
     }
 
     if (category) filter.category = category;

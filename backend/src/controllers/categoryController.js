@@ -34,8 +34,7 @@ export const getCategoryById = async (req, res) => {
   }
 };
 
-// Create category (admin only)
-export // Create category (super admin only)
+// Create category (super admin only)
 export const createCategory = async (req, res) => {
   try {
     // Only super admin can create categories
@@ -58,8 +57,7 @@ export const createCategory = async (req, res) => {
   }
 };
 
-// Update category (admin only - own categories only)
-export // Update category (super admin only)
+// Update category (super admin only)
 export const updateCategory = async (req, res) => {
   try {
     // Only super admin can update categories
@@ -85,8 +83,7 @@ export const updateCategory = async (req, res) => {
   }
 };
 
-// Delete category (admin only - own categories only)
-export // Delete category (super admin only)
+// Delete category (super admin only)
 export const deleteCategory = async (req, res) => {
   try {
     // Only super admin can delete categories

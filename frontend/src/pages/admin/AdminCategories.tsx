@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react";
 import { api } from "../../services/api";
 import { useToast } from "../../context/ToastContext";
-import { useSelector } from "react-redux";
-import { RootState } from "../../store/store";
+import { useAuth } from "../../context/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
@@ -29,9 +28,9 @@ const AdminCategories = () => {
     isActive: true,
   });
   const { success, error } = useToast();
+  const { user } = useAuth();
   
-  // Get user from Redux store
-  const { user } = useSelector((state: RootState) => state.auth);
+  // Check if user is super admin
   const isSuperAdmin = user?.isSuperAdmin || false;
 
   useEffect(() => {

@@ -7,8 +7,6 @@ import {
   Area,
   BarChart,
   Bar,
-  PieChart,
-  Pie,
   Cell,
   XAxis,
   YAxis,
@@ -64,6 +62,7 @@ const AdminDashboard = () => {
       icon: DollarSign,
       color: "from-green-500 to-emerald-600",
       change: "+12.5%",
+      description: analytics.adminRole === "Super Admin" ? "All orders" : "Your products",
     },
     {
       title: "Total Orders",
@@ -71,6 +70,7 @@ const AdminDashboard = () => {
       icon: ShoppingCart,
       color: "from-blue-500 to-cyan-600",
       change: "+8.2%",
+      description: analytics.adminRole === "Super Admin" ? "All orders" : "Orders with your products",
     },
     {
       title: "Products",
@@ -78,6 +78,7 @@ const AdminDashboard = () => {
       icon: Package,
       color: "from-orange-500 to-amber-600",
       change: "+3.1%",
+      description: analytics.adminRole === "Super Admin" ? "All products" : "Your products",
     },
     {
       title: "Customers",
@@ -85,6 +86,7 @@ const AdminDashboard = () => {
       icon: Users,
       color: "from-gray-600 to-gray-800",
       change: "+5.4%",
+      description: "Total customers",
     },
   ];
 
@@ -108,8 +110,19 @@ const AdminDashboard = () => {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
-          <p className="text-gray-500 dark:text-gray-400 mt-1">Welcome back! Here's your overview</p>
+          <div className="flex items-center gap-3">
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
+            {analytics.adminRole && (
+              <Badge variant={analytics.adminRole === "Super Admin" ? "success" : "info"}>
+                {analytics.adminRole}
+              </Badge>
+            )}
+          </div>
+          <p className="text-gray-500 dark:text-gray-400 mt-1">
+            {analytics.adminRole === "Super Admin" 
+              ? "Complete system overview" 
+              : "Your products and orders overview"}
+          </p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" size="sm" onClick={fetchAnalytics}>
@@ -129,13 +142,16 @@ const AdminDashboard = () => {
           <Card key={i}>
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
-                <div>
+                <div className="flex-1">
                   <p className="text-sm text-gray-500 dark:text-gray-400">{stat.title}</p>
                   <h3 className="text-2xl font-bold mt-2">{stat.value}</h3>
-                  <Badge variant="success" className="mt-2">
-                    <TrendingUp className="w-3 h-3 mr-1" />
-                    {stat.change}
-                  </Badge>
+                  <div className="flex items-center gap-2 mt-2">
+                    <Badge variant="success" className="text-xs">
+                      <TrendingUp className="w-3 h-3 mr-1" />
+                      {stat.change}
+                    </Badge>
+                  </div>
+                  <p className="text-xs text-gray-400 mt-1">{stat.description}</p>
                 </div>
                 <div className={`p-3 rounded-xl bg-gradient-to-br ${stat.color}`}>
                   <stat.icon className="w-6 h-6 text-white" />
@@ -148,10 +164,68 @@ const AdminDashboard = () => {
 
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Revenue Trend */}
+        {/* Daily Revenue */}
         <Card>
           <CardHeader>
-            <CardTitle>Revenue Trend</CardTitle>
+            <CardTitle>Daily Revenue (Last 7 Days)</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <AreaChart data={analytics.dailyRevenue || []}>
+                <defs>
+                  <linearGradient id="dailyRevenue" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.8} />
+                    <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" className="stroke-gray-200 dark:stroke-gray-700" />
+                <XAxis dataKey="day" className="text-xs" />
+                <YAxis className="text-xs" />
+                <Tooltip 
+                  formatter={(value: any) => formatCurrency(value)}
+                  labelFormatter={(label, payload) => {
+                    if (payload && payload[0]) {
+                      return payload[0].payload.date;
+                    }
+                    return label;
+                  }}
+                />
+                <Area type="monotone" dataKey="revenue" stroke="#10b981" fill="url(#dailyRevenue)" />
+              </AreaChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        {/* Weekly Revenue */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Weekly Revenue (Last 7 Weeks)</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={analytics.weeklyRevenue || []}>
+                <CartesianGrid strokeDasharray="3 3" className="stroke-gray-200 dark:stroke-gray-700" />
+                <XAxis dataKey="week" className="text-xs" />
+                <YAxis className="text-xs" />
+                <Tooltip 
+                  formatter={(value: any) => formatCurrency(value)}
+                  labelFormatter={(label, payload) => {
+                    if (payload && payload[0]) {
+                      return `${payload[0].payload.week} (${payload[0].payload.date})`;
+                    }
+                    return label;
+                  }}
+                />
+                <Bar dataKey="revenue" fill="#8b5cf6" radius={[8, 8, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        {/* Monthly Revenue Trend */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Monthly Revenue Trend</CardTitle>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
@@ -220,24 +294,6 @@ const AdminDashboard = () => {
                 })}
               </div>
             </div>
-          </CardContent>
-        </Card>
-
-        {/* Monthly Revenue Bar */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Monthly Revenue</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={analytics.monthlyRevenue || []}>
-                <CartesianGrid strokeDasharray="3 3" className="stroke-gray-200 dark:stroke-gray-700" />
-                <XAxis dataKey="month" />
-                <YAxis />
-                <Tooltip formatter={(value: any) => formatCurrency(value)} />
-                <Bar dataKey="revenue" fill="#3b82f6" radius={[8, 8, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
           </CardContent>
         </Card>
 

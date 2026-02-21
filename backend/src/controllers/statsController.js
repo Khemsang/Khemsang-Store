@@ -93,18 +93,39 @@ export const getAnalytics = async (req, res) => {
     const Order = (await import("../models/Order.js")).default;
     const Product = (await import("../models/Product.js")).default;
 
-    const [users, orders, products] = await Promise.all([
+    const isSuperAdmin = req.user.isSuperAdmin;
+    const adminId = req.user._id;
+
+    // Get products based on admin role
+    let productQuery = {};
+    if (!isSuperAdmin) {
+      productQuery = { createdBy: adminId };
+    }
+
+    const [users, allOrders, products] = await Promise.all([
       User.countDocuments({ isAdmin: false }),
       Order.find().populate("items.product").sort({ createdAt: -1 }),
-      Product.countDocuments(),
+      Product.countDocuments(productQuery),
     ]);
 
-    // Calculate total revenue
+    // Filter orders based on admin role
+    let orders = allOrders;
+    if (!isSuperAdmin) {
+      // Regular admin only sees orders containing their products
+      orders = allOrders.filter((order) => {
+        return order.items.some(
+          (item) =>
+            item.product?.createdBy?.toString() === adminId.toString()
+        );
+      });
+    }
+
+    // Calculate total revenue from filtered orders
     const totalRevenue = orders
       .filter((o) => o.paymentStatus === "paid")
       .reduce((sum, o) => sum + o.totalAmount, 0);
 
-    // Monthly revenue (last 6 months)
+    // Monthly revenue (last 6 months) from filtered orders
     const monthlyRevenue = [];
     const now = new Date();
     for (let i = 5; i >= 0; i--) {
@@ -125,7 +146,64 @@ export const getAnalytics = async (req, res) => {
       });
     }
 
-    // Orders by status
+    // Weekly revenue (last 7 weeks)
+    const weeklyRevenue = [];
+    for (let i = 6; i >= 0; i--) {
+      const weekStart = new Date(now);
+      weekStart.setDate(now.getDate() - (i * 7) - now.getDay());
+      weekStart.setHours(0, 0, 0, 0);
+      
+      const weekEnd = new Date(weekStart);
+      weekEnd.setDate(weekStart.getDate() + 7);
+      
+      const weekOrders = orders.filter((o) => {
+        const orderDate = new Date(o.createdAt);
+        return (
+          orderDate >= weekStart &&
+          orderDate < weekEnd &&
+          o.paymentStatus === "paid"
+        );
+      });
+      
+      const revenue = weekOrders.reduce((sum, o) => sum + o.totalAmount, 0);
+      const weekLabel = `Week ${7 - i}`;
+      
+      weeklyRevenue.push({
+        week: weekLabel,
+        revenue,
+        date: weekStart.toLocaleDateString("default", { month: "short", day: "numeric" }),
+      });
+    }
+
+    // Daily revenue (last 7 days)
+    const dailyRevenue = [];
+    for (let i = 6; i >= 0; i--) {
+      const date = new Date(now);
+      date.setDate(now.getDate() - i);
+      date.setHours(0, 0, 0, 0);
+      
+      const nextDay = new Date(date);
+      nextDay.setDate(date.getDate() + 1);
+      
+      const dayOrders = orders.filter((o) => {
+        const orderDate = new Date(o.createdAt);
+        return (
+          orderDate >= date &&
+          orderDate < nextDay &&
+          o.paymentStatus === "paid"
+        );
+      });
+      
+      const revenue = dayOrders.reduce((sum, o) => sum + o.totalAmount, 0);
+      
+      dailyRevenue.push({
+        day: date.toLocaleDateString("default", { weekday: "short" }),
+        date: date.toLocaleDateString("default", { month: "short", day: "numeric" }),
+        revenue,
+      });
+    }
+
+    // Orders by status from filtered orders
     const ordersByStatus = {
       pending: orders.filter((o) => o.orderStatus === "pending").length,
       processing: orders.filter((o) => o.orderStatus === "processing").length,
@@ -140,15 +218,106 @@ export const getAnalytics = async (req, res) => {
       totalCustomers: users,
       totalProducts: products,
       monthlyRevenue,
+      weeklyRevenue,
+      dailyRevenue,
       ordersByStatus: Object.entries(ordersByStatus).map(([status, count]) => ({
         status,
         count,
       })),
       recentOrders: orders.slice(0, 5),
+      adminRole: isSuperAdmin ? "Super Admin" : "Admin",
     });
   } catch (error) {
     res
       .status(500)
       .json({ message: "Error fetching analytics", error: error.message });
+  }
+};
+
+// Get notification counts for admin
+export const getNotifications = async (req, res) => {
+  try {
+    const Order = (await import("../models/Order.js")).default;
+    const Review = (await import("../models/Review.js")).default;
+    const Testimonial = (await import("../models/Testimonial.js")).default;
+
+    const isSuperAdmin = req.user.isSuperAdmin;
+    const adminId = req.user._id;
+
+    let newOrders = 0;
+    let unreadOrders = 0;
+    let pendingReviews = 0;
+    let pendingTestimonials = 0;
+
+    if (isSuperAdmin) {
+      // Super admin sees all notifications
+      newOrders = await Order.countDocuments({
+        orderStatus: { $in: ["pending", "processing"] },
+      });
+
+      // Count unread orders (not read by this admin)
+      const allOrders = await Order.find();
+      unreadOrders = allOrders.filter(
+        (order) =>
+          !order.readBy.some(
+            (r) => r.admin.toString() === adminId.toString()
+          )
+      ).length;
+
+      pendingReviews = await Review.countDocuments({
+        isApproved: false,
+      });
+
+      pendingTestimonials = await Testimonial.countDocuments({
+        isApproved: false,
+      });
+    } else {
+      // Regular admin only sees notifications for their products
+      const allOrders = await Order.find({
+        orderStatus: { $in: ["pending", "processing"] },
+      }).populate("items.product");
+
+      // Filter orders containing admin's products
+      const adminOrders = allOrders.filter((order) => {
+        return order.items.some(
+          (item) =>
+            item.product?.createdBy?.toString() === adminId.toString()
+        );
+      });
+      newOrders = adminOrders.length;
+
+      // Count unread orders for this admin
+      unreadOrders = adminOrders.filter(
+        (order) =>
+          !order.readBy.some(
+            (r) => r.admin.toString() === adminId.toString()
+          )
+      ).length;
+
+      // Get reviews for admin's products
+      const adminProducts = await (await import("../models/Product.js")).default
+        .find({ createdBy: adminId })
+        .select("_id");
+      const productIds = adminProducts.map((p) => p._id);
+
+      pendingReviews = await Review.countDocuments({
+        product: { $in: productIds },
+        isApproved: false,
+      });
+
+      // Testimonials are global, so regular admin doesn't see them
+      pendingTestimonials = 0;
+    }
+
+    res.json({
+      newOrders,
+      unreadOrders,
+      pendingReviews,
+      pendingTestimonials,
+    });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Error fetching notifications", error: error.message });
   }
 };

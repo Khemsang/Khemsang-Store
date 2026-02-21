@@ -29,6 +29,7 @@ import activityRoutes from "./routes/activities.js";
 import brandRoutes from "./routes/brands.js";
 import couponRoutes from "./routes/coupons.js";
 import adminManagementRoutes from "./routes/adminManagement.js";
+import messageRoutes from "./routes/messageRoutes.js";
 
 import { errorHandler } from "./middleware/errorHandler.js";
 
@@ -97,6 +98,7 @@ app.use("/api/activities", activityRoutes);
 app.use("/api/brands", brandRoutes);
 app.use("/api/coupons", couponRoutes);
 app.use("/api/admin-management", adminManagementRoutes);
+app.use("/api/messages", messageRoutes);
 
 // Health check endpoints
 app.get("/api/health", (req, res) => {

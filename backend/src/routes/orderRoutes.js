@@ -9,6 +9,7 @@ import {
   paymentFailure,
   getEsewaSignature,
   getInvoice,
+  markOrderAsRead,
 } from "../controllers/orderController.js";
 import { auth, isAdmin } from "../middleware/auth.js";
 
@@ -32,5 +33,6 @@ router.get("/:id/invoice", auth, getInvoice);
 // Admin routes
 router.get("/", auth, isAdmin, getAllOrders);
 router.put("/:id/status", auth, isAdmin, updateOrderStatus);
+router.put("/:id/mark-read", auth, isAdmin, markOrderAsRead);
 
 export default router;

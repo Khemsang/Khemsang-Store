@@ -30,11 +30,15 @@ process.on("unhandledRejection", (err) => {
 });
 
 try {
+  console.log("Loading app.js...");
   const appModule = await import("./app.js");
   const app = appModule.default;
+  console.log("App loaded successfully");
 
+  console.log("Loading db.js...");
   const dbModule = await import("./config/db.js");
   const { connectDB } = dbModule;
+  console.log("DB module loaded successfully");
 
   await connectDB();
 
@@ -43,6 +47,7 @@ try {
     logger.info(`🚀 Server running on port ${PORT} in ${process.env.NODE_ENV || "development"} mode`);
   });
 } catch (err) {
+  console.error("❌ Server startup failed:", err);
   logger.error("❌ Server startup failed:", { message: err.message, stack: err.stack });
   process.exit(1);
 }

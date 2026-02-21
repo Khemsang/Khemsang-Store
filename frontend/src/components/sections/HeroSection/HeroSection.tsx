@@ -62,14 +62,18 @@ const HeroSection: React.FC = () => {
     >
       {/* Background Image Slider */}
       {banners.length > 0 && (
-        <div className="absolute inset-0 z-0">
+        <div className="absolute inset-0 z-0 overflow-hidden">
           <AnimatePresence mode="wait">
             <motion.div
               key={current}
-              initial={{ opacity: 0, scale: 1.1 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              transition={{ duration: 0.7 }}
+              initial={{ x: "100%", opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              exit={{ x: "-100%", opacity: 0 }}
+              transition={{ 
+                type: "tween",
+                duration: 0.8,
+                ease: "easeInOut"
+              }}
               className="absolute inset-0"
             >
               <img
@@ -137,10 +141,14 @@ const HeroSection: React.FC = () => {
           <AnimatePresence mode="wait">
             <motion.h1
               key={current}
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -30 }}
-              transition={{ duration: 0.6 }}
+              initial={{ x: 100, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              exit={{ x: -100, opacity: 0 }}
+              transition={{ 
+                type: "tween",
+                duration: 0.6,
+                ease: "easeOut"
+              }}
               className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-black mb-4 md:mb-6 leading-tight"
             >
               {currentBanner ? (
@@ -167,10 +175,15 @@ const HeroSection: React.FC = () => {
           <AnimatePresence mode="wait">
             <motion.p
               key={`desc-${current}`}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.6, delay: 0.1 }}
+              initial={{ x: 100, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              exit={{ x: -100, opacity: 0 }}
+              transition={{ 
+                type: "tween",
+                duration: 0.6,
+                delay: 0.1,
+                ease: "easeOut"
+              }}
               className={`text-base md:text-xl lg:text-2xl mb-8 md:mb-12 max-w-4xl mx-auto font-medium ${
                 currentBanner
                   ? "text-white/95 drop-shadow-lg"

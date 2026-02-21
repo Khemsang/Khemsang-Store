@@ -82,7 +82,7 @@ const AdminProducts = () => {
       setLoading(true);
       const [productsRes, categoriesRes] = await Promise.all([
         api.get("/products?adminOnly=true"),
-        api.get("/categories?adminOnly=true"),
+        api.get("/categories"), // Remove adminOnly to show all categories
       ]);
       console.log("Products fetched:", productsRes.data.length);
       console.log("Sample product:", productsRes.data[0]);

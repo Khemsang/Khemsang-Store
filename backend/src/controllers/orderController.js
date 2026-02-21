@@ -107,14 +107,22 @@ export const getMyOrders = async (req, res) => {
 
 /**
  * GET ALL ORDERS
- * GET /api/orders
+ * GET /api/orders?status=pending
  * Admin only (shows orders containing their products)
  * Super Admin sees ALL orders
  */
 export const getAllOrders = async (req, res) => {
   try {
+    const { status } = req.query;
+    
+    // Build query filter
+    const filter = {};
+    if (status && status !== 'all') {
+      filter.orderStatus = status;
+    }
+
     // Get all orders with populated products
-    let orders = await Order.find()
+    let orders = await Order.find(filter)
       .populate("user", "name email")
       .populate("items.product")
       .sort({ createdAt: -1 });
@@ -219,6 +227,36 @@ const getStatusMessage = (status) => {
     cancelled: "Order has been cancelled",
   };
   return messages[status] || "Status updated";
+};
+
+/**
+ * MARK ORDER AS READ
+ * PUT /api/orders/:id/mark-read
+ * Admin only
+ */
+export const markOrderAsRead = async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.id);
+    if (!order) return res.status(404).json({ message: "Order not found" });
+
+    // Check if already read by this admin
+    const alreadyRead = order.readBy.some(
+      (r) => r.admin.toString() === req.user._id.toString()
+    );
+
+    if (!alreadyRead) {
+      order.readBy.push({
+        admin: req.user._id,
+        readAt: new Date(),
+      });
+      order.isRead = true;
+      await order.save();
+    }
+
+    res.json({ message: "Order marked as read" });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
 };
 
 /**
