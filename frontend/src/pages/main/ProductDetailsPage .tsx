@@ -4,14 +4,13 @@ import { useCart } from "../../context/CartContext";
 import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../context/ToastContext";
 import { api } from "../../services/api";
-import { FaHeart } from "react-icons/fa";
 import ProductReviews from "../../components/sections/ProductReviews/ProductReviews";
 import RecentlyViewed, { addToRecentlyViewed } from "../../components/sections/RecentlyViewed/RecentlyViewed";
 import ShareProduct from "../../components/ui/ShareProduct";
 import SizeGuide from "../../components/ui/SizeGuide";
 import EstimatedDelivery from "../../components/ui/EstimatedDelivery";
 import NotifyMe from "../../components/ui/NotifyMe";
-import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card";
+import { Card, CardContent } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
 import { Badge } from "../../components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "../../components/ui/tabs";
@@ -20,7 +19,6 @@ import {
   Package, 
   ShoppingCart, 
   Heart, 
-  Share2, 
   Truck, 
   Shield, 
   RefreshCw,
@@ -29,8 +27,7 @@ import {
   Plus,
   ZoomIn,
   Home,
-  ChevronRight,
-  Info
+  ChevronRight
 } from "lucide-react";
 
 interface Product {
@@ -488,7 +485,7 @@ const ProductDetailsPage: React.FC = () => {
                 </TabsTrigger>
                 <TabsTrigger
                   active={activeTab === "shipping"}
-                  onClick={() => setActiveTab("shipping"}
+                  onClick={() => setActiveTab("shipping")}
                 >
                   Shipping & Returns
                 </TabsTrigger>
