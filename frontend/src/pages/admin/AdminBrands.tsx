@@ -1,7 +1,9 @@
 import { useState, useEffect } from "react";
 import { api } from "../../services/api";
 import { useToast } from "../../context/ToastContext";
+import { useMinimumLoading } from "../../hooks/useMinimumLoading";
 import { uploadImage } from "../../utils/imageUpload";
+import Loading from "../../components/common/Loading";
 import {
   FaPlus,
   FaEdit,
@@ -26,6 +28,7 @@ interface Brand {
 const AdminBrands = () => {
   const [brands, setBrands] = useState<Brand[]>([]);
   const [loading, setLoading] = useState(true);
+  const showLoading = useMinimumLoading(loading, 1000);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -144,12 +147,8 @@ const AdminBrands = () => {
     setShowForm(false);
   };
 
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-purple-600"></div>
-      </div>
-    );
+  if (showLoading) {
+    return <Loading text="Loading brands..." fullScreen={true} />;
   }
 
   return (

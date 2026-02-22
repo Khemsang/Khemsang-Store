@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { api } from "../../services/api";
 import { useToast } from "../../context/ToastContext";
+import Loading from "../../components/common/Loading";
 import {
   FaTruck,
   FaBox,
@@ -126,11 +127,7 @@ const AdminShipping = () => {
   };
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[var(--root-color)]"></div>
-      </div>
-    );
+    return <Loading text="Loading shipping data..." fullScreen={true} />;
   }
 
   return (

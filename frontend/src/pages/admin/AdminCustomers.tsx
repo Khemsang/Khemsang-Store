@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { api } from "../../services/api";
 import { useToast } from "../../context/ToastContext";
+import { useMinimumLoading } from "../../hooks/useMinimumLoading";
 import { Card, CardContent } from "../../components/ui/card";
 import { Input } from "../../components/ui/input";
 import { Badge } from "../../components/ui/badge";
@@ -22,6 +23,7 @@ interface Customer {
 const AdminCustomers = () => {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
+  const showLoading = useMinimumLoading(loading, 1000);
   const [search, setSearch] = useState("");
   const { error } = useToast();
 
@@ -47,7 +49,7 @@ const AdminCustomers = () => {
       c.email?.toLowerCase().includes(search.toLowerCase())
   );
 
-  if (loading) return <Loading message="Loading customers..." />;
+  if (showLoading) return <Loading message="Loading customers..." fullScreen={true} />;
 
   return (
     <div className="p-6 space-y-6">

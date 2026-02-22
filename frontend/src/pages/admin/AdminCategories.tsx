@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { api } from "../../services/api";
 import { useToast } from "../../context/ToastContext";
 import { useAuth } from "../../context/AuthContext";
+import { useMinimumLoading } from "../../hooks/useMinimumLoading";
 import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
@@ -9,22 +10,117 @@ import { Label } from "../../components/ui/label";
 import { Badge } from "../../components/ui/badge";
 import { Loading } from "../../components/ui/loading";
 import { Plus, Edit, Trash2, X, FolderOpen, Lock } from "lucide-react";
+import {
+  FaCouch,
+  FaChair,
+  FaBed,
+  FaDoorOpen,
+  FaBox,
+  FaLightbulb,
+  FaTv,
+  FaUtensils,
+  FaBath,
+  FaWarehouse,
+  FaHome,
+  FaPalette,
+  FaTools,
+  FaTshirt,
+  FaShoePrints,
+  FaGlasses,
+  FaHatCowboy,
+  FaGem,
+  FaMobileAlt,
+  FaLaptop,
+  FaHeadphones,
+  FaCamera,
+  FaGamepad,
+  FaBook,
+  FaMusic,
+  FaDumbbell,
+  FaBicycle,
+  FaFootballBall,
+  FaBaby,
+  FaPaw,
+  FaLeaf,
+  FaCoffee,
+  FaWineGlass,
+  FaBirthdayCake,
+  FaGift,
+  FaUmbrella,
+  FaSuitcase,
+  FaCar,
+  FaPlane,
+  FaPaintBrush,
+} from "react-icons/fa";
 
 interface Category {
   _id: string;
   name: string;
   description?: string;
+  icon?: string;
   isActive: boolean;
 }
+
+// Available icons for categories
+const availableIcons = [
+  { name: "FaCouch", icon: FaCouch, label: "Couch" },
+  { name: "FaChair", icon: FaChair, label: "Chair" },
+  { name: "FaBed", icon: FaBed, label: "Bed" },
+  { name: "FaDoorOpen", icon: FaDoorOpen, label: "Door" },
+  { name: "FaLightbulb", icon: FaLightbulb, label: "Light" },
+  { name: "FaTv", icon: FaTv, label: "TV" },
+  { name: "FaUtensils", icon: FaUtensils, label: "Utensils" },
+  { name: "FaBath", icon: FaBath, label: "Bath" },
+  { name: "FaWarehouse", icon: FaWarehouse, label: "Warehouse" },
+  { name: "FaHome", icon: FaHome, label: "Home" },
+  { name: "FaPalette", icon: FaPalette, label: "Palette" },
+  { name: "FaTools", icon: FaTools, label: "Tools" },
+  { name: "FaBox", icon: FaBox, label: "Box" },
+  { name: "FaTshirt", icon: FaTshirt, label: "Shirt" },
+  { name: "FaShoePrints", icon: FaShoePrints, label: "Shoes" },
+  { name: "FaGlasses", icon: FaGlasses, label: "Glasses" },
+  { name: "FaHatCowboy", icon: FaHatCowboy, label: "Hat" },
+  { name: "FaGem", icon: FaGem, label: "Gem" },
+  { name: "FaMobileAlt", icon: FaMobileAlt, label: "Mobile" },
+  { name: "FaLaptop", icon: FaLaptop, label: "Laptop" },
+  { name: "FaHeadphones", icon: FaHeadphones, label: "Headphones" },
+  { name: "FaCamera", icon: FaCamera, label: "Camera" },
+  { name: "FaGamepad", icon: FaGamepad, label: "Gamepad" },
+  { name: "FaBook", icon: FaBook, label: "Book" },
+  { name: "FaMusic", icon: FaMusic, label: "Music" },
+  { name: "FaDumbbell", icon: FaDumbbell, label: "Dumbbell" },
+  { name: "FaBicycle", icon: FaBicycle, label: "Bicycle" },
+  { name: "FaFootballBall", icon: FaFootballBall, label: "Football" },
+  { name: "FaBaby", icon: FaBaby, label: "Baby" },
+  { name: "FaPaw", icon: FaPaw, label: "Pet" },
+  { name: "FaLeaf", icon: FaLeaf, label: "Leaf" },
+  { name: "FaCoffee", icon: FaCoffee, label: "Coffee" },
+  { name: "FaWineGlass", icon: FaWineGlass, label: "Wine" },
+  { name: "FaBirthdayCake", icon: FaBirthdayCake, label: "Cake" },
+  { name: "FaGift", icon: FaGift, label: "Gift" },
+  { name: "FaUmbrella", icon: FaUmbrella, label: "Umbrella" },
+  { name: "FaSuitcase", icon: FaSuitcase, label: "Suitcase" },
+  { name: "FaCar", icon: FaCar, label: "Car" },
+  { name: "FaPlane", icon: FaPlane, label: "Plane" },
+  { name: "FaPaintBrush", icon: FaPaintBrush, label: "Paint" },
+];
+
+// Helper to get icon component
+const getIconComponent = (iconName?: string) => {
+  const iconObj = availableIcons.find((i) => i.name === iconName);
+  return iconObj ? iconObj.icon : FaBox;
+};
 
 const AdminCategories = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
+  const showLoading = useMinimumLoading(loading, 1000);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     name: "",
     description: "",
+    icon: "FaBox",
     isActive: true,
   });
   const { success, error } = useToast();
@@ -71,6 +167,7 @@ const AdminCategories = () => {
     setFormData({
       name: category.name,
       description: category.description || "",
+      icon: category.icon || "FaBox",
       isActive: category.isActive,
     });
     setShowForm(true);
@@ -88,12 +185,12 @@ const AdminCategories = () => {
   };
 
   const resetForm = () => {
-    setFormData({ name: "", description: "", isActive: true });
+    setFormData({ name: "", description: "", icon: "FaBox", isActive: true });
     setEditingId(null);
     setShowForm(false);
   };
 
-  if (loading) return <Loading message="Loading categories..." />;
+  if (showLoading) return <Loading message="Loading categories..." fullScreen={true} />;
 
   return (
     <div className="p-6 space-y-6">
@@ -151,6 +248,39 @@ const AdminCategories = () => {
                   placeholder="Optional description"
                 />
               </div>
+              
+              {/* Icon Selector */}
+              <div>
+                <Label className="mb-3 block">Select Icon *</Label>
+                <div className="grid grid-cols-6 sm:grid-cols-8 md:grid-cols-10 gap-2 max-h-64 overflow-y-auto p-2 border rounded-lg bg-gray-50 dark:bg-gray-800">
+                  {availableIcons.map((iconOption) => {
+                    const IconComponent = iconOption.icon;
+                    return (
+                      <button
+                        key={iconOption.name}
+                        type="button"
+                        onClick={() => setFormData({ ...formData, icon: iconOption.name })}
+                        className={`p-3 rounded-lg border-2 transition-all hover:scale-110 ${
+                          formData.icon === iconOption.name
+                            ? "border-blue-600 bg-blue-50 dark:bg-blue-900/30 shadow-lg"
+                            : "border-gray-200 dark:border-gray-700 hover:border-blue-400"
+                        }`}
+                        title={iconOption.label}
+                      >
+                        <IconComponent className={`text-2xl ${
+                          formData.icon === iconOption.name
+                            ? "text-blue-600 dark:text-blue-400"
+                            : "text-gray-600 dark:text-gray-400"
+                        }`} />
+                      </button>
+                    );
+                  })}
+                </div>
+                <p className="text-xs text-gray-500 mt-2">
+                  Selected: {availableIcons.find(i => i.name === formData.icon)?.label || "Box"}
+                </p>
+              </div>
+
               <div className="flex items-center gap-2">
                 <input
                   type="checkbox"
@@ -174,50 +304,53 @@ const AdminCategories = () => {
 
       {/* Categories Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {categories.map((category) => (
-          <Card key={category._id} className="hover:shadow-lg transition-shadow">
-            <CardContent className="p-6">
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-xl flex items-center justify-center">
-                    <FolderOpen className="w-6 h-6 text-white" />
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-lg">{category.name}</h3>
-                    <Badge variant={category.isActive ? "success" : "danger"}>
-                      {category.isActive ? "Active" : "Inactive"}
-                    </Badge>
+        {categories.map((category) => {
+          const IconComponent = getIconComponent(category.icon);
+          return (
+            <Card key={category._id} className="hover:shadow-lg transition-shadow">
+              <CardContent className="p-6">
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-xl flex items-center justify-center">
+                      <IconComponent className="w-6 h-6 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-lg">{category.name}</h3>
+                      <Badge variant={category.isActive ? "success" : "danger"}>
+                        {category.isActive ? "Active" : "Inactive"}
+                      </Badge>
+                    </div>
                   </div>
                 </div>
-              </div>
-              {category.description && (
-                <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-                  {category.description}
-                </p>
-              )}
-              {isSuperAdmin && (
-                <div className="flex gap-2">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => handleEdit(category)}
-                    className="flex-1"
-                  >
-                    <Edit className="w-4 h-4 mr-2" />
-                    Edit
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="destructive"
-                    onClick={() => handleDelete(category._id)}
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        ))}
+                {category.description && (
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                    {category.description}
+                  </p>
+                )}
+                {isSuperAdmin && (
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleEdit(category)}
+                      className="flex-1"
+                    >
+                      <Edit className="w-4 h-4 mr-2" />
+                      Edit
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      onClick={() => handleDelete(category._id)}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
 
       {categories.length === 0 && (

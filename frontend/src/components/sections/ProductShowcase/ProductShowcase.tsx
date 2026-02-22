@@ -6,6 +6,7 @@ import { useCart } from "../../../context/CartContext";
 import { useToast } from "../../../context/ToastContext";
 import SimpleProductCard from "../../products/SimpleProductCard";
 import ViewAllButton from "../../common/ViewAllButton";
+import Loading from "../../common/Loading";
 
 const ProductShowcase = () => {
   const [products, setProducts] = useState<any[]>([]);
@@ -72,13 +73,7 @@ const ProductShowcase = () => {
   };
 
   if (loading) {
-    return (
-      <div className="bg-white py-12 px-4 md:px-8">
-        <div className="container mx-auto text-center text-gray-500">
-          Loading products...
-        </div>
-      </div>
-    );
+    return <Loading text="Loading products..." size="sm" variant="minimal" />;
   }
 
   return (

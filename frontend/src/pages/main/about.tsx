@@ -483,10 +483,10 @@ const AboutUs: React.FC = () => {
                   </svg>
                 </button>
                 <button
-                  onClick={() => navigate("/contact")}
+                  onClick={() => navigate("/signup")}
                   className="px-8 py-4 bg-transparent border-2 border-white text-white rounded-2xl hover:bg-white hover:text-purple-600 transition-all duration-300 font-bold text-lg"
                 >
-                  Contact Us
+                  Sign Up Now
                 </button>
               </div>
             </div>

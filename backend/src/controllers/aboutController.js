@@ -9,7 +9,6 @@ export const getAbout = async (req, res) => {
     });
 
     if (!about) {
-      // Return default empty data instead of 404 for new setups
       return res.json({
         heroTitle: "",
         heroSubtitle: "",

@@ -47,8 +47,18 @@ const Wishlist = () => {
       if (user) {
         // Load from backend if logged in
         const { data } = await api.get("/auth/wishlist");
-        setProducts(data);
-        setWishlistIds(data.map((p: Product) => p._id));
+        const wishlistProducts = data.map((item: any) => ({
+          _id: item.product._id,
+          name: item.product.title,
+          price: item.product.price,
+          images: item.product.images,
+          category: item.product.category?.name || item.product.category,
+          discount: item.product.discount,
+          stock: item.product.stock,
+          rating: item.product.rating,
+        }));
+        setProducts(wishlistProducts);
+        setWishlistIds(wishlistProducts.map((p: Product) => p._id));
       } else {
         // Load from localStorage if not logged in
         const saved = localStorage.getItem("wishlist");

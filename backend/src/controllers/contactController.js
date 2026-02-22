@@ -1,5 +1,6 @@
 import ContactSettings from "../models/ContactSettings.js";
 import ContactMessage from "../models/ContactMessage.js";
+import { notifyNewContactMessage } from "../services/notificationService.js";
 
 // Get contact settings
 export const getContactSettings = async (req, res) => {
@@ -43,6 +44,15 @@ export const submitContactMessage = async (req, res) => {
   try {
     const message = new ContactMessage(req.body);
     await message.save();
+    
+    // Send notification to admins
+    try {
+      await notifyNewContactMessage(message);
+      console.log("✅ Contact message notification sent to admins");
+    } catch (notifError) {
+      console.error("❌ Failed to send contact notification:", notifError.message);
+    }
+    
     res.status(201).json({ message: "Message sent successfully" });
   } catch (err) {
     res.status(400).json({ message: "Error sending message", error: err.message });

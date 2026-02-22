@@ -68,7 +68,7 @@ export const LoadingProvider = ({ children }: { children: ReactNode }) => {
 
       {/* Global Loading Overlay */}
       {isLoading && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm transition-all duration-300">
+        <div className="fixed inset-0 z-[50] flex items-center justify-center bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm transition-all duration-300">
           <div className="flex flex-col items-center gap-4">
             {/* Animated Loader */}
             <div className="relative">

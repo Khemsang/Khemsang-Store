@@ -160,7 +160,7 @@ const AdminFeaturedProducts = () => {
     p.title.toLowerCase().includes(search.toLowerCase())
   );
 
-  if (loading) return <Loading message="Loading featured products..." variant="product" />;
+  if (loading) return <Loading message="Loading featured products..." fullScreen={true} />;
 
   return (
     <div className="p-6 space-y-6">

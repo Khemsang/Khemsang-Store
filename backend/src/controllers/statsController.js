@@ -96,6 +96,8 @@ export const getAnalytics = async (req, res) => {
     const isSuperAdmin = req.user.isSuperAdmin;
     const adminId = req.user._id;
 
+    console.log("📊 Fetching analytics for:", isSuperAdmin ? "Super Admin" : "Admin", adminId);
+
     // Get products based on admin role
     let productQuery = {};
     if (!isSuperAdmin) {
@@ -108,6 +110,10 @@ export const getAnalytics = async (req, res) => {
       Product.countDocuments(productQuery),
     ]);
 
+    console.log("📦 Total orders found:", allOrders.length);
+    console.log("👥 Total customers:", users);
+    console.log("🛍️ Total products:", products);
+
     // Filter orders based on admin role
     let orders = allOrders;
     if (!isSuperAdmin) {
@@ -118,12 +124,19 @@ export const getAnalytics = async (req, res) => {
             item.product?.createdBy?.toString() === adminId.toString()
         );
       });
+      console.log("🔍 Filtered orders for admin:", orders.length);
     }
 
-    // Calculate total revenue from filtered orders
-    const totalRevenue = orders
-      .filter((o) => o.paymentStatus === "paid")
-      .reduce((sum, o) => sum + o.totalAmount, 0);
+    // Calculate total revenue from filtered orders (include all payment statuses for now)
+    const totalRevenue = orders.reduce((sum, o) => {
+      // Count paid orders and COD orders that are delivered
+      if (o.paymentStatus === "paid" || (o.paymentMethod === "cod" && o.orderStatus === "delivered")) {
+        return sum + (o.totalAmount || 0);
+      }
+      return sum;
+    }, 0);
+
+    console.log("💰 Total revenue calculated:", totalRevenue);
 
     // Monthly revenue (last 6 months) from filtered orders
     const monthlyRevenue = [];
@@ -133,18 +146,17 @@ export const getAnalytics = async (req, res) => {
       const nextMonth = new Date(now.getFullYear(), now.getMonth() - i + 1, 1);
       const monthOrders = orders.filter((o) => {
         const orderDate = new Date(o.createdAt);
-        return (
-          orderDate >= date &&
-          orderDate < nextMonth &&
-          o.paymentStatus === "paid"
-        );
+        const isPaid = o.paymentStatus === "paid" || (o.paymentMethod === "cod" && o.orderStatus === "delivered");
+        return orderDate >= date && orderDate < nextMonth && isPaid;
       });
-      const revenue = monthOrders.reduce((sum, o) => sum + o.totalAmount, 0);
+      const revenue = monthOrders.reduce((sum, o) => sum + (o.totalAmount || 0), 0);
       monthlyRevenue.push({
         month: date.toLocaleString("default", { month: "short" }),
         revenue,
       });
     }
+
+    console.log("📅 Monthly revenue:", monthlyRevenue);
 
     // Weekly revenue (last 7 weeks)
     const weeklyRevenue = [];
@@ -158,14 +170,11 @@ export const getAnalytics = async (req, res) => {
       
       const weekOrders = orders.filter((o) => {
         const orderDate = new Date(o.createdAt);
-        return (
-          orderDate >= weekStart &&
-          orderDate < weekEnd &&
-          o.paymentStatus === "paid"
-        );
+        const isPaid = o.paymentStatus === "paid" || (o.paymentMethod === "cod" && o.orderStatus === "delivered");
+        return orderDate >= weekStart && orderDate < weekEnd && isPaid;
       });
       
-      const revenue = weekOrders.reduce((sum, o) => sum + o.totalAmount, 0);
+      const revenue = weekOrders.reduce((sum, o) => sum + (o.totalAmount || 0), 0);
       const weekLabel = `Week ${7 - i}`;
       
       weeklyRevenue.push({
@@ -174,6 +183,8 @@ export const getAnalytics = async (req, res) => {
         date: weekStart.toLocaleDateString("default", { month: "short", day: "numeric" }),
       });
     }
+
+    console.log("📊 Weekly revenue:", weeklyRevenue);
 
     // Daily revenue (last 7 days)
     const dailyRevenue = [];
@@ -187,14 +198,11 @@ export const getAnalytics = async (req, res) => {
       
       const dayOrders = orders.filter((o) => {
         const orderDate = new Date(o.createdAt);
-        return (
-          orderDate >= date &&
-          orderDate < nextDay &&
-          o.paymentStatus === "paid"
-        );
+        const isPaid = o.paymentStatus === "paid" || (o.paymentMethod === "cod" && o.orderStatus === "delivered");
+        return orderDate >= date && orderDate < nextDay && isPaid;
       });
       
-      const revenue = dayOrders.reduce((sum, o) => sum + o.totalAmount, 0);
+      const revenue = dayOrders.reduce((sum, o) => sum + (o.totalAmount || 0), 0);
       
       dailyRevenue.push({
         day: date.toLocaleDateString("default", { weekday: "short" }),
@@ -202,6 +210,8 @@ export const getAnalytics = async (req, res) => {
         revenue,
       });
     }
+
+    console.log("📈 Daily revenue:", dailyRevenue);
 
     // Orders by status from filtered orders
     const ordersByStatus = {
@@ -212,7 +222,9 @@ export const getAnalytics = async (req, res) => {
       cancelled: orders.filter((o) => o.orderStatus === "cancelled").length,
     };
 
-    res.json({
+    console.log("📋 Orders by status:", ordersByStatus);
+
+    const analyticsData = {
       totalRevenue,
       totalOrders: orders.length,
       totalCustomers: users,
@@ -226,8 +238,12 @@ export const getAnalytics = async (req, res) => {
       })),
       recentOrders: orders.slice(0, 5),
       adminRole: isSuperAdmin ? "Super Admin" : "Admin",
-    });
+    };
+
+    console.log("✅ Analytics data prepared successfully");
+    res.json(analyticsData);
   } catch (error) {
+    console.error("❌ Error fetching analytics:", error);
     res
       .status(500)
       .json({ message: "Error fetching analytics", error: error.message });

@@ -12,14 +12,27 @@ import logger from "../config/logger.js";
 
 // Allowed MIME types with their extensions
 const ALLOWED_FILE_TYPES = {
-  // Images
-  "image/jpeg": [".jpg", ".jpeg"],
+  // Images - Common MIME types
+  "image/jpeg": [".jpg", ".jpeg", ".jpe", ".jfif"],
+  "image/jpg": [".jpg", ".jpeg"],
   "image/png": [".png"],
   "image/webp": [".webp"],
   "image/gif": [".gif"],
-  // Documents (if needed)
-  // "application/pdf": [".pdf"],
+  "image/bmp": [".bmp"],
+  "image/svg+xml": [".svg"],
+  "image/tiff": [".tiff", ".tif"],
+  "image/x-icon": [".ico"],
+  // Sometimes browsers send these
+  "image/pjpeg": [".jpg", ".jpeg"],
+  "image/x-png": [".png"],
 };
+
+// Common image extensions
+const ALLOWED_EXTENSIONS = [
+  ".jpg", ".jpeg", ".jpe", ".jfif",
+  ".png", ".webp", ".gif", 
+  ".bmp", ".svg", ".tiff", ".tif", ".ico"
+];
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -40,28 +53,44 @@ const fileFilter = (req, file, cb) => {
   const mimetype = file.mimetype.toLowerCase();
   const extname = path.extname(file.originalname).toLowerCase();
 
-  // Check if MIME type is allowed
-  if (!ALLOWED_FILE_TYPES[mimetype]) {
+  console.log(`📁 File upload attempt: ${file.originalname}`);
+  console.log(`   MIME type: ${mimetype}`);
+  console.log(`   Extension: ${extname}`);
+
+  // Check if extension is allowed (primary check)
+  if (!ALLOWED_EXTENSIONS.includes(extname)) {
+    logger.warn(`Rejected file upload: Invalid extension ${extname} from IP ${req.ip}`);
+    return cb(
+      new Error(
+        `File extension not allowed. Allowed extensions: ${ALLOWED_EXTENSIONS.join(", ")}`
+      ),
+      false
+    );
+  }
+
+  // Check if MIME type starts with "image/" (flexible check)
+  if (!mimetype.startsWith("image/")) {
     logger.warn(`Rejected file upload: Invalid MIME type ${mimetype} from IP ${req.ip}`);
-    return cb(new Error(`File type not allowed. Allowed types: ${Object.keys(ALLOWED_FILE_TYPES).join(", ")}`), false);
+    return cb(
+      new Error(
+        `File type not allowed. Only image files are accepted.`
+      ),
+      false
+    );
   }
 
-  // Check if extension matches MIME type
-  const allowedExtensions = ALLOWED_FILE_TYPES[mimetype];
-  if (!allowedExtensions.includes(extname)) {
-    logger.warn(`Rejected file upload: Extension ${extname} doesn't match MIME type ${mimetype} from IP ${req.ip}`);
-    return cb(new Error(`File extension ${extname} doesn't match file type ${mimetype}`), false);
-  }
-
-  // Additional security: Check for double extensions
+  // Additional security: Check for double extensions and suspicious patterns
   const filename = file.originalname.toLowerCase();
-  const suspiciousPatterns = [".php", ".exe", ".sh", ".bat", ".cmd", ".js"];
-  if (suspiciousPatterns.some(pattern => filename.includes(pattern))) {
+  const suspiciousPatterns = [".php", ".exe", ".sh", ".bat", ".cmd", ".js", ".html", ".htm"];
+  
+  // Check if filename contains suspicious patterns before the image extension
+  const nameWithoutExt = filename.substring(0, filename.lastIndexOf('.'));
+  if (suspiciousPatterns.some(pattern => nameWithoutExt.includes(pattern))) {
     logger.warn(`Rejected file upload: Suspicious filename ${filename} from IP ${req.ip}`);
     return cb(new Error("Suspicious file name detected"), false);
   }
 
-  logger.info(`File upload accepted: ${file.originalname} (${mimetype}) from IP ${req.ip}`);
+  logger.info(`✅ File upload accepted: ${file.originalname} (${mimetype}) from IP ${req.ip}`);
   cb(null, true);
 };
 

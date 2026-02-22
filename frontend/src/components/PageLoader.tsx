@@ -82,20 +82,8 @@ const PageLoader = ({ children }: { children: React.ReactNode }) => {
 
             {/* Center Icon */}
             <div className="absolute inset-0 flex items-center justify-center">
-              <div className="w-16 h-16 bg-gradient-to-br from-[var(--root-color)] to-purple-600 rounded-2xl flex items-center justify-center shadow-lg transform rotate-12 animate-pulse">
-                <svg
-                  className="w-8 h-8 text-white -rotate-12"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
-                  />
-                </svg>
+              <div className="w-16 h-16 bg-gradient-to-br rounded-full flex items-center justify-center shadow-lg animate-pulse">
+                {/* Empty center - no icon */}
               </div>
             </div>
 

@@ -121,7 +121,7 @@ const AdminCoupons = () => {
     setShowForm(false);
   };
 
-  if (loading) return <Loading message="Loading coupons..." />;
+  if (loading) return <Loading message="Loading coupons..." fullScreen={true} />;
 
   return (
     <div className="p-6 space-y-6">

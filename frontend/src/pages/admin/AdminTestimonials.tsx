@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { FaQuoteLeft, FaTrash, FaCheck, FaTimes, FaStar } from "react-icons/fa";
 import { api } from "../../services/api";
 import { useToast } from "../../context/ToastContext";
+import { useMinimumLoading } from "../../hooks/useMinimumLoading";
+import Loading from "../../components/common/Loading";
 
 interface Testimonial {
   _id: string;
@@ -17,6 +19,7 @@ interface Testimonial {
 const AdminTestimonials = () => {
   const [testimonials, setTestimonials] = useState<Testimonial[]>([]);
   const [loading, setLoading] = useState(true);
+  const showLoading = useMinimumLoading(loading, 1000);
   const [filter, setFilter] = useState("all");
   const { showToast } = useToast();
 
@@ -65,12 +68,8 @@ const AdminTestimonials = () => {
     return true;
   });
 
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-purple-600"></div>
-      </div>
-    );
+  if (showLoading) {
+    return <Loading text="Loading testimonials..." fullScreen={true} />;
   }
 
   return (

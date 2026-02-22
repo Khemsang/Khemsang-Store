@@ -219,7 +219,7 @@ const userSchema = new mongoose.Schema(
 );
 
 // Indexes for better query performance
-userSchema.index({ email: 1 }, { unique: true }); // Email lookup
+// Note: email index is already created via schema definition (unique: true)
 userSchema.index({ role: 1, isApproved: 1 }); // Role-based queries
 userSchema.index({ isVerified: 1 }); // Verification status
 userSchema.index({ createdAt: -1 }); // Latest users

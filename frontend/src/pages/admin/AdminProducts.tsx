@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { api } from "../../services/api";
 import { useToast } from "../../context/ToastContext";
+import { useMinimumLoading } from "../../hooks/useMinimumLoading";
 import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
@@ -50,6 +51,8 @@ const AdminProducts = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const showLoading = useMinimumLoading(loading, 1000);
+  const [submitting, setSubmitting] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [showVariantForm, setShowVariantForm] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
@@ -62,6 +65,7 @@ const AdminProducts = () => {
     price: "",
     category: "",
     stock: "",
+    discount: "",
   });
   const [variantData, setVariantData] = useState({
     color: "",
@@ -98,7 +102,15 @@ const AdminProducts = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Prevent multiple submissions
+    if (submitting) {
+      console.log("⚠️ Already submitting, ignoring duplicate submission");
+      return;
+    }
+    
     try {
+      setSubmitting(true);
       const data = new FormData();
       Object.entries(formData).forEach(([key, value]) => data.append(key, value));
       
@@ -115,8 +127,9 @@ const AdminProducts = () => {
         console.log("✅ Uploading images:", images.length);
       } else {
         console.error("❌ No images selected!");
-        alert("Please select at least one image!");
-        return; // Don't submit without images
+        error("Please select at least one image!");
+        setSubmitting(false);
+        return;
       }
 
       console.log("Submitting to:", editingId ? `PUT /products/${editingId}` : "POST /products");
@@ -131,11 +144,11 @@ const AdminProducts = () => {
       if (editingId) {
         const response = await api.put(`/products/${editingId}`, data, config);
         console.log("Update response:", response.data);
-        success("Product updated");
+        success("Product updated successfully");
       } else {
         const response = await api.post("/products", data, config);
         console.log("Create response:", response.data);
-        success("Product created");
+        success("Product created successfully");
       }
       resetForm();
       fetchData();
@@ -146,14 +159,23 @@ const AdminProducts = () => {
       console.error("Response data:", err.response?.data);
       console.error("Status:", err.response?.status);
       error(err.response?.data?.message || err.message || "Operation failed");
+    } finally {
+      setSubmitting(false);
     }
   };
 
   const handleVariantSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedProduct) return;
+    
+    // Prevent multiple submissions
+    if (submitting) {
+      console.log("⚠️ Already submitting variant, ignoring duplicate submission");
+      return;
+    }
 
     try {
+      setSubmitting(true);
       const data = new FormData();
       data.append("color", variantData.color);
       if (variantData.size) data.append("size", variantData.size);
@@ -171,6 +193,8 @@ const AdminProducts = () => {
       fetchData();
     } catch (err: any) {
       error(err.response?.data?.message || "Failed to add variant");
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -193,6 +217,7 @@ const AdminProducts = () => {
       price: product.price.toString(),
       category: product.category,
       stock: product.stock.toString(),
+      discount: (product as any).discount?.toString() || "0",
     });
     setShowForm(true);
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -210,7 +235,7 @@ const AdminProducts = () => {
   };
 
   const resetForm = () => {
-    setFormData({ title: "", description: "", price: "", category: "", stock: "" });
+    setFormData({ title: "", description: "", price: "", category: "", stock: "", discount: "" });
     setImages(null);
     setEditingId(null);
     setShowForm(false);
@@ -246,7 +271,7 @@ const AdminProducts = () => {
     filteredProducts.reverse();
   }
 
-  if (loading) return <Loading message="Loading products..." variant="product" />;
+  if (showLoading) return <Loading message="Loading products..." variant="product" fullScreen={true} />;
 
   return (
     <div className="p-6 space-y-6">
@@ -316,6 +341,24 @@ const AdminProducts = () => {
                     placeholder="0"
                   />
                 </div>
+                <div>
+                  <Label>Discount (%) - Max 100</Label>
+                  <Input
+                    type="number"
+                    min="0"
+                    max="100"
+                    value={formData.discount}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      const numValue = Number(value);
+                      if (value === '' || (numValue >= 0 && numValue <= 100)) {
+                        setFormData({ ...formData, discount: value });
+                      }
+                    }}
+                    placeholder="0"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Enter discount percentage (0-100)</p>
+                </div>
               </div>
               <div>
                 <Label>Description *</Label>
@@ -363,8 +406,17 @@ const AdminProducts = () => {
                 )}
               </div>
               <div className="flex gap-2">
-                <Button type="submit">{editingId ? "Update" : "Create"}</Button>
-                <Button type="button" variant="outline" onClick={resetForm}>
+                <Button type="submit" disabled={submitting}>
+                  {submitting ? (
+                    <>
+                      <span className="animate-spin mr-2">⏳</span>
+                      {editingId ? "Updating..." : "Creating..."}
+                    </>
+                  ) : (
+                    editingId ? "Update" : "Create"
+                  )}
+                </Button>
+                <Button type="button" variant="outline" onClick={resetForm} disabled={submitting}>
                   Cancel
                 </Button>
               </div>
@@ -442,7 +494,16 @@ const AdminProducts = () => {
                   />
                 </div>
                 <div className="flex gap-2">
-                  <Button type="submit">Add Variant</Button>
+                  <Button type="submit" disabled={submitting}>
+                    {submitting ? (
+                      <>
+                        <span className="animate-spin mr-2">⏳</span>
+                        Adding...
+                      </>
+                    ) : (
+                      "Add Variant"
+                    )}
+                  </Button>
                   <Button
                     type="button"
                     variant="outline"
@@ -450,6 +511,7 @@ const AdminProducts = () => {
                       setShowVariantForm(false);
                       setSelectedProduct(null);
                     }}
+                    disabled={submitting}
                   >
                     Cancel
                   </Button>

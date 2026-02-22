@@ -49,10 +49,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const checkAuth = async () => {
     try {
+      console.log("🔍 Checking auth at:", `${import.meta.env.VITE_API_URL}/auth/me`);
       const { data } = await api.get("/auth/me");
+      console.log("✅ Auth check successful:", data);
       setUser(data);
     } catch (error: any) {
-      console.error("Auth check failed:", error?.response?.data?.message || error.message);
+      console.error("❌ Auth check failed:", {
+        status: error?.response?.status,
+        message: error?.response?.data?.message || error.message,
+        url: error?.config?.url
+      });
       setUser(null);
     } finally {
       setLoading(false);
@@ -75,12 +81,26 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const login = async (email: string, password: string) => {
-    const { data } = await api.post("/auth/login", { email, password });
-    // Set user immediately if OTP is not required (Super Admin case)
-    if (!data.needsOTP && data.user) {
-      setUser(data.user);
+    try {
+      console.log("🔐 Attempting login at:", `${import.meta.env.VITE_API_URL}/auth/login`);
+      const response = await api.post("/auth/login", { email, password });
+      console.log("✅ Login response:", response.data);
+      console.log("✅ Status code:", response.status);
+      // Set user immediately if OTP is not required (Super Admin case)
+      if (!response.data.needsOTP && response.data.user) {
+        setUser(response.data.user);
+      }
+      return response.data;
+    } catch (error: any) {
+      console.error("❌ Login error:", {
+        status: error?.response?.status,
+        statusText: error?.response?.statusText,
+        data: error?.response?.data,
+        message: error.message,
+        url: error?.config?.url
+      });
+      throw error;
     }
-    return data;
   };
 
   const logout = async () => {

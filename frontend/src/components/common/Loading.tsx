@@ -1,53 +1,107 @@
 import React from "react";
 
 interface LoadingProps {
-  size?: "sm" | "md" | "lg" | "xl";
   fullScreen?: boolean;
   text?: string;
+  size?: "sm" | "md" | "lg";
+  variant?: "default" | "minimal" | "dots";
 }
 
 const Loading: React.FC<LoadingProps> = ({
-  size = "md",
   fullScreen = false,
   text = "Loading...",
+  size = "md",
+  variant = "default",
 }) => {
+  const containerClasses = fullScreen
+    ? "fixed inset-0 flex items-center justify-center bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm z-50"
+    : "flex items-center justify-center min-h-[200px]";
+
   const sizeClasses = {
-    sm: { container: "w-12 h-12", inner: "w-6 h-6", border: "border-2" },
-    md: { container: "w-16 h-16", inner: "w-8 h-8", border: "border-3" },
-    lg: { container: "w-20 h-20", inner: "w-10 h-10", border: "border-4" },
-    xl: { container: "w-28 h-28", inner: "w-14 h-14", border: "border-4" },
+    sm: { spinner: "w-12 h-12", inner: "w-8 h-8", dot: "w-4 h-4", text: "text-sm" },
+    md: { spinner: "w-20 h-20", inner: "w-14 h-14", dot: "w-7 h-7", text: "text-base" },
+    lg: { spinner: "w-28 h-28", inner: "w-20 h-20", dot: "w-10 h-10", text: "text-lg" },
   };
 
-  const containerClasses = fullScreen
-    ? "fixed inset-0 flex items-center justify-center bg-gradient-to-br from-white via-purple-50/50 to-pink-50/50 dark:from-gray-900 dark:via-purple-900/20 dark:to-gray-900 z-50"
-    : "flex items-center justify-center py-12";
+  const currentSize = sizeClasses[size];
+
+  if (variant === "minimal") {
+    return (
+      <div className={containerClasses}>
+        <div className="flex flex-col items-center gap-4">
+          <div className={`${currentSize.spinner} border-4 border-gray-200 dark:border-gray-700 border-t-purple-600 rounded-full animate-spin`}></div>
+          {text && (
+            <p className={`text-gray-600 dark:text-gray-400 font-medium ${currentSize.text}`}>
+              {text}
+            </p>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  if (variant === "dots") {
+    return (
+      <div className={containerClasses}>
+        <div className="flex flex-col items-center gap-6">
+          <div className="flex gap-3">
+            <div className="w-4 h-4 bg-purple-600 rounded-full animate-bounce" style={{ animationDelay: "0ms" }}></div>
+            <div className="w-4 h-4 bg-pink-600 rounded-full animate-bounce" style={{ animationDelay: "150ms" }}></div>
+            <div className="w-4 h-4 bg-orange-600 rounded-full animate-bounce" style={{ animationDelay: "300ms" }}></div>
+          </div>
+          {text && (
+            <p className={`text-gray-600 dark:text-gray-400 font-medium ${currentSize.text}`}>
+              {text}
+            </p>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={containerClasses}>
-      <div className="flex flex-col items-center gap-4">
-        <div className={`relative ${sizeClasses[size].container}`}>
-          {/* Outer Ring */}
-          <div
-            className={`absolute inset-0 rounded-full ${sizeClasses[size].border} border-gray-200 dark:border-gray-700`}
+      <div className="flex flex-col items-center gap-6">
+        {/* Modern spinner with gradient */}
+        <div className="relative">
+          {/* Outer spinning ring */}
+          <div className={`${currentSize.spinner} rounded-full border-4 border-gray-200 dark:border-gray-700`}></div>
+          
+          {/* Gradient spinning border */}
+          <div 
+            className={`absolute inset-0 ${currentSize.spinner} rounded-full border-4 border-transparent animate-spin`}
+            style={{ 
+              animationDuration: "1.2s",
+              background: "linear-gradient(to right, rgb(147, 51, 234), rgb(219, 39, 119), rgb(249, 115, 22))",
+              WebkitMask: "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
+              WebkitMaskComposite: "xor",
+              maskComposite: "exclude",
+              padding: "4px"
+            }}
           ></div>
-
-          {/* Animated Ring */}
-          <div
-            className={`absolute inset-0 rounded-full ${sizeClasses[size].border} border-transparent border-t-[var(--root-color)] border-r-purple-500 animate-spin`}
-          ></div>
-
-          {/* Center Dot */}
+          
+          {/* Inner pulsing circle */}
           <div className="absolute inset-0 flex items-center justify-center">
-            <div
-              className={`${sizeClasses[size].inner} bg-gradient-to-br from-[var(--root-color)] to-purple-600 rounded-xl animate-pulse`}
-            ></div>
+            <div className={`${currentSize.inner} rounded-full bg-gradient-to-br from-purple-500 via-pink-500 to-orange-500 animate-pulse`}></div>
+          </div>
+          
+          {/* Center white dot */}
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className={`${currentSize.dot} rounded-full bg-white dark:bg-gray-800 shadow-lg`}></div>
           </div>
         </div>
-
+        
         {text && (
-          <p className="text-gray-600 dark:text-gray-400 text-sm font-medium">
-            {text}
-          </p>
+          <div className="text-center space-y-3">
+            <p className={`text-gray-700 dark:text-gray-300 font-semibold ${currentSize.text}`}>
+              {text}
+            </p>
+            <div className="flex gap-2 justify-center">
+              <div className="w-2 h-2 bg-purple-600 rounded-full animate-bounce" style={{ animationDelay: "0ms" }}></div>
+              <div className="w-2 h-2 bg-pink-600 rounded-full animate-bounce" style={{ animationDelay: "150ms" }}></div>
+              <div className="w-2 h-2 bg-orange-600 rounded-full animate-bounce" style={{ animationDelay: "300ms" }}></div>
+            </div>
+          </div>
         )}
       </div>
     </div>

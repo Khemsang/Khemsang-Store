@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { api } from "../../services/api";
 import { useToast } from "../../context/ToastContext";
 import { useAuth } from "../../context/AuthContext";
+import { useMinimumLoading } from "../../hooks/useMinimumLoading";
 import ConfirmDialog from "../../components/common/ConfirmDialog";
 
 interface Warning {
@@ -82,6 +83,7 @@ const SuperAdminDashboard = () => {
   const [activities, setActivities] = useState<Activity[]>([]);
   const [siteSettings, setSiteSettings] = useState<SiteSettings | null>(null);
   const [loading, setLoading] = useState(true);
+  const showLoading = useMinimumLoading(loading, 1000);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [activeTab, setActiveTab] = useState<
     "admins" | "users" | "activities" | "settings"
@@ -370,10 +372,19 @@ const SuperAdminDashboard = () => {
     );
   }
 
-  if (loading) {
+  if (showLoading) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500"></div>
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="flex flex-col items-center gap-6">
+          <div className="relative w-16 h-16">
+            <div className="absolute inset-0 rounded-full border-4 border-gray-200 dark:border-gray-700"></div>
+            <div 
+              className="absolute inset-0 rounded-full border-4 border-purple-600 dark:border-purple-400 border-t-transparent animate-spin"
+              style={{ animationDuration: "1s" }}
+            ></div>
+          </div>
+          <p className="text-gray-700 dark:text-gray-300 font-semibold text-lg">Loading...</p>
+        </div>
       </div>
     );
   }

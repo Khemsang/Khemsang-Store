@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "../../services/api";
 import { useToast } from "../../context/ToastContext";
+import { useMinimumLoading } from "../../hooks/useMinimumLoading";
 import {
   AreaChart,
   Area,
@@ -34,6 +35,7 @@ const AdminDashboard = () => {
   const { error } = useToast();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
+  const showLoading = useMinimumLoading(loading, 1000);
   const [analytics, setAnalytics] = useState<any>(null);
 
   useEffect(() => {
@@ -52,7 +54,7 @@ const AdminDashboard = () => {
     }
   };
 
-  if (loading) return <Loading message="Loading analytics..." />;
+  if (showLoading) return <Loading message="Loading analytics..." fullScreen={true} />;
   if (!analytics) return <div className="p-8 text-center text-gray-500">No data available</div>;
 
   const stats = [

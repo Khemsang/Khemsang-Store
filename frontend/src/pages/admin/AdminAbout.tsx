@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { api } from "../../services/api";
 import { useToast } from "../../context/ToastContext";
 import { uploadImage } from "../../utils/imageUpload";
+import Loading from "../../components/common/Loading";
 import {
   FaImage,
   FaStar,
@@ -228,16 +229,7 @@ const AdminAbout = () => {
   };
 
   if (loading) {
-    return (
-      <div className="flex justify-center items-center h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50 dark:from-gray-900 dark:via-purple-900/20 dark:to-pink-900/20">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-purple-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600 dark:text-gray-400 text-lg font-medium">
-            Loading About Page...
-          </p>
-        </div>
-      </div>
-    );
+    return <Loading text="Loading about page..." fullScreen={true} />;
   }
 
   return (

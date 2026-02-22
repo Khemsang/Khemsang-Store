@@ -10,6 +10,7 @@ import {
   sendSuperAdminPasswordResetEmail,
 } from "../services/emailService.js";
 import OTP from "../models/OTP.js";
+import { notifyNewCustomer } from "../services/notificationService.js";
 
 // SIGNUP - With email verification
 export const signup = async (req, res) => {
@@ -119,6 +120,14 @@ export const verifyEmail = async (req, res) => {
     await user.save();
 
     console.log("✅ Email verified successfully for:", user.email);
+    
+    // Send notification to admins about new customer
+    try {
+      await notifyNewCustomer(user);
+      console.log("✅ New customer notification sent to admins");
+    } catch (notifError) {
+      console.error("❌ Failed to send customer notification:", notifError.message);
+    }
     
     // Don't auto-login on email verification, just verify the email
     // User should go to login page to complete authentication

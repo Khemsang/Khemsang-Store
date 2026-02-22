@@ -10,6 +10,7 @@ import ShareProduct from "../../components/ui/ShareProduct";
 import SizeGuide from "../../components/ui/SizeGuide";
 import EstimatedDelivery from "../../components/ui/EstimatedDelivery";
 import NotifyMe from "../../components/ui/NotifyMe";
+import Loading from "../../components/common/Loading";
 import { Card, CardContent } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
 import { Badge } from "../../components/ui/badge";
@@ -200,24 +201,7 @@ const ProductDetailsPage: React.FC = () => {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 via-purple-50/30 to-pink-50/30 dark:from-gray-900 dark:via-purple-900/20 dark:to-pink-900/20">
-        <Card className="max-w-sm w-full mx-4">
-          <CardContent className="p-8">
-            <div className="space-y-6">
-              <div className="relative w-full aspect-square rounded-xl bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-600 overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 dark:via-white/10 to-transparent animate-shimmer"></div>
-              </div>
-              <div className="space-y-3">
-                <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded-lg animate-pulse"></div>
-                <div className="h-6 w-2/3 bg-gray-200 dark:bg-gray-700 rounded-lg animate-pulse"></div>
-                <div className="h-8 w-1/2 bg-gray-200 dark:bg-gray-700 rounded-lg animate-pulse"></div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
+    return <Loading text="Loading product details..." fullScreen={true} />;
   }
 
   if (!product) {

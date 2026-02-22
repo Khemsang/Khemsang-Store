@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   FaStar,
   FaTrash,
@@ -9,6 +10,8 @@ import {
 } from "react-icons/fa";
 import { api } from "../../services/api";
 import { useToast } from "../../context/ToastContext";
+import { useMinimumLoading } from "../../hooks/useMinimumLoading";
+import Loading from "../../components/common/Loading";
 
 interface Review {
   _id: string;
@@ -23,9 +26,11 @@ interface Review {
 const AdminReviews = () => {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
+  const showLoading = useMinimumLoading(loading, 1000);
   const [filter, setFilter] = useState("all");
   const [search, setSearch] = useState("");
   const { showToast } = useToast();
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchReviews();
@@ -107,12 +112,8 @@ const AdminReviews = () => {
     </div>
   );
 
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-purple-600"></div>
-      </div>
-    );
+  if (showLoading) {
+    return <Loading text="Loading reviews..." fullScreen={true} />;
   }
 
   return (
@@ -173,11 +174,14 @@ const AdminReviews = () => {
               >
                 <div className="flex flex-col md:flex-row gap-4">
                   {/* Product Image */}
-                  <div className="flex-shrink-0">
+                  <div 
+                    className="flex-shrink-0 cursor-pointer"
+                    onClick={() => navigate(`/product/${review.product?._id}`)}
+                  >
                     <img
                       src={review.product?.images?.[0] || "/placeholder.jpg"}
                       alt={review.product?.title}
-                      className="w-20 h-20 object-cover rounded-xl"
+                      className="w-20 h-20 object-cover rounded-xl hover:opacity-80 transition-opacity"
                     />
                   </div>
 
@@ -200,7 +204,10 @@ const AdminReviews = () => {
                       </div>
                     </div>
 
-                    <p className="text-sm text-purple-600 mb-2">
+                    <p 
+                      className="text-sm text-purple-600 mb-2 cursor-pointer hover:text-purple-700 hover:underline"
+                      onClick={() => navigate(`/product/${review.product?._id}`)}
+                    >
                       Product: {review.product?.title}
                     </p>
 
@@ -211,12 +218,7 @@ const AdminReviews = () => {
                     {/* Actions */}
                     <div className="flex gap-2">
                       <button
-                        onClick={() =>
-                          window.open(
-                            `/product/${review.product?._id}`,
-                            "_blank"
-                          )
-                        }
+                        onClick={() => navigate(`/product/${review.product?._id}`)}
                         className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-lg text-sm hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
                       >
                         <FaEye className="w-3 h-3" />

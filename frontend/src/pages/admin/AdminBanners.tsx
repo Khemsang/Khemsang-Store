@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
 import { bannersApi } from "../../services/api";
 import { useToast } from "../../context/ToastContext";
+import { useMinimumLoading } from "../../hooks/useMinimumLoading";
 import { uploadImage } from "../../utils/imageUpload";
 import { useAuth } from "../../context/AuthContext";
+import Loading from "../../components/common/Loading";
 
 interface Banner {
   _id: string;
@@ -21,6 +23,7 @@ const AdminBanners = () => {
   const { user } = useAuth();
   const [banners, setBanners] = useState<Banner[]>([]);
   const [loading, setLoading] = useState(true);
+  const showLoading = useMinimumLoading(loading, 1000);
   const [showModal, setShowModal] = useState(false);
   const [editingBanner, setEditingBanner] = useState<Banner | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -165,17 +168,8 @@ const AdminBanners = () => {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50 dark:from-gray-900 dark:via-purple-900/20 dark:to-pink-900/20">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-purple-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600 dark:text-gray-400 text-lg font-medium">
-            Loading Banners...
-          </p>
-        </div>
-      </div>
-    );
+  if (showLoading) {
+    return <Loading text="Loading banners..." fullScreen={true} />;
   }
 
   return (

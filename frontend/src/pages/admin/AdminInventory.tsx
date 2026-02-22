@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { api } from "../../services/api";
 import { useToast } from "../../context/ToastContext";
+import { useMinimumLoading } from "../../hooks/useMinimumLoading";
+import Loading from "../../components/common/Loading";
 import {
   FaBox,
   FaExclamationTriangle,
@@ -26,6 +28,7 @@ const AdminInventory = () => {
   const { success, error } = useToast();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const showLoading = useMinimumLoading(loading, 1000);
   const [searchTerm, setSearchTerm] = useState("");
   const [filter, setFilter] = useState<"all" | "low" | "out">("all");
   const [sortBy, setSortBy] = useState<"stock" | "title">("stock");
@@ -88,12 +91,8 @@ const AdminInventory = () => {
     outOfStock: products.filter((p) => p.stock === 0).length,
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[var(--root-color)]"></div>
-      </div>
-    );
+  if (showLoading) {
+    return <Loading text="Loading inventory..." fullScreen={true} />;
   }
 
   return (

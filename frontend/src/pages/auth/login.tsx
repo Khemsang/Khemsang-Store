@@ -44,11 +44,6 @@ const Login: React.FC = () => {
             <div className="absolute inset-0 rounded-full bg-gradient-to-r from-[var(--root-color)] to-purple-600 animate-spin"></div>
             <div className="absolute inset-1 rounded-full bg-white dark:bg-gray-900"></div>
             <div className="absolute inset-3 rounded-full border-4 border-transparent border-t-[var(--root-color)] border-r-purple-600 animate-spin" style={{ animationDirection: 'reverse', animationDuration: '1s' }}></div>
-            <div className="absolute inset-0 flex items-center justify-center">
-              <svg className="w-8 h-8 text-[var(--root-color)] animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-              </svg>
-            </div>
           </div>
           <p className="text-gray-600 dark:text-gray-400 font-medium">Checking authentication...</p>
         </div>

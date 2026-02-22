@@ -151,6 +151,6 @@ productSchema.index({ isFeatured: 1, isActive: 1 }); // Featured products
 productSchema.index({ isBestSeller: 1, isActive: 1 }); // Best sellers
 productSchema.index({ isNewArrival: 1, isActive: 1 }); // New arrivals
 productSchema.index({ rating: -1 }); // Top rated
-productSchema.index({ sku: 1 }, { unique: true, sparse: true }); // SKU lookup
+// Note: sku index is already created via schema definition (unique: true, sparse: true)
 
 export default mongoose.model("Product", productSchema);

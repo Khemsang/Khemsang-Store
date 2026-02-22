@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { api } from "../../../services/api";
 import ViewAllButton from "../../common/ViewAllButton";
+import Loading from "../../common/Loading";
 import {
   FaCouch,
   FaChair,
@@ -128,13 +129,7 @@ const BrowseByCategory: React.FC = () => {
   };
 
   if (loading) {
-    return (
-      <section className="py-16 px-4 bg-white dark:bg-gray-900">
-        <div className="container mx-auto text-center text-gray-500 dark:text-gray-400">
-          Loading categories...
-        </div>
-      </section>
-    );
+    return <Loading text="Loading categories..." size="sm" variant="minimal" />;
   }
 
   if (categories.length === 0) {
@@ -142,24 +137,41 @@ const BrowseByCategory: React.FC = () => {
   }
 
   return (
-    <section className="py-12 sm:py-16 px-4 bg-white dark:bg-gray-900">
-      <div className="container mx-auto">
+    <section className="py-16 sm:py-20 px-4 bg-white dark:bg-gray-900 relative overflow-hidden">
+      {/* Background Decoration */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-500/5 dark:bg-blue-500/10 rounded-full blur-3xl" />
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-purple-500/5 dark:bg-purple-500/10 rounded-full blur-3xl" />
+      </div>
+
+      <div className="container mx-auto relative z-10">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
           viewport={{ once: true }}
-          className="text-center mb-8 sm:mb-12"
+          className="text-center mb-12 sm:mb-16"
         >
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-3 sm:mb-4">
-            Browse by <span className="text-[var(--root-color)]">Category</span>
+          <motion.div
+            initial={{ scale: 0.9 }}
+            whileInView={{ scale: 1 }}
+            transition={{ duration: 0.5, ease: "easeOut" }}
+            viewport={{ once: true }}
+            className="inline-block mb-4"
+          >
+            <span className="px-5 py-2 bg-blue-600 text-white rounded-full text-sm font-semibold shadow-lg">
+              Shop by Category
+            </span>
+          </motion.div>
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4">
+            Explore Our <span className="text-blue-600">Collections</span>
           </h2>
-          <p className="text-gray-600 dark:text-gray-400 text-sm sm:text-base md:text-lg px-4">
-            Explore our wide range of furniture categories
+          <p className="text-gray-600 dark:text-gray-400 text-base sm:text-lg px-4 max-w-2xl mx-auto">
+            Find the perfect products from our carefully curated categories
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4 md:gap-6">
+        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-8 gap-3 sm:gap-4">
           {categories.slice(0, 12).map((category, index) => {
             const IconComponent = getIconComponent(category.icon);
             return (
@@ -167,37 +179,48 @@ const BrowseByCategory: React.FC = () => {
                 key={category._id}
                 initial={{ opacity: 0, scale: 0.9 }}
                 whileInView={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.4, delay: index * 0.1 }}
+                transition={{ 
+                  duration: 0.4, 
+                  delay: index * 0.05,
+                  ease: "easeOut"
+                }}
                 viewport={{ once: true }}
+                whileHover={{ y: -8 }}
+                whileTap={{ scale: 0.95 }}
                 onClick={() => handleCategoryClick(category.name)}
                 className="group cursor-pointer"
               >
-                <div className="relative overflow-hidden rounded-xl sm:rounded-2xl bg-gradient-to-br from-[var(--root-color)] to-purple-600 aspect-square shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 flex flex-col items-center justify-center">
+                <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 aspect-square shadow-lg hover:shadow-2xl transition-all duration-500">
                   {category.image ? (
                     <>
                       <img
                         src={category.image}
                         alt={category.name}
-                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-                      <div className="absolute bottom-0 left-0 right-0 p-2 sm:p-3">
-                        <h3 className="text-white font-bold text-[10px] sm:text-xs md:text-sm text-center leading-tight">
+                      <div className="absolute inset-0 bg-blue-600/0 group-hover:bg-blue-600/20 transition-colors duration-500" />
+                      <div className="absolute bottom-0 left-0 right-0 p-2 text-center">
+                        <h3 className="text-white font-bold text-[10px] sm:text-xs drop-shadow-lg line-clamp-2">
                           {category.name}
                         </h3>
                       </div>
                     </>
                   ) : (
-                    <div className="flex flex-col items-center justify-center p-2 sm:p-3">
-                      <IconComponent className="text-2xl sm:text-3xl md:text-4xl text-white mb-1 sm:mb-2 group-hover:scale-110 transition-transform duration-300" />
-                      <h3 className="text-white font-bold text-[10px] sm:text-xs md:text-sm text-center leading-tight">
+                    <div className="flex flex-col items-center justify-center h-full p-2 group-hover:bg-gradient-to-br group-hover:from-blue-600 group-hover:to-blue-700 transition-all duration-500">
+                      <div className="mb-2 p-2 sm:p-3 bg-white dark:bg-gray-600 rounded-xl shadow-md group-hover:shadow-xl group-hover:scale-110 group-hover:bg-white/20 transition-all duration-500">
+                        <IconComponent className="text-xl sm:text-2xl text-blue-600 dark:text-blue-400 group-hover:text-white transition-colors duration-500" />
+                      </div>
+                      <h3 className="text-gray-800 dark:text-gray-200 group-hover:text-white font-bold text-[10px] sm:text-xs text-center leading-tight transition-colors duration-500 line-clamp-2 px-1">
                         {category.name}
                       </h3>
                     </div>
                   )}
-                  <div className="absolute top-1 right-1 sm:top-2 sm:right-2 bg-white/20 backdrop-blur-sm rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                  
+                  {/* Hover Arrow */}
+                  <div className="absolute top-2 right-2 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition-all duration-500 shadow-lg">
                     <svg
-                      className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-white"
+                      className="w-3 h-3 text-blue-600 dark:text-blue-400 group-hover:translate-x-0.5 transition-transform duration-300"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -205,10 +228,15 @@ const BrowseByCategory: React.FC = () => {
                       <path
                         strokeLinecap="round"
                         strokeLinejoin="round"
-                        strokeWidth={2}
+                        strokeWidth={2.5}
                         d="M9 5l7 7-7 7"
                       />
                     </svg>
+                  </div>
+
+                  {/* Shine Effect */}
+                  <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700">
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
                   </div>
                 </div>
               </motion.div>
@@ -221,12 +249,13 @@ const BrowseByCategory: React.FC = () => {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.3 }}
+            transition={{ duration: 0.5, delay: 0.3, ease: "easeOut" }}
             viewport={{ once: true }}
+            className="mt-12"
           >
             <ViewAllButton
               to="/products"
-              label={`View All Categories (${categories.length})`}
+              label={`View All ${categories.length} Categories`}
               variant="primary"
             />
           </motion.div>

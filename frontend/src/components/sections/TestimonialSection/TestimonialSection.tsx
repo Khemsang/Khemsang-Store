@@ -4,6 +4,7 @@ import { IoMdQuote } from "react-icons/io";
 import { MdChevronLeft, MdChevronRight } from "react-icons/md";
 import { useAppDispatch, useAppSelector } from "../../../store/hooks";
 import { fetchTestimonials } from "../../../store/slices/testimonialsSlice";
+import Loading from "../../common/Loading";
 
 const testimonialHeading = {
   title: "What Our Clients Say",
@@ -63,22 +64,27 @@ const TestimonialSection: React.FC = () => {
   };
 
   if (loading || testimonials.length === 0) {
-    return (
-      <section className="bg-[#f7f1ee] w-full py-16 px-4 text-center">
-        <div className="mb-12 max-w-4xl mx-auto">
-          <h2 className="text-2xl md:text-4xl font-bold text-gray-800">
-            {testimonialHeading.title}
-          </h2>
-          <p className="text-gray-600 mt-3 md:mt-4 text-sm md:text-lg">
-            {testimonialHeading.description}
-          </p>
-        </div>
-        <div className="text-gray-500">Loading testimonials...</div>
-      </section>
-    );
+    return <Loading text="Loading testimonials..." size="sm" variant="minimal" />;
   }
 
   const currentTestimonial = testimonials[currentIndex];
+
+  // Safety check - if no testimonial at current index, return early
+  if (!currentTestimonial) {
+    return (
+      <section className="bg-gray-50 dark:bg-gray-900 w-full py-16 px-4 text-center">
+        <div className="mb-12 max-w-4xl mx-auto">
+          <h2 className="text-2xl md:text-4xl font-bold text-gray-800 dark:text-white">
+            {testimonialHeading.title}
+          </h2>
+          <p className="text-gray-600 dark:text-gray-400 mt-3 md:mt-4 text-sm md:text-lg">
+            {testimonialHeading.description}
+          </p>
+        </div>
+        <div className="text-gray-500 dark:text-gray-400">No testimonials available</div>
+      </section>
+    );
+  }
 
   return (
     <section
@@ -127,7 +133,7 @@ const TestimonialSection: React.FC = () => {
           {/* Card - New Modern Design */}
           <div className="bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 rounded-2xl sm:rounded-3xl p-6 sm:p-8 md:p-12 shadow-2xl border border-gray-100 dark:border-gray-700">
             <div
-              key={currentTestimonial.id}
+              key={currentTestimonial?.id || currentIndex}
               className={`transition-all duration-500 ease-in-out ${
                 animate
                   ? "opacity-100 translate-y-0"
@@ -140,23 +146,27 @@ const TestimonialSection: React.FC = () => {
                 <div className="relative">
                   <div className="absolute inset-0 bg-gradient-to-r from-[var(--root-color)] to-purple-600 rounded-full blur-sm opacity-75"></div>
                   <img
-                    src={currentTestimonial.imageUrl}
-                    alt={currentTestimonial.name}
+                    src={currentTestimonial?.imageUrl || 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%236B7280"%3E%3Cpath d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/%3E%3C/svg%3E'}
+                    alt={currentTestimonial?.name || 'User'}
                     className="relative w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 rounded-full object-cover border-4 border-white dark:border-gray-800 shadow-lg"
+                    onError={(e) => {
+                      // Fallback to a default avatar if image fails to load
+                      (e.target as HTMLImageElement).src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%236B7280"%3E%3Cpath d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/%3E%3C/svg%3E';
+                    }}
                   />
                 </div>
 
                 {/* Name, Role & Rating */}
                 <div className="flex-1 text-center sm:text-left">
                   <h4 className="text-gray-900 dark:text-white font-bold text-lg sm:text-xl md:text-2xl mb-1">
-                    {currentTestimonial.name}
+                    {currentTestimonial?.name || 'Anonymous'}
                   </h4>
                   <p className="text-[var(--root-color)] font-medium text-sm sm:text-base md:text-lg mb-3">
-                    {currentTestimonial.role}
+                    {currentTestimonial?.role || 'Customer'}
                   </p>
                   {/* Rating Stars */}
                   <div className="flex gap-1 justify-center sm:justify-start">
-                    {[...Array(currentTestimonial.rating || 5)].map((_, i) => (
+                    {[...Array(currentTestimonial?.rating || 5)].map((_, i) => (
                       <svg
                         key={i}
                         className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-400 fill-current"
@@ -174,7 +184,7 @@ const TestimonialSection: React.FC = () => {
                 <IoMdQuote className="absolute -top-2 -left-2 text-[var(--root-color)] w-10 h-10 sm:w-12 sm:h-12 rotate-180 opacity-20" />
                 <div className="relative bg-white dark:bg-gray-800 rounded-xl p-4 sm:p-6 shadow-inner">
                   <p className="text-gray-700 dark:text-gray-300 text-sm sm:text-base md:text-lg leading-relaxed italic">
-                    "{currentTestimonial.quote}"
+                    "{currentTestimonial?.quote || 'Great experience!'}"
                   </p>
                 </div>
               </div>

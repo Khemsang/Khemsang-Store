@@ -53,6 +53,19 @@ interface Customer {
 type ViewType = "inbox" | "starred" | "sent" | "drafts" | "trash";
 
 const AdminInbox = () => {
+  const [allMessages, setAllMessages] = useState<{
+    inbox: Message[];
+    starred: Message[];
+    sent: Message[];
+    drafts: Message[];
+    trash: Message[];
+  }>({
+    inbox: [],
+    starred: [],
+    sent: [],
+    drafts: [],
+    trash: [],
+  });
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedMessage, setSelectedMessage] = useState<Message | null>(null);
@@ -70,6 +83,7 @@ const AdminInbox = () => {
   const [showMessageMenu, setShowMessageMenu] = useState<string | null>(null);
   const [adminEmail, setAdminEmail] = useState<string>("");
   const [showFilters, setShowFilters] = useState(false);
+  const [showReplySection, setShowReplySection] = useState(false);
   const [filters, setFilters] = useState({
     readStatus: "all", // all, read, unread
     dateFrom: "",
@@ -135,10 +149,45 @@ const AdminInbox = () => {
   }, []);
 
   useEffect(() => {
-    fetchMessages();
+    fetchAllMessages();
     fetchCustomers();
-    fetchUnreadCount();
-  }, [currentView]);
+  }, []);
+
+  useEffect(() => {
+    // Filter messages when view changes
+    setMessages(allMessages[currentView] || []);
+  }, [currentView, allMessages]);
+
+  const fetchAllMessages = async () => {
+    try {
+      setLoading(true);
+      
+      // Fetch all message types in parallel
+      const [inboxRes, starredRes, sentRes, draftsRes, trashRes] = await Promise.all([
+        api.get("/messages/inbox"),
+        api.get("/messages/starred"),
+        api.get("/messages/sent"),
+        api.get("/messages/drafts"),
+        api.get("/messages/trash"),
+      ]);
+
+      setAllMessages({
+        inbox: inboxRes.data,
+        starred: starredRes.data,
+        sent: sentRes.data,
+        drafts: draftsRes.data,
+        trash: trashRes.data,
+      });
+      
+      // Calculate unread count from inbox
+      const unread = inboxRes.data.filter((m: Message) => !m.isRead).length;
+      setUnreadCount(unread);
+    } catch (err) {
+      error("Failed to fetch messages");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const fetchCustomers = async () => {
     try {
@@ -159,33 +208,29 @@ const AdminInbox = () => {
   };
 
   const fetchMessages = async () => {
-    try {
-      setLoading(true);
-      const endpoint = {
-        inbox: "/messages/inbox",
-        starred: "/messages/starred",
-        sent: "/messages/sent",
-        drafts: "/messages/drafts",
-        trash: "/messages/trash",
-      }[currentView];
-
-      const { data } = await api.get(endpoint);
-      setMessages(data);
-    } catch (err) {
-      error("Failed to fetch messages");
-    } finally {
-      setLoading(false);
-    }
+    // Refresh all messages
+    await fetchAllMessages();
   };
 
   const handleViewMessage = async (message: Message) => {
     try {
       const { data } = await api.get(`/messages/${message._id}`);
       setSelectedMessage(data);
-      setMessages((prev) =>
-        prev.map((m) => (m._id === message._id ? { ...m, isRead: true } : m))
-      );
-      fetchUnreadCount();
+      setShowReplySection(false);
+      setReplyText("");
+      
+      // Update read status in allMessages
+      setAllMessages(prev => ({
+        ...prev,
+        [currentView]: prev[currentView].map((m) => 
+          m._id === message._id ? { ...m, isRead: true } : m
+        ),
+      }));
+      
+      // Update unread count
+      if (!message.isRead && currentView === "inbox") {
+        setUnreadCount(prev => Math.max(0, prev - 1));
+      }
     } catch (err) {
       error("Failed to load message");
     }
@@ -211,6 +256,7 @@ const AdminInbox = () => {
           });
           success("Reply sent successfully");
           setReplyText("");
+          setShowReplySection(false);
           setSelectedMessage(null);
           fetchMessages();
         } catch (err) {
@@ -528,11 +574,11 @@ const AdminInbox = () => {
     });
   };
 
-  if (loading) return <Loading message="Loading inbox..." />;
+  if (loading) return <Loading message="Loading inbox..." fullScreen={true} />;
 
   return (
     <div className="flex flex-col h-[calc(100vh-8rem)] bg-white dark:bg-gray-900">
-      {/* Gmail Header */}
+      {/* Mail Header */}
       <div className="flex items-center justify-between px-4 py-2 border-b border-gray-200 dark:border-gray-700">
         <div className="flex items-center gap-4 flex-1">
           <button 
@@ -541,16 +587,12 @@ const AdminInbox = () => {
           >
             <Menu className="w-5 h-5 text-gray-600 dark:text-gray-400" />
           </button>
-          <a 
-            href={adminEmail ? `https://mail.google.com/mail/u/${adminEmail}` : "https://mail.google.com"}
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="flex items-center gap-2 hover:opacity-80 transition-opacity"
-            title={adminEmail ? `Open Gmail for ${adminEmail}` : "Open Gmail"}
-          >
-            <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23EA4335'%3E%3Cpath d='M24 5.457v13.909c0 .904-.732 1.636-1.636 1.636h-3.819V11.73L12 16.64l-6.545-4.91v9.273H1.636A1.636 1.636 0 0 1 0 19.366V5.457c0-2.023 2.309-3.178 3.927-1.964L5.455 4.64 12 9.548l6.545-4.91 1.528-1.145C21.69 2.28 24 3.434 24 5.457z'/%3E%3C/svg%3E" alt="Gmail" className="w-8 h-8" />
-            <span className="text-xl text-gray-700 dark:text-gray-300">Gmail</span>
-          </a>
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center shadow-md">
+              <InboxIcon className="w-6 h-6 text-white" />
+            </div>
+            <span className="text-2xl font-semibold text-gray-800 dark:text-gray-200">Mail</span>
+          </div>
         </div>
         
         <div className="flex items-center gap-2 flex-1 max-w-2xl">
@@ -1009,29 +1051,51 @@ const AdminInbox = () => {
 
                 {!selectedMessage.isDraft && currentView !== "trash" && (
                   <div className="border-t pt-6">
-                    <div className="flex items-center gap-2 mb-4">
+                    <button
+                      onClick={() => setShowReplySection(!showReplySection)}
+                      className="flex items-center gap-2 mb-4 px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+                    >
                       <Reply className="w-5 h-5" />
                       <span className="font-medium">Reply</span>
-                    </div>
-                    <Textarea
-                      value={replyText}
-                      onChange={(e) => setReplyText(e.target.value)}
-                      placeholder="Type your reply..."
-                      rows={6}
-                      className="mb-4"
-                    />
-                    <div className="flex gap-3">
-                      <button
-                        onClick={handleSendReply}
-                        disabled={sending || !replyText.trim()}
-                        className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded disabled:opacity-50 disabled:cursor-not-allowed"
+                      <svg
+                        className={`w-4 h-4 transition-transform ${showReplySection ? 'rotate-180' : ''}`}
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
                       >
-                        {sending ? "Sending..." : "Send"}
-                      </button>
-                      <button onClick={() => setReplyText("")} className="px-6 py-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded">
-                        Discard
-                      </button>
-                    </div>
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+                    
+                    {showReplySection && (
+                      <div className="mt-4">
+                        <Textarea
+                          value={replyText}
+                          onChange={(e) => setReplyText(e.target.value)}
+                          placeholder="Type your reply..."
+                          rows={6}
+                          className="mb-4"
+                        />
+                        <div className="flex gap-3">
+                          <button
+                            onClick={handleSendReply}
+                            disabled={sending || !replyText.trim()}
+                            className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            {sending ? "Sending..." : "Send"}
+                          </button>
+                          <button 
+                            onClick={() => {
+                              setReplyText("");
+                              setShowReplySection(false);
+                            }} 
+                            className="px-6 py-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>

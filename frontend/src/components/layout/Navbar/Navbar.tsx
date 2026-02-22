@@ -10,7 +10,7 @@ import {
   FaUser,
   FaTimes,
   FaTachometerAlt,
-  FaBox,
+  FaShoppingBag,
   FaImages,
   FaInfoCircle,
   FaEnvelope,
@@ -20,6 +20,7 @@ import {
   FaDoorOpen,
   FaHeart,
   FaChevronRight,
+  FaBox,
 } from "react-icons/fa";
 import ResponsiveMenu from "./Responsive";
 
@@ -85,7 +86,7 @@ const Navbar: React.FC = () => {
     {
       name: "Products",
       path: "/products",
-      icon: FaBox,
+      icon: FaShoppingBag,
       submenu: categories.map((cat) => ({
         name: cat.name,
         icon: getIconComponent(cat.icon),
@@ -196,13 +197,13 @@ const Navbar: React.FC = () => {
                 onMouseEnter={() => handleEnter(name)}
                 onMouseLeave={handleLeave}
               >
-                <a
-                  href={path}
+                <button
+                  onClick={() => navigate(path)}
                   className="flex items-center gap-3 px-6 py-3 rounded-xl text-gray-700 dark:text-gray-300 hover:text-[var(--root-color)] hover:bg-gray-100/70 dark:hover:bg-gray-800/70 transition-all duration-300 font-medium"
                 >
                   {Icon && <Icon className="text-lg" />}
                   {name}
-                </a>
+                </button>
 
                 {/* Submenu */}
                 {submenu && hoveredMenu === name && (

@@ -3,18 +3,10 @@ import User from "../models/User.js";
 import logger from "../config/logger.js";
 import { ApiResponse } from "../utils/apiResponse.js";
 
-/**
- * ========================================
- * UNIFIED AUTHENTICATION MIDDLEWARE
- * Consolidates auth.js + roleAuth.js
- * ========================================
- */
 
-// ============ TOKEN UTILITIES ============
 
-/**
- * Generate Access Token (15 minutes)
- */
+//  * Generate Access Token (15 minutes)
+ 
 export const generateAccessToken = (userId) => {
   return jwt.sign({ id: userId, type: "access" }, process.env.JWT_SECRET, {
     expiresIn: "15m",

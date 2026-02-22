@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { api } from "../../services/api";
 import { useToast } from "../../context/ToastContext";
+import { useMinimumLoading } from "../../hooks/useMinimumLoading";
 import { Card, CardContent } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
 import { Badge } from "../../components/ui/badge";
@@ -48,8 +49,11 @@ interface Order {
 }
 
 const AdminOrders = () => {
-  const [orders, setOrders] = useState<Order[]>([]);
+  const [allOrders, setAllOrders] = useState<Order[]>([]); // Store all orders
+  const [orders, setOrders] = useState<Order[]>([]); // Filtered orders
   const [loading, setLoading] = useState(true);
+  const showLoading = useMinimumLoading(loading, 1000);
+  const [tabLoading, setTabLoading] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [activeTab, setActiveTab] = useState("pending"); // Default to pending
   const [updatingStatus, setUpdatingStatus] = useState(false);
@@ -58,21 +62,24 @@ const AdminOrders = () => {
   const { success, error } = useToast();
 
   useEffect(() => {
-    fetchOrders(activeTab);
-  }, [activeTab]);
+    fetchAllOrders();
+  }, []);
 
-  const fetchOrders = async (status: string = "pending") => {
+  useEffect(() => {
+    filterOrders(activeTab);
+  }, [activeTab, allOrders]);
+
+  const fetchAllOrders = async () => {
     try {
       setLoading(true);
-      const url = status === "all" ? "/orders" : `/orders?status=${status}`;
-      const { data } = await api.get(url);
+      const { data } = await api.get("/orders");
       
       // Remove any potential duplicates by order ID
       const uniqueOrders = data.filter((order: Order, index: number, self: Order[]) =>
         index === self.findIndex((o) => o._id === order._id)
       );
       
-      setOrders(uniqueOrders);
+      setAllOrders(uniqueOrders);
     } catch (err) {
       error("Failed to fetch orders");
     } finally {
@@ -80,10 +87,23 @@ const AdminOrders = () => {
     }
   };
 
+  const filterOrders = (status: string) => {
+    if (status === "all") {
+      setOrders(allOrders);
+    } else {
+      setOrders(allOrders.filter(order => order.orderStatus === status));
+    }
+  };
+
   const markAsRead = async (orderId: string) => {
     try {
       await api.put(`/orders/${orderId}/mark-read`);
-      // Update local state
+      // Update local state in both allOrders and orders
+      setAllOrders((prev) =>
+        prev.map((order) =>
+          order._id === orderId ? { ...order, isRead: true } : order
+        )
+      );
       setOrders((prev) =>
         prev.map((order) =>
           order._id === orderId ? { ...order, isRead: true } : order
@@ -113,8 +133,8 @@ const AdminOrders = () => {
       setPendingStatus("");
       setSelectedOrder(null);
       
-      // Refresh orders to get clean updated list
-      await fetchOrders(activeTab);
+      // Refresh all orders to get clean updated list
+      await fetchAllOrders();
     } catch (err) {
       error("Failed to update status");
     } finally {
@@ -135,21 +155,21 @@ const AdminOrders = () => {
 
   // Calculate revenue statistics
   const calculateRevenue = () => {
-    const paidOrders = orders.filter((o) => o.paymentStatus === "paid");
+    const paidOrders = allOrders.filter((o) => o.paymentStatus === "paid");
     const totalRevenue = paidOrders.reduce((sum, o) => sum + o.totalAmount, 0);
-    const unreadCount = orders.filter((o) => !o.isRead).length;
+    const unreadCount = allOrders.filter((o) => !o.isRead).length;
     
     const revenueByStatus = {
-      pending: orders
+      pending: allOrders
         .filter((o) => o.orderStatus === "pending" && o.paymentStatus === "paid")
         .reduce((sum, o) => sum + o.totalAmount, 0),
-      processing: orders
+      processing: allOrders
         .filter((o) => o.orderStatus === "processing" && o.paymentStatus === "paid")
         .reduce((sum, o) => sum + o.totalAmount, 0),
-      shipped: orders
+      shipped: allOrders
         .filter((o) => o.orderStatus === "shipped" && o.paymentStatus === "paid")
         .reduce((sum, o) => sum + o.totalAmount, 0),
-      delivered: orders
+      delivered: allOrders
         .filter((o) => o.orderStatus === "delivered" && o.paymentStatus === "paid")
         .reduce((sum, o) => sum + o.totalAmount, 0),
     };
@@ -189,7 +209,7 @@ const AdminOrders = () => {
     }
   };
 
-  if (loading) return <Loading message="Loading orders..." variant="delivery" />;
+  if (showLoading) return <Loading message="Loading orders..." variant="delivery" fullScreen={true} />;
 
   return (
     <div className="p-6 space-y-6">
@@ -233,7 +253,7 @@ const AdminOrders = () => {
               </div>
               <div>
                 <p className="text-sm text-gray-500">Total Orders</p>
-                <p className="text-2xl font-bold">{orders.length}</p>
+                <p className="text-2xl font-bold">{allOrders.length}</p>
               </div>
             </div>
           </CardContent>
@@ -248,7 +268,7 @@ const AdminOrders = () => {
               <div>
                 <p className="text-sm text-gray-500">Shipped</p>
                 <p className="text-2xl font-bold">
-                  {orders.filter((o) => o.orderStatus === "shipped").length}
+                  {allOrders.filter((o) => o.orderStatus === "shipped").length}
                 </p>
               </div>
             </div>
@@ -264,7 +284,7 @@ const AdminOrders = () => {
               <div>
                 <p className="text-sm text-gray-500">Pending</p>
                 <p className="text-2xl font-bold">
-                  {orders.filter((o) => o.orderStatus === "pending").length}
+                  {allOrders.filter((o) => o.orderStatus === "pending").length}
                 </p>
               </div>
             </div>

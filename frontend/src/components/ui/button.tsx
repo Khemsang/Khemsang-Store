@@ -11,11 +11,11 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant = "default", size = "default", ...props }, ref) => {
     const variants = {
       default:
-        "bg-gradient-to-r from-blue-600 to-orange-600 text-white hover:from-blue-700 hover:to-orange-700 shadow-lg",
+        "bg-blue-600 text-white hover:bg-blue-700 shadow-md hover:shadow-lg",
       outline:
         "border-2 border-gray-300 dark:border-gray-600 bg-transparent hover:bg-gray-100 dark:hover:bg-gray-800",
       ghost: "hover:bg-gray-100 dark:hover:bg-gray-800",
-      destructive: "bg-gradient-to-r from-orange-600 to-red-600 text-white hover:from-orange-700 hover:to-red-700 shadow-lg",
+      destructive: "bg-red-600 text-white hover:bg-red-700 shadow-md hover:shadow-lg",
     };
 
     const sizes = {

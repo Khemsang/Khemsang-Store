@@ -8,6 +8,7 @@ import SimpleProductCard from "../../products/SimpleProductCard";
 import { useCart } from "../../../context/CartContext";
 import { useToast } from "../../../context/ToastContext";
 import ViewAllButton from "../../common/ViewAllButton";
+import Loading from "../../common/Loading";
 
 const LatestItems: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -46,13 +47,7 @@ const LatestItems: React.FC = () => {
     .slice(0, 8);
 
   if (loading) {
-    return (
-      <section className="py-16 px-4 bg-gray-50 dark:bg-gray-900">
-        <div className="container mx-auto text-center text-gray-500 dark:text-gray-400">
-          Loading latest items...
-        </div>
-      </section>
-    );
+    return <Loading text="Loading latest items..." size="sm" variant="minimal" />;
   }
 
   return (

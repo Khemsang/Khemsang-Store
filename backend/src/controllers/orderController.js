@@ -14,6 +14,11 @@ import {
   generateInvoiceHTML,
   generateInvoiceData,
 } from "../services/invoiceService.js";
+import {
+  notifyNewOrder,
+  notifyOrderStatusChange,
+  notifyOrderCancelled,
+} from "../services/notificationService.js";
 
 /**
  * CREATE ORDER
@@ -79,6 +84,14 @@ export const createOrder = async (req, res) => {
       console.log("✅ Order confirmation email sent");
     } catch (emailError) {
       console.error("❌ Failed to send order email:", emailError.message);
+    }
+
+    // Send notification to admins
+    try {
+      await notifyNewOrder(populatedOrder);
+      console.log("✅ Order notification sent to admins");
+    } catch (notifError) {
+      console.error("❌ Failed to send order notification:", notifError.message);
     }
 
     res.status(201).json(order);
@@ -208,6 +221,18 @@ export const updateOrderStatus = async (req, res) => {
         }
       } catch (emailError) {
         console.error("❌ Failed to send status email:", emailError.message);
+      }
+
+      // Send notification to admins
+      try {
+        if (orderStatus === "cancelled") {
+          await notifyOrderCancelled(updatedOrder);
+        } else {
+          await notifyOrderStatusChange(updatedOrder, previousStatus, orderStatus);
+        }
+        console.log("✅ Order status notification sent to admins");
+      } catch (notifError) {
+        console.error("❌ Failed to send status notification:", notifError.message);
       }
     }
 
