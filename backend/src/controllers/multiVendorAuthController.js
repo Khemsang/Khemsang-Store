@@ -53,7 +53,6 @@ export const registerCustomer = async (req, res) => {
     // Send verification email
     try {
       await sendVerificationEmail(email, verificationToken);
-      console.log("✅ Verification email sent to:", email);
     } catch (emailError) {
       console.error("❌ Failed to send verification email:", emailError.message);
     }
@@ -143,7 +142,6 @@ export const registerSeller = async (req, res) => {
     // Send verification email
     try {
       await sendVerificationEmail(email, verificationToken);
-      console.log("✅ Seller verification email sent to:", email);
     } catch (emailError) {
       console.error("❌ Failed to send verification email:", emailError.message);
     }
@@ -327,7 +325,6 @@ export const login = async (req, res) => {
 
     // Skip OTP for Super Admin (as per existing logic)
     if (user.role === "super-admin") {
-      console.log("🔑 Super Admin login - skipping OTP");
       
       user.otpVerifiedAt = new Date();
       await user.save();
@@ -363,7 +360,6 @@ export const login = async (req, res) => {
 
     try {
       await sendOTPEmail(email, otpCode);
-      console.log("✅ OTP sent to:", email);
     } catch (emailError) {
       console.error("❌ Failed to send OTP:", emailError.message);
       if (process.env.NODE_ENV === "development") {

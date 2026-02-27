@@ -23,7 +23,7 @@ const OrderCard = ({ order, onClick }: OrderCardProps) => (
     className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors cursor-pointer"
   >
     <div className="flex items-center gap-4 flex-1">
-      <div className="w-10 h-10 bg-gradient-to-r from-[var(--root-color)] to-purple-600 rounded-lg flex items-center justify-center text-white font-bold text-sm">
+      <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center text-white font-bold text-sm">
         #{order._id.slice(-4)}
       </div>
       <div className="flex-1">

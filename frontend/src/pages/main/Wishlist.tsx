@@ -47,15 +47,19 @@ const Wishlist = () => {
       if (user) {
         // Load from backend if logged in
         const { data } = await api.get("/auth/wishlist");
-        const wishlistProducts = data.map((item: any) => ({
-          _id: item.product._id,
-          name: item.product.title,
-          price: item.product.price,
-          images: item.product.images,
-          category: item.product.category?.name || item.product.category,
-          discount: item.product.discount,
-          stock: item.product.stock,
-          rating: item.product.rating,
+        
+        // Filter out any null/undefined products (in case product was deleted)
+        const validProducts = data.filter((product: any) => product && product._id);
+        
+        const wishlistProducts = validProducts.map((product: any) => ({
+          _id: product._id,
+          name: product.title,
+          price: product.price,
+          images: product.images || [],
+          category: product.category?.name || product.category || "Uncategorized",
+          discount: product.discount || 0,
+          stock: product.stock || 0,
+          rating: product.rating || 0,
         }));
         setProducts(wishlistProducts);
         setWishlistIds(wishlistProducts.map((p: Product) => p._id));
@@ -67,14 +71,24 @@ const Wishlist = () => {
 
         if (ids.length > 0) {
           const { data } = await api.get("/products");
-          const wishlistProducts = data.filter((p: Product) =>
-            ids.includes(p._id)
-          );
+          const wishlistProducts = data
+            .filter((p: any) => ids.includes(p._id))
+            .map((product: any) => ({
+              _id: product._id,
+              name: product.title,
+              price: product.price,
+              images: product.images || [],
+              category: product.category?.name || product.category || "Uncategorized",
+              discount: product.discount || 0,
+              stock: product.stock || 0,
+              rating: product.rating || 0,
+            }));
           setProducts(wishlistProducts);
         }
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error("Error loading wishlist:", err);
+      error(err.response?.data?.message || "Failed to load wishlist");
     } finally {
       setLoading(false);
     }
@@ -123,8 +137,12 @@ const Wishlist = () => {
     }
     try {
       setAddingToCart(product._id);
-      await addToCart(product._id, 1);
-      success("Added to cart!");
+      const result = await addToCart(product._id, 1);
+      
+      // Only show toast if it's a new item
+      if (result?.isNew) {
+        success("Added to cart!");
+      }
     } catch (err: any) {
       error(err.response?.data?.message || "Failed to add to cart");
     } finally {

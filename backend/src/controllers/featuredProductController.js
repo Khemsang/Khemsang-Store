@@ -67,20 +67,14 @@ export const getFeaturedProductById = async (req, res) => {
 // Create featured product (admin)
 export const createFeaturedProduct = async (req, res) => {
   try {
-    console.log("📝 Creating featured product...");
-    console.log("Body:", req.body);
-    console.log("File:", req.file ? "Present" : "Missing");
     
     let imageUrl = "";
     
     // Upload image if provided
     if (req.file) {
-      console.log("📤 Uploading image to cloudinary...");
       const result = await uploadBufferToCloudinary(req.file.buffer);
       imageUrl = result.secure_url;
-      console.log("✅ Image uploaded:", imageUrl);
     } else {
-      console.log("⚠️ No image file provided");
     }
 
     const productData = {
@@ -88,10 +82,8 @@ export const createFeaturedProduct = async (req, res) => {
       image: imageUrl,
     };
 
-    console.log("💾 Saving product:", productData);
     const product = new FeaturedProduct(productData);
     await product.save();
-    console.log("✅ Product created successfully");
     res.status(201).json(product);
   } catch (err) {
     console.error("❌ Create featured product error:", err);

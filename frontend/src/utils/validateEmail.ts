@@ -1,18 +1,8 @@
-/**
- * Validate email format
- * @param email - Email string to validate
- * @returns Boolean indicating if email is valid
- */
 export const validateEmail = (email: string): boolean => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return emailRegex.test(email);
 };
 
-/**
- * Validate password strength
- * @param password - Password string to validate
- * @returns Object with validation result and message
- */
 export const validatePassword = (
   password: string
 ): { isValid: boolean; message: string } => {
@@ -43,9 +33,6 @@ export const validatePassword = (
   return { isValid: true, message: "Password is strong" };
 };
 
-/**
- * Validate phone number (Nepal format)
- */
 export const validatePhone = (phone: string): boolean => {
   const phoneRegex = /^(98|97)\d{8}$/;
   return phoneRegex.test(phone.replace(/\s+/g, ""));

@@ -6,21 +6,11 @@ interface ExportData {
   sheetName?: string;
 }
 
-/**
- * Export data to Excel file
- */
 export const exportToExcel = ({ data, filename, sheetName = 'Sheet1' }: ExportData) => {
   try {
-    // Create a new workbook
     const workbook = XLSX.utils.book_new();
-
-    // Convert data to worksheet
     const worksheet = XLSX.utils.json_to_sheet(data);
-
-    // Add worksheet to workbook
     XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
-
-    // Generate Excel file and trigger download
     XLSX.writeFile(workbook, `${filename}.xlsx`);
 
     return true;
@@ -30,9 +20,6 @@ export const exportToExcel = ({ data, filename, sheetName = 'Sheet1' }: ExportDa
   }
 };
 
-/**
- * Export orders to Excel
- */
 export const exportOrdersToExcel = (orders: any[]) => {
   const formattedData = orders.map((order, index) => ({
     'S.N.': index + 1,
@@ -60,9 +47,6 @@ export const exportOrdersToExcel = (orders: any[]) => {
   });
 };
 
-/**
- * Export products to Excel
- */
 export const exportProductsToExcel = (products: any[]) => {
   const formattedData = products.map((product, index) => ({
     'S.N.': index + 1,
@@ -88,9 +72,6 @@ export const exportProductsToExcel = (products: any[]) => {
   });
 };
 
-/**
- * Export customers to Excel
- */
 export const exportCustomersToExcel = (customers: any[]) => {
   const formattedData = customers.map((customer, index) => ({
     'S.N.': index + 1,
@@ -115,14 +96,10 @@ export const exportCustomersToExcel = (customers: any[]) => {
   });
 };
 
-/**
- * Export analytics/dashboard data to Excel with multiple sheets
- */
 export const exportAnalyticsToExcel = (analytics: any) => {
   try {
     const workbook = XLSX.utils.book_new();
 
-    // Summary Sheet
     const summaryData = [
       { Metric: 'Total Revenue', Value: `Rs. ${analytics.totalRevenue?.toLocaleString() || 0}` },
       { Metric: 'Total Orders', Value: analytics.totalOrders || 0 },
@@ -133,7 +110,6 @@ export const exportAnalyticsToExcel = (analytics: any) => {
     const summarySheet = XLSX.utils.json_to_sheet(summaryData);
     XLSX.utils.book_append_sheet(workbook, summarySheet, 'Summary');
 
-    // Monthly Revenue Sheet
     if (analytics.monthlyRevenue && analytics.monthlyRevenue.length > 0) {
       const revenueData = analytics.monthlyRevenue.map((item: any) => ({
         Month: item.month,
@@ -143,7 +119,6 @@ export const exportAnalyticsToExcel = (analytics: any) => {
       XLSX.utils.book_append_sheet(workbook, revenueSheet, 'Monthly Revenue');
     }
 
-    // Order Status Sheet
     if (analytics.ordersByStatus && analytics.ordersByStatus.length > 0) {
       const statusData = analytics.ordersByStatus.map((item: any) => ({
         Status: item.status?.charAt(0).toUpperCase() + item.status?.slice(1) || 'N/A',
@@ -153,7 +128,6 @@ export const exportAnalyticsToExcel = (analytics: any) => {
       XLSX.utils.book_append_sheet(workbook, statusSheet, 'Order Status');
     }
 
-    // Recent Orders Sheet
     if (analytics.recentOrders && analytics.recentOrders.length > 0) {
       const ordersData = analytics.recentOrders.map((order: any, index: number) => ({
         'S.N.': index + 1,
@@ -167,7 +141,6 @@ export const exportAnalyticsToExcel = (analytics: any) => {
       XLSX.utils.book_append_sheet(workbook, ordersSheet, 'Recent Orders');
     }
 
-    // Generate and download
     XLSX.writeFile(workbook, `Analytics_Report_${new Date().toISOString().split('T')[0]}.xlsx`);
     return true;
   } catch (error) {
@@ -176,9 +149,6 @@ export const exportAnalyticsToExcel = (analytics: any) => {
   }
 };
 
-/**
- * Export revenue report to Excel
- */
 export const exportRevenueReportToExcel = (data: any) => {
   const formattedData = data.map((item: any) => ({
     'Month': item.month || item.date,

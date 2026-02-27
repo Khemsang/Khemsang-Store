@@ -46,6 +46,10 @@ const messageSchema = new mongoose.Schema(
         ref: "User",
       },
     ],
+    isReplied: {
+      type: Boolean,
+      default: false,
+    },
     parentMessage: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Message",

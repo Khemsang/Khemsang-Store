@@ -17,8 +17,9 @@ interface Product {
 const NewArrivals = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
-  const { addToCart } = useCart();
+  const { addToCart, cart } = useCart();
   const { showToast } = useToast();
+  const [addingToCart, setAddingToCart] = useState<string | null>(null);
 
   useEffect(() => {
     fetchNewArrivals();
@@ -42,9 +43,32 @@ const NewArrivals = () => {
     }
   };
 
-  const handleAddToCart = (product: any) => {
-    addToCart(product._id, 1);
-    showToast(`${product.title} added to cart!`, "success");
+  const handleAddToCart = async (product: any) => {
+    // Prevent rapid clicks
+    if (addingToCart === product._id) {
+      return;
+    }
+
+    try {
+      setAddingToCart(product._id);
+      
+      // Check if product already exists in cart BEFORE API call
+      const isExistingItem = cart.some((item) => {
+        return item.product?._id === product._id && !item.colorVariant;
+      });
+      
+      await addToCart(product._id, 1);
+      
+      // Only show toast if it was a NEW item
+      if (!isExistingItem) {
+        showToast(`${product.title} added to cart!`, "success");
+      }
+    } catch (error) {
+      console.error("Error adding to cart:", error);
+      showToast("Failed to add to cart", "error");
+    } finally {
+      setAddingToCart(null);
+    }
   };
 
   if (loading) {
@@ -83,15 +107,17 @@ const NewArrivals = () => {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-6">
             {products.map((product, index) => (
               <SimpleProductCard
                 key={product._id}
                 product={product}
                 onAddToCart={handleAddToCart}
+                showOriginalPrice={true}
+                showColorVariants={true}
                 badge={
                   index < 5 ? (
-                    <span className="px-2 py-0.5 bg-gradient-to-r from-green-500 to-emerald-500 text-white text-[10px] font-bold rounded flex items-center gap-0.5">
+                    <span className="px-2 py-0.5 bg-green-500 text-white text-[10px] font-bold rounded flex items-center gap-0.5">
                       <FaStar className="w-2.5 h-2.5" />
                       NEW
                     </span>

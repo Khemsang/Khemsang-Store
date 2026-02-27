@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { api } from "../../services/api";
 import { useToast } from "../../context/ToastContext";
 import { useMinimumLoading } from "../../hooks/useMinimumLoading";
+import { useScrollToTop } from "../../hooks/useScrollToTop";
 import { Card, CardContent } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
 import { Badge } from "../../components/ui/badge";
@@ -59,6 +60,12 @@ const AdminOrders = () => {
   const [updatingStatus, setUpdatingStatus] = useState(false);
   const [showStatusConfirm, setShowStatusConfirm] = useState(false);
   const [pendingStatus, setPendingStatus] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  
+  // Scroll to top when page changes
+  useScrollToTop(currentPage);
+  
+  const [itemsPerPage] = useState(10);
   const { success, error } = useToast();
 
   useEffect(() => {
@@ -67,6 +74,7 @@ const AdminOrders = () => {
 
   useEffect(() => {
     filterOrders(activeTab);
+    setCurrentPage(1); // Reset to page 1 when tab changes
   }, [activeTab, allOrders]);
 
   const fetchAllOrders = async () => {
@@ -178,6 +186,12 @@ const AdminOrders = () => {
   };
 
   const revenue = calculateRevenue();
+
+  // Pagination logic
+  const totalPages = Math.ceil(orders.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentOrders = orders.slice(startIndex, endIndex);
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -343,7 +357,7 @@ const AdminOrders = () => {
             <TabsContent>
               {/* Orders List */}
               <div className="space-y-4 mt-6">
-                {orders.map((order) => (
+                {currentOrders.map((order) => (
                   <Card
                     key={order._id}
                     className={`hover:shadow-lg transition-shadow ${
@@ -423,6 +437,59 @@ const AdminOrders = () => {
                   </div>
                 )}
               </div>
+
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <div className="flex items-center justify-center gap-2 mt-6">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                    disabled={currentPage === 1}
+                  >
+                    Previous
+                  </Button>
+                  
+                  <div className="flex gap-1">
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
+                      if (
+                        page === 1 ||
+                        page === totalPages ||
+                        (page >= currentPage - 1 && page <= currentPage + 1)
+                      ) {
+                        return (
+                          <Button
+                            key={page}
+                            size="sm"
+                            variant={currentPage === page ? "default" : "outline"}
+                            onClick={() => setCurrentPage(page)}
+                          >
+                            {page}
+                          </Button>
+                        );
+                      } else if (page === currentPage - 2 || page === currentPage + 2) {
+                        return <span key={page} className="px-2">...</span>;
+                      }
+                      return null;
+                    })}
+                  </div>
+                  
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                    disabled={currentPage === totalPages}
+                  >
+                    Next
+                  </Button>
+                </div>
+              )}
+              
+              {orders.length > 0 && (
+                <div className="text-center text-sm text-gray-500 mt-4">
+                  Showing {startIndex + 1} to {Math.min(endIndex, orders.length)} of {orders.length} orders
+                </div>
+              )}
             </TabsContent>
           </Tabs>
         </CardContent>
@@ -430,119 +497,172 @@ const AdminOrders = () => {
 
       {/* Order Details Dialog */}
       <Dialog open={!!selectedOrder} onOpenChange={() => setSelectedOrder(null)}>
-        <DialogContent>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Order Details #{selectedOrder?._id.slice(-8)}</DialogTitle>
+            <DialogTitle className="text-2xl">
+              Order #{selectedOrder?._id.slice(-8)}
+              <span className="text-sm text-gray-500 ml-2">
+                {selectedOrder && new Date(selectedOrder.createdAt).toLocaleString()}
+              </span>
+            </DialogTitle>
             <DialogClose onClick={() => setSelectedOrder(null)} />
           </DialogHeader>
 
           {selectedOrder && (
             <div className="p-6 space-y-6">
-              {/* Order Status and Payment */}
-              <div className="flex items-center gap-3">
-                <Badge variant={getStatusVariant(selectedOrder.orderStatus)} className="text-base px-3 py-1">
-                  {getStatusIcon(selectedOrder.orderStatus)}
-                  <span className="ml-2 capitalize">{selectedOrder.orderStatus}</span>
-                </Badge>
-                <Badge
-                  variant={selectedOrder.paymentStatus === "paid" ? "success" : "warning"}
-                  className="text-base px-3 py-1"
-                >
-                  {selectedOrder.paymentStatus}
-                </Badge>
+              {/* Order Status and Payment - More Prominent */}
+              <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 p-4 rounded-lg border-2 border-blue-200 dark:border-blue-700">
+                <div className="flex items-center justify-between flex-wrap gap-3">
+                  <div className="flex items-center gap-3">
+                    <Badge variant={getStatusVariant(selectedOrder.orderStatus)} className="text-lg px-4 py-2">
+                      {getStatusIcon(selectedOrder.orderStatus)}
+                      <span className="ml-2 capitalize font-bold">{selectedOrder.orderStatus}</span>
+                    </Badge>
+                    <Badge
+                      variant={selectedOrder.paymentStatus === "paid" ? "success" : "warning"}
+                      className="text-lg px-4 py-2"
+                    >
+                      <DollarSign className="w-4 h-4 mr-1" />
+                      {selectedOrder.paymentStatus}
+                    </Badge>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm text-gray-600 dark:text-gray-400">Payment Method</p>
+                    <p className="text-lg font-bold capitalize">{selectedOrder.paymentMethod}</p>
+                  </div>
+                </div>
               </div>
 
-              {/* Customer Info */}
-              <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
-                <h3 className="font-bold mb-3 flex items-center gap-2">
-                  <Mail className="w-5 h-5" />
+              {/* Customer Info - Enhanced */}
+              <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 p-5 rounded-lg border-2 border-green-200 dark:border-green-700">
+                <h3 className="font-bold text-lg mb-4 flex items-center gap-2 text-green-700 dark:text-green-400">
+                  <Mail className="w-6 h-6" />
                   Customer Information
                 </h3>
-                <div className="space-y-2 text-sm">
-                  <p>
-                    <span className="font-medium">Name:</span> {selectedOrder.user?.name}
-                  </p>
-                  <p>
-                    <span className="font-medium">Email:</span> {selectedOrder.user?.email}
-                  </p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="bg-white dark:bg-gray-800 p-3 rounded-lg">
+                    <p className="text-xs text-gray-500 uppercase mb-1">Customer Name</p>
+                    <p className="text-lg font-bold">{selectedOrder.user?.name || "N/A"}</p>
+                  </div>
+                  <div className="bg-white dark:bg-gray-800 p-3 rounded-lg">
+                    <p className="text-xs text-gray-500 uppercase mb-1">Email</p>
+                    <p className="text-lg font-semibold">{selectedOrder.user?.email || "N/A"}</p>
+                  </div>
                 </div>
               </div>
 
-              {/* Shipping Address */}
-              <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
-                <h3 className="font-bold mb-3 flex items-center gap-2">
-                  <MapPin className="w-5 h-5" />
+              {/* Shipping Address - Enhanced */}
+              <div className="bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-900/20 dark:to-amber-900/20 p-5 rounded-lg border-2 border-orange-200 dark:border-orange-700">
+                <h3 className="font-bold text-lg mb-4 flex items-center gap-2 text-orange-700 dark:text-orange-400">
+                  <MapPin className="w-6 h-6" />
                   Shipping Address
                 </h3>
-                <div className="space-y-2 text-sm">
-                  <p>
-                    <span className="font-medium">Name:</span>{" "}
-                    {selectedOrder.shippingAddress?.fullName}
-                  </p>
+                <div className="bg-white dark:bg-gray-800 p-4 rounded-lg space-y-3">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-xs text-gray-500 uppercase mb-1">Recipient Name</p>
+                      <p className="text-lg font-bold">{selectedOrder.shippingAddress?.fullName || "N/A"}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500 uppercase mb-1">Phone Number</p>
+                      <p className="text-lg font-bold flex items-center gap-2">
+                        <Phone className="w-5 h-5 text-orange-600" />
+                        {selectedOrder.shippingAddress?.phone || "N/A"}
+                      </p>
+                    </div>
+                  </div>
                   {selectedOrder.shippingAddress?.email && (
-                    <p>
-                      <span className="font-medium">Email:</span>{" "}
-                      {selectedOrder.shippingAddress.email}
-                    </p>
+                    <div>
+                      <p className="text-xs text-gray-500 uppercase mb-1">Email</p>
+                      <p className="text-base font-semibold">{selectedOrder.shippingAddress.email}</p>
+                    </div>
                   )}
-                  <p className="flex items-center gap-2">
-                    <Phone className="w-4 h-4" />
-                    {selectedOrder.shippingAddress?.phone}
-                  </p>
-                  <p>{selectedOrder.shippingAddress?.address}</p>
-                  <p>
-                    {selectedOrder.shippingAddress?.city}
-                    {selectedOrder.shippingAddress?.postalCode &&
-                      ` - ${selectedOrder.shippingAddress.postalCode}`}
-                  </p>
+                  <div>
+                    <p className="text-xs text-gray-500 uppercase mb-1">Full Address</p>
+                    <p className="text-base font-semibold">{selectedOrder.shippingAddress?.address || "N/A"}</p>
+                    <p className="text-base font-semibold mt-1">
+                      {selectedOrder.shippingAddress?.city || "N/A"}
+                      {selectedOrder.shippingAddress?.postalCode &&
+                        ` - ${selectedOrder.shippingAddress.postalCode}`}
+                    </p>
+                  </div>
                 </div>
               </div>
 
-              {/* Order Items */}
-              <div>
-                <h3 className="font-bold mb-3 flex items-center gap-2">
-                  <ShoppingBag className="w-5 h-5" />
-                  Order Items
+              {/* Order Items - Enhanced */}
+              <div className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 p-5 rounded-lg border-2 border-purple-200 dark:border-purple-700">
+                <h3 className="font-bold text-lg mb-4 flex items-center gap-2 text-purple-700 dark:text-purple-400">
+                  <ShoppingBag className="w-6 h-6" />
+                  Order Items ({selectedOrder.items?.length || 0})
                 </h3>
-                <div className="space-y-2">
+                <div className="space-y-3">
                   {selectedOrder.items?.map((item: any, i: number) => (
                     <div
                       key={i}
-                      className="flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-800 rounded-lg"
+                      className="bg-white dark:bg-gray-800 p-4 rounded-lg border-2 border-purple-100 dark:border-purple-800"
                     >
-                      <div>
-                        <p className="font-medium">{item.product?.title || "Product"}</p>
-                        <p className="text-sm text-gray-500">
-                          Quantity: {item.quantity} × {formatCurrency(item.price)}
-                        </p>
+                      <div className="flex justify-between items-start gap-4">
+                        <div className="flex-1">
+                          <p className="text-lg font-bold mb-2">{item.product?.title || "Product"}</p>
+                          <div className="space-y-2">
+                            <div className="flex items-center gap-4 flex-wrap">
+                              <div className="bg-blue-100 dark:bg-blue-900/30 px-3 py-1 rounded-full">
+                                <span className="text-sm font-semibold">Quantity: {item.quantity}</span>
+                              </div>
+                              <div className="bg-green-100 dark:bg-green-900/30 px-3 py-1 rounded-full">
+                                <span className="text-sm font-semibold">Price: {formatCurrency(item.price)}</span>
+                              </div>
+                              {item.colorVariant && (
+                                <div className="bg-purple-100 dark:bg-purple-900/30 px-3 py-1 rounded-full flex items-center gap-2">
+                                  <span className="text-sm font-semibold">Color: {item.colorVariant.colorName}</span>
+                                  <div
+                                    className="w-5 h-5 rounded-full border-2 border-white shadow-md"
+                                    style={{ backgroundColor: item.colorVariant.colorCode }}
+                                    title={item.colorVariant.colorName}
+                                  />
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-xs text-gray-500 uppercase mb-1">Subtotal</p>
+                          <p className="text-2xl font-bold text-green-600">
+                            {formatCurrency(item.price * item.quantity)}
+                          </p>
+                        </div>
                       </div>
-                      <span className="font-bold">
-                        {formatCurrency(item.price * item.quantity)}
-                      </span>
                     </div>
                   ))}
                 </div>
               </div>
 
-              {/* Order Summary */}
-              <div className="border-t pt-4">
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span>Subtotal:</span>
-                    <span>
+              {/* Order Summary - Enhanced */}
+              <div className="bg-gray-100 dark:from-gray-800 dark:to-gray-900 p-5 rounded-lg border-2 border-gray-300 dark:border-gray-700">
+                <h3 className="font-bold text-lg mb-4">Order Summary</h3>
+                <div className="space-y-3">
+                  <div className="flex justify-between text-base">
+                    <span className="font-medium">Subtotal:</span>
+                    <span className="font-semibold">
                       {formatCurrency(
                         selectedOrder.totalAmount + (selectedOrder.discount || 0)
                       )}
                     </span>
                   </div>
                   {selectedOrder.discount && selectedOrder.discount > 0 && (
-                    <div className="flex justify-between text-green-600">
-                      <span>Discount:</span>
-                      <span>-{formatCurrency(selectedOrder.discount)}</span>
+                    <div className="flex justify-between text-base text-green-600">
+                      <span className="font-medium">Discount Applied:</span>
+                      <span className="font-bold">-{formatCurrency(selectedOrder.discount)}</span>
                     </div>
                   )}
-                  <div className="flex justify-between text-lg font-bold pt-2 border-t">
-                    <span>Total:</span>
+                  {selectedOrder.couponCode && (
+                    <div className="flex justify-between text-sm text-blue-600">
+                      <span className="font-medium">Coupon Code:</span>
+                      <span className="font-mono font-bold">{selectedOrder.couponCode}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between text-2xl font-bold pt-3 border-t-2 border-gray-300 dark:border-gray-600">
+                    <span>Total Amount:</span>
                     <span className="text-green-600">
                       {formatCurrency(selectedOrder.totalAmount)}
                     </span>
@@ -585,9 +705,9 @@ const AdminOrders = () => {
 
               {/* Tracking Number */}
               {selectedOrder.trackingNumber && (
-                <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg">
-                  <p className="text-sm font-medium">Tracking Number:</p>
-                  <p className="text-lg font-mono">{selectedOrder.trackingNumber}</p>
+                <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border-2 border-blue-200 dark:border-blue-700">
+                  <p className="text-sm font-medium mb-2">Tracking Number:</p>
+                  <p className="text-xl font-mono font-bold">{selectedOrder.trackingNumber}</p>
                 </div>
               )}
             </div>

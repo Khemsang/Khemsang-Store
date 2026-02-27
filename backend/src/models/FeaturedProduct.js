@@ -33,7 +33,19 @@ const featuredProductSchema = new mongoose.Schema(
     productId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Product",
+      required: false, // Optional - featured products can exist independently
     },
+    // Color Variants
+    colorVariants: [
+      {
+        colorName: { type: String, required: true },
+        colorCode: { type: String, required: true },
+        images: { type: [String], default: [] },
+        stock: { type: Number, default: 0 },
+        price: { type: Number },
+        isActive: { type: Boolean, default: true },
+      },
+    ],
     isActive: {
       type: Boolean,
       default: true,

@@ -71,18 +71,35 @@ const productSchema = new mongoose.Schema(
     // Additional Details
     features: [{ type: String }],
     tags: [{ type: String }],
-    // Variants (e.g., different colors/sizes)
-    variants: [
+    // Color Variants with multiple images
+    colorVariants: [
       {
-        color: { type: String, required: true },
-        size: { type: String },
+        colorName: { type: String, required: true },
+        colorCode: { type: String, required: true }, // Hex color code
+        images: { 
+          type: [String], 
+          validate: {
+            validator: function(v) {
+              return v.length >= 1 && v.length <= 4;
+            },
+            message: 'Each color variant must have 1-4 images'
+          }
+        },
         sku: { type: String },
-        price: { type: Number },
+        price: { type: Number }, // Optional price override
         stock: { type: Number, default: 0 },
-        images: [{ type: String }],
         isActive: { type: Boolean, default: true },
+        // Flash Sale for this variant
+        isFlashSale: { type: Boolean, default: false },
+        flashDiscountType: { type: String, enum: ["percentage", "flat"] },
+        flashDiscountValue: { type: Number, min: 0 },
+        flashStartTime: { type: Date },
+        flashEndTime: { type: Date },
+        flashStock: { type: Number, min: 0 },
       },
     ],
+    // Size variants (optional)
+    sizes: [{ type: String }],
     // SEO
     metaTitle: { type: String },
     metaDescription: { type: String },
@@ -102,6 +119,32 @@ const productSchema = new mongoose.Schema(
     isBestSeller: {
       type: Boolean,
       default: false,
+    },
+    // Flash Sale Fields
+    isFlashSale: {
+      type: Boolean,
+      default: false,
+    },
+    flashDiscountType: {
+      type: String,
+      enum: ["percentage", "flat"],
+      default: "percentage",
+    },
+    flashDiscountValue: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    flashStartTime: {
+      type: Date,
+    },
+    flashEndTime: {
+      type: Date,
+    },
+    flashStock: {
+      type: Number,
+      default: 0,
+      min: 0,
     },
     // Ratings
     rating: {
@@ -150,7 +193,43 @@ productSchema.index({ createdAt: -1 }); // Latest products
 productSchema.index({ isFeatured: 1, isActive: 1 }); // Featured products
 productSchema.index({ isBestSeller: 1, isActive: 1 }); // Best sellers
 productSchema.index({ isNewArrival: 1, isActive: 1 }); // New arrivals
+productSchema.index({ isFlashSale: 1, flashEndTime: 1 }); // Flash sales
 productSchema.index({ rating: -1 }); // Top rated
 // Note: sku index is already created via schema definition (unique: true, sparse: true)
+
+// Virtual field for flash sale price
+productSchema.virtual("flashPrice").get(function () {
+  if (!this.isFlashSale || !this.isFlashSaleActive()) {
+    return null;
+  }
+
+  if (this.flashDiscountType === "percentage") {
+    return Math.round(this.price * (1 - this.flashDiscountValue / 100));
+  } else {
+    return Math.max(0, this.price - this.flashDiscountValue);
+  }
+});
+
+// Method to check if flash sale is currently active
+productSchema.methods.isFlashSaleActive = function () {
+  if (!this.isFlashSale) return false;
+  
+  const now = new Date();
+  const hasValidTime = this.flashStartTime && this.flashEndTime;
+  const isWithinTimeRange = hasValidTime && now >= this.flashStartTime && now <= this.flashEndTime;
+  const hasStock = this.flashStock > 0;
+  
+  return isWithinTimeRange && hasStock;
+};
+
+// Method to get effective price (flash or regular)
+productSchema.methods.getEffectivePrice = function () {
+  const flashPrice = this.flashPrice;
+  return flashPrice !== null ? flashPrice : this.price;
+};
+
+// Ensure virtuals are included in JSON
+productSchema.set("toJSON", { virtuals: true });
+productSchema.set("toObject", { virtuals: true });
 
 export default mongoose.model("Product", productSchema);

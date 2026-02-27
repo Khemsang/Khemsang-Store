@@ -203,3 +203,15 @@ export const getReviewStats = async (req, res) => {
       .json({ message: "Error fetching stats", error: error.message });
   }
 };
+
+// Get all reviews count (for stats)
+export const getAllReviewsCount = async (req, res) => {
+  try {
+    const totalReviews = await Review.countDocuments();
+    res.json({ totalReviews });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Error fetching review count", error: error.message });
+  }
+};

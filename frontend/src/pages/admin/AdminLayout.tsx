@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Outlet, Link, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import { useMessages } from "../../context/MessageContext";
 import { api } from "../../services/api";
 import ConfirmDialog from "../../components/common/ConfirmDialog";
 import DarkModeToggle from "../../components/common/DarkModeToggle";
@@ -26,10 +27,12 @@ import {
   FaQuoteLeft,
   FaShieldAlt,
   FaInbox,
+  FaFire,
 } from "react-icons/fa";
 
 const AdminLayout = () => {
   const { user, logout } = useAuth();
+  const { unreadCount } = useMessages();
   const navigate = useNavigate();
   const location = useLocation();
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
@@ -39,21 +42,14 @@ const AdminLayout = () => {
     newOrders: 0,
     pendingReviews: 0,
     pendingTestimonials: 0,
-    unreadMessages: 0,
   });
 
-  // Fetch notification counts
+  // Fetch notification counts (excluding unread messages - now from context)
   useEffect(() => {
     const fetchNotifications = async () => {
       try {
-        const [statsData, messagesData] = await Promise.all([
-          api.get("/stats/notifications"),
-          api.get("/messages/unread/count"),
-        ]);
-        setNotifications({
-          ...statsData.data,
-          unreadMessages: messagesData.data.count,
-        });
+        const statsData = await api.get("/stats/notifications");
+        setNotifications(statsData.data);
       } catch (error) {
         console.error("Failed to fetch notifications:", error);
       }
@@ -62,7 +58,10 @@ const AdminLayout = () => {
     fetchNotifications();
     // Refresh every 30 seconds
     const interval = setInterval(fetchNotifications, 30000);
-    return () => clearInterval(interval);
+    
+    return () => {
+      clearInterval(interval);
+    };
   }, []);
 
   const handleLogoutClick = () => {
@@ -85,9 +84,14 @@ const AdminLayout = () => {
       path: "/admin/featured-products",
       icon: FaStar,
     },
+    {
+      name: "Flash Sales",
+      path: "/admin/flash-sales",
+      icon: FaFire,
+    },
     { name: "Inventory", path: "/admin/inventory", icon: FaWarehouse },
     { name: "Orders", path: "/admin/orders", icon: FaShoppingBag, badge: notifications.newOrders },
-    { name: "Inbox", path: "/admin/inbox", icon: FaInbox, badge: notifications.unreadMessages },
+    { name: "Inbox", path: "/admin/inbox", icon: FaInbox, badge: unreadCount },
     { name: "Shipping", path: "/admin/shipping", icon: FaTruck },
     { name: "Customers", path: "/admin/customers", icon: FaUsers },
     { name: "Coupons", path: "/admin/coupons", icon: FaTicketAlt },
@@ -114,7 +118,7 @@ const AdminLayout = () => {
   const isActive = (path: string) => location.pathname === path;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 flex">
+    <div className="min-h-screen bg-gray-100 dark:from-gray-900 dark:to-gray-800 flex">
       {/* Sidebar - Desktop */}
       <aside
         className={`hidden lg:flex flex-col fixed left-0 top-0 h-screen bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 shadow-xl transition-all duration-300 z-50 ${
@@ -122,24 +126,24 @@ const AdminLayout = () => {
         }`}
       >
         {/* Sidebar Header */}
-        <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+        <div className="p-3 md:p-4 border-b border-gray-200 dark:border-gray-700">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-gradient-to-r from-[var(--root-color)] to-purple-600 rounded-xl flex items-center justify-center flex-shrink-0">
-                <span className="text-white font-bold text-xl">A</span>
+            <div className="flex items-center gap-2 md:gap-3">
+              <div className="w-9 h-9 md:w-10 md:h-10 bg-blue-600 rounded-xl flex items-center justify-center flex-shrink-0">
+                <span className="text-white font-bold text-lg md:text-xl">A</span>
               </div>
               {sidebarOpen && (
-                <h1 className="text-lg font-bold bg-gradient-to-r from-[var(--root-color)] to-purple-600 bg-clip-text text-transparent">
+                <h1 className="text-base md:text-lg font-bold bg-blue-600 bg-clip-text text-transparent">
                   Admin Panel
                 </h1>
               )}
             </div>
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+              className="p-1.5 md:p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
             >
               <FaChevronLeft
-                className={`text-gray-600 dark:text-gray-400 transition-transform ${
+                className={`w-4 h-4 text-gray-600 dark:text-gray-400 transition-transform ${
                   !sidebarOpen ? "rotate-180" : ""
                 }`}
               />
@@ -148,31 +152,31 @@ const AdminLayout = () => {
         </div>
 
         {/* Sidebar Navigation */}
-        <nav className="flex-1 overflow-y-auto p-4">
-          <div className="space-y-2">
+        <nav className="flex-1 overflow-y-auto p-3 md:p-4">
+          <div className="space-y-1.5 md:space-y-2">
             {adminLinks.map((link) => (
               <Link
                 key={link.path}
                 to={link.path}
-                className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-medium relative ${
+                className={`flex items-center gap-2 md:gap-3 px-3 md:px-4 py-2.5 md:py-3 rounded-lg md:rounded-xl transition-all font-medium relative text-sm md:text-base ${
                   isActive(link.path)
-                    ? "bg-gradient-to-r from-[var(--root-color)] to-purple-600 text-white shadow-lg"
+                    ? "bg-blue-600 text-white shadow-lg"
                     : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                 }`}
               >
-                <link.icon className="text-lg flex-shrink-0" />
+                <link.icon className="text-base md:text-lg flex-shrink-0" />
                 {sidebarOpen && (
                   <>
                     <span className="flex-1">{link.name}</span>
                     {link.badge && link.badge > 0 && (
-                      <span className="flex items-center justify-center min-w-[20px] h-5 px-2 text-xs font-bold bg-red-500 text-white rounded-full">
+                      <span className="flex items-center justify-center min-w-[18px] md:min-w-[20px] h-4 md:h-5 px-1.5 md:px-2 text-[10px] md:text-xs font-bold bg-red-500 text-white rounded-full">
                         {link.badge > 99 ? '99+' : link.badge}
                       </span>
                     )}
                   </>
                 )}
                 {!sidebarOpen && link.badge && link.badge > 0 && (
-                  <span className="absolute -top-1 -right-1 flex items-center justify-center w-5 h-5 text-xs font-bold bg-red-500 text-white rounded-full border-2 border-white dark:border-gray-800">
+                  <span className="absolute -top-1 -right-1 flex items-center justify-center w-4 h-4 md:w-5 md:h-5 text-[10px] md:text-xs font-bold bg-red-500 text-white rounded-full border-2 border-white dark:border-gray-800">
                     {link.badge > 9 ? '9+' : link.badge}
                   </span>
                 )}
@@ -182,17 +186,17 @@ const AdminLayout = () => {
         </nav>
 
         {/* Sidebar Footer */}
-        <div className="p-4 border-t border-gray-200 dark:border-gray-700 space-y-2">
+        <div className="p-3 md:p-4 border-t border-gray-200 dark:border-gray-700 space-y-2">
           {sidebarOpen && (
-            <div className="flex items-center gap-3 px-4 py-3 bg-gray-100 dark:bg-gray-700 rounded-xl mb-2">
-              <div className="w-10 h-10 bg-gradient-to-r from-[var(--root-color)] to-purple-600 rounded-full flex items-center justify-center text-white font-bold flex-shrink-0">
+            <div className="flex items-center gap-2 md:gap-3 px-3 md:px-4 py-2.5 md:py-3 bg-gray-100 dark:bg-gray-700 rounded-lg md:rounded-xl mb-2">
+              <div className="w-9 h-9 md:w-10 md:h-10 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold flex-shrink-0 text-sm md:text-base">
                 {user?.name.charAt(0).toUpperCase()}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="font-bold text-gray-900 dark:text-white text-sm truncate">
+                <p className="font-bold text-gray-900 dark:text-white text-xs md:text-sm truncate">
                   {user?.name}
                 </p>
-                <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                <p className="text-[10px] md:text-xs text-gray-500 dark:text-gray-400 truncate">
                   {user?.email}
                 </p>
               </div>
@@ -202,11 +206,11 @@ const AdminLayout = () => {
             <DarkModeToggle />
             <button
               onClick={handleLogoutClick}
-              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all font-medium border border-red-200 dark:border-red-800 ${
+              className={`flex items-center gap-1.5 md:gap-2 px-3 md:px-4 py-2 rounded-lg text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all font-medium border border-red-200 dark:border-red-800 text-sm md:text-base ${
                 sidebarOpen ? "flex-1" : "w-full justify-center"
               }`}
             >
-              <FaSignOutAlt />
+              <FaSignOutAlt className="w-3.5 h-3.5 md:w-4 md:h-4" />
               {sidebarOpen && <span>Logout</span>}
             </button>
           </div>
@@ -224,10 +228,10 @@ const AdminLayout = () => {
           <div className="px-4 py-4">
             <div className="flex justify-between items-center">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-gradient-to-r from-[var(--root-color)] to-purple-600 rounded-xl flex items-center justify-center">
+                <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center">
                   <span className="text-white font-bold text-xl">A</span>
                 </div>
-                <h1 className="text-xl font-bold bg-gradient-to-r from-[var(--root-color)] to-purple-600 bg-clip-text text-transparent">
+                <h1 className="text-xl font-bold bg-blue-600 bg-clip-text text-transparent">
                   Admin Panel
                 </h1>
               </div>
@@ -243,7 +247,7 @@ const AdminLayout = () => {
             {showMobileMenu && (
               <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
                 <div className="flex items-center gap-3 p-4 mb-4 bg-gradient-to-r from-[var(--root-color)]/10 to-purple-600/10 rounded-xl">
-                  <div className="w-12 h-12 bg-gradient-to-r from-[var(--root-color)] to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-lg">
+                  <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-lg">
                     {user?.name.charAt(0).toUpperCase()}
                   </div>
                   <div className="flex-1">
@@ -264,7 +268,7 @@ const AdminLayout = () => {
                       onClick={() => setShowMobileMenu(false)}
                       className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all font-medium relative ${
                         isActive(link.path)
-                          ? "bg-gradient-to-r from-[var(--root-color)] to-purple-600 text-white"
+                          ? "bg-blue-600 text-white"
                           : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                       }`}
                     >
@@ -295,7 +299,7 @@ const AdminLayout = () => {
         </header>
 
         {/* Main Content */}
-        <main className="flex-1 p-4 sm:p-6 lg:p-8">
+        <main className={`flex-1 ${location.pathname === '/admin/inbox' || location.pathname === '/admin/flash-sales' ? '' : 'p-4 sm:p-6 lg:p-8'}`}>
           <Outlet />
         </main>
       </div>

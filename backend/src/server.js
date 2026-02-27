@@ -30,15 +30,11 @@ process.on("unhandledRejection", (err) => {
 });
 
 try {
-  console.log("Loading app.js...");
   const appModule = await import("./app.js");
   const app = appModule.default;
-  console.log("App loaded successfully");
 
-  console.log("Loading db.js...");
   const dbModule = await import("./config/db.js");
   const { connectDB } = dbModule;
-  console.log("DB module loaded successfully");
 
   await connectDB();
 

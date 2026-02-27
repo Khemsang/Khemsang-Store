@@ -52,7 +52,6 @@ const createAdminNotification = async (subject, message, metadata = {}) => {
     }));
 
     const result = await Message.insertMany(notifications);
-    console.log(`✅ Notification sent to ${result.length} admin(s): ${subject}`);
     return result;
   } catch (error) {
     console.error("Error creating admin notification:", error);
@@ -65,25 +64,60 @@ const createAdminNotification = async (subject, message, metadata = {}) => {
  */
 export const notifyNewOrder = async (order) => {
   const subject = `🛒 New Order #${order.orderNumber || order._id.toString().slice(-6)}`;
+  
+  // Format items with proper product details and color variant
+  const itemsList = order.items?.map((item, index) => {
+    const productName = item.product?.title || item.product?.name || "Product";
+    const colorInfo = item.colorVariant ? ` | Color: ${item.colorVariant.colorName}` : "";
+    const priceInfo = item.price ? ` | Price: Rs. ${item.price.toLocaleString()}` : "";
+    return `${index + 1}. ${productName}
+   Quantity: ${item.quantity}${colorInfo}${priceInfo}
+   Subtotal: Rs. ${(item.quantity * (item.price || 0)).toLocaleString()}`;
+  }).join("\n\n") || "No items";
+  
   const message = `
 New order received!
 
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ORDER DETAILS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
 Order ID: ${order._id}
-Customer: ${order.user?.name || "Guest"}
-Email: ${order.user?.email || "N/A"}
-Total Amount: Rs. ${order.totalAmount?.toLocaleString()}
-Payment Method: ${order.paymentMethod}
-Status: ${order.orderStatus}
-
-Items: ${order.items?.length || 0} product(s)
-${order.items?.map((item) => `- ${item.name} (Qty: ${item.quantity})`).join("\n") || ""}
-
-Shipping Address:
-${order.shippingAddress?.street || ""}
-${order.shippingAddress?.city || ""}, ${order.shippingAddress?.state || ""}
-${order.shippingAddress?.zipCode || ""}
-
 Order Date: ${new Date(order.createdAt).toLocaleString()}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CUSTOMER INFORMATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Name: ${order.user?.name || order.shippingAddress?.fullName || "Guest"}
+Email: ${order.user?.email || order.shippingAddress?.email || "N/A"}
+Phone: ${order.user?.phone || order.shippingAddress?.phone || "N/A"}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SHIPPING ADDRESS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Name: ${order.shippingAddress?.fullName || "N/A"}
+Phone: ${order.shippingAddress?.phone || "N/A"}
+Email: ${order.shippingAddress?.email || "N/A"}
+Address: ${order.shippingAddress?.address || "N/A"}
+City: ${order.shippingAddress?.city || "N/A"}
+Postal Code: ${order.shippingAddress?.postalCode || "N/A"}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ORDER ITEMS (${order.items?.length || 0} product(s))
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+${itemsList}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PAYMENT & STATUS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Total Amount: Rs. ${order.totalAmount?.toLocaleString()}
+Payment Method: ${order.paymentMethod?.toUpperCase()}
+Payment Status: ${order.paymentStatus?.toUpperCase()}
+Order Status: ${order.orderStatus?.toUpperCase()}
   `.trim();
 
   await createAdminNotification(subject, message, {

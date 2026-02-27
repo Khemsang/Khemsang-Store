@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { api } from "../../services/api";
 import { useToast } from "../../context/ToastContext";
+import { useMessages } from "../../context/MessageContext";
 import { Loading } from "../../components/ui/loading";
 import { Textarea } from "../../components/ui/textarea";
 import { Input } from "../../components/ui/input";
@@ -28,6 +29,9 @@ import {
   RotateCcw,
   Filter,
   X,
+  Paperclip,
+  Download,
+  FileText,
 } from "lucide-react";
 
 interface Message {
@@ -39,9 +43,11 @@ interface Message {
   isRead: boolean;
   isStarred: boolean;
   isDraft: boolean;
+  isReplied?: boolean;
   readAt?: string;
   createdAt: string;
   replies?: Message[];
+  attachments?: { url: string; filename: string }[];
 }
 
 interface Customer {
@@ -53,6 +59,7 @@ interface Customer {
 type ViewType = "inbox" | "starred" | "sent" | "drafts" | "trash";
 
 const AdminInbox = () => {
+  const { unreadCount: contextUnreadCount, refreshUnreadCount, decrementUnreadCount } = useMessages();
   const [allMessages, setAllMessages] = useState<{
     inbox: Message[];
     starred: Message[];
@@ -75,7 +82,6 @@ const AdminInbox = () => {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [currentView, setCurrentView] = useState<ViewType>("inbox");
-  const [unreadCount, setUnreadCount] = useState(0);
   const [recipientSearch, setRecipientSearch] = useState("");
   const [showRecipientDropdown, setShowRecipientDropdown] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -83,6 +89,15 @@ const AdminInbox = () => {
   const [showMessageMenu, setShowMessageMenu] = useState<string | null>(null);
   const [adminEmail, setAdminEmail] = useState<string>("");
   const [showFilters, setShowFilters] = useState(false);
+  
+  // Calculate unread counts for each view
+  const unreadCounts = {
+    inbox: contextUnreadCount,
+    starred: allMessages.starred?.filter(m => !m.isRead).length || 0,
+    sent: 0, // Sent messages don't have unread count
+    drafts: 0, // Drafts don't have unread count
+    trash: allMessages.trash?.filter(m => !m.isRead).length || 0,
+  };
   const [showReplySection, setShowReplySection] = useState(false);
   const [filters, setFilters] = useState({
     readStatus: "all", // all, read, unread
@@ -109,6 +124,7 @@ const AdminInbox = () => {
     message: "",
     draftId: "",
   });
+  const [attachments, setAttachments] = useState<File[]>([]);
   const { success, error } = useToast();
   const recipientDropdownRef = useRef<HTMLDivElement>(null);
   const messageMenuRef = useRef<HTMLDivElement>(null);
@@ -179,9 +195,8 @@ const AdminInbox = () => {
         trash: trashRes.data,
       });
       
-      // Calculate unread count from inbox
-      const unread = inboxRes.data.filter((m: Message) => !m.isRead).length;
-      setUnreadCount(unread);
+      // Refresh context unread count
+      await refreshUnreadCount();
     } catch (err) {
       error("Failed to fetch messages");
     } finally {
@@ -219,18 +234,32 @@ const AdminInbox = () => {
       setShowReplySection(false);
       setReplyText("");
       
-      // Update read status in allMessages
-      setAllMessages(prev => ({
-        ...prev,
-        [currentView]: prev[currentView].map((m) => 
-          m._id === message._id ? { ...m, isRead: true } : m
-        ),
-      }));
+      const wasUnread = !message.isRead;
       
-      // Update unread count
-      if (!message.isRead && currentView === "inbox") {
-        setUnreadCount(prev => Math.max(0, prev - 1));
+      // Update read status in allMessages for ALL views where this message might appear
+      setAllMessages(prev => {
+        const updated = { ...prev };
+        // Update in all views - IMPORTANT: use map to preserve all messages
+        Object.keys(updated).forEach(view => {
+          updated[view as ViewType] = updated[view as ViewType].map((m) => 
+            m._id === message._id ? { ...m, isRead: true, readAt: data.readAt } : m
+          );
+        });
+        return updated;
+      });
+      
+      // Update messages list (current view) - IMPORTANT: use map to preserve all messages
+      setMessages(prev => prev.map(m => 
+        m._id === message._id ? { ...m, isRead: true, readAt: data.readAt } : m
+      ));
+      
+      // Update unread count in context if message was unread and in inbox
+      if (wasUnread && currentView === "inbox") {
+        decrementUnreadCount();
       }
+      
+      // For other views (starred, trash), the unread count is calculated from allMessages
+      // so it will update automatically when we update allMessages above
     } catch (err) {
       error("Failed to load message");
     }
@@ -248,14 +277,25 @@ const AdminInbox = () => {
       onConfirm: async () => {
         try {
           setSending(true);
-          await api.post("/messages", {
-            recipientId: selectedMessage.sender._id,
-            subject: `Re: ${selectedMessage.subject}`,
-            message: replyText,
-            parentMessageId: selectedMessage._id,
+          
+          const formData = new FormData();
+          formData.append("recipientId", selectedMessage.sender._id);
+          formData.append("subject", `Re: ${selectedMessage.subject}`);
+          formData.append("message", replyText);
+          formData.append("parentMessageId", selectedMessage._id);
+          
+          // Add attachments if any
+          attachments.forEach((file) => {
+            formData.append("attachments", file);
           });
+          
+          await api.post("/messages", formData, {
+            headers: { "Content-Type": "multipart/form-data" },
+          });
+          
           success("Reply sent successfully");
           setReplyText("");
+          setAttachments([]);
           setShowReplySection(false);
           setSelectedMessage(null);
           fetchMessages();
@@ -283,24 +323,33 @@ const AdminInbox = () => {
       onConfirm: async () => {
         try {
           setSending(true);
+          
+          const formData = new FormData();
+          formData.append("recipientId", composeForm.recipientId);
+          formData.append("subject", composeForm.subject);
+          formData.append("message", composeForm.message);
+          
+          // Add attachments
+          attachments.forEach((file) => {
+            formData.append("attachments", file);
+          });
+          
           if (composeForm.draftId) {
-            await api.post("/messages", {
-              recipientId: composeForm.recipientId,
-              subject: composeForm.subject,
-              message: composeForm.message,
+            await api.post("/messages", formData, {
+              headers: { "Content-Type": "multipart/form-data" },
             });
             await api.delete(`/messages/${composeForm.draftId}/permanent`);
             success("Draft sent successfully");
           } else {
-            await api.post("/messages", {
-              recipientId: composeForm.recipientId,
-              subject: composeForm.subject,
-              message: composeForm.message,
+            await api.post("/messages", formData, {
+              headers: { "Content-Type": "multipart/form-data" },
             });
             success("Message sent successfully");
           }
+          
           setComposeForm({ recipientId: "", recipientName: "", subject: "", message: "", draftId: "" });
           setRecipientSearch("");
+          setAttachments([]);
           setShowCompose(false);
           fetchMessages();
         } catch (err) {
@@ -342,6 +391,7 @@ const AdminInbox = () => {
     setComposeForm({ recipientId: "", recipientName: "", subject: "", message: "", draftId: "" });
     setRecipientSearch("");
     setShowRecipientDropdown(false);
+    setAttachments([]);
   };
 
   const handleCancelCompose = () => {
@@ -350,6 +400,7 @@ const AdminInbox = () => {
     setComposeForm({ recipientId: "", recipientName: "", subject: "", message: "", draftId: "" });
     setRecipientSearch("");
     setShowRecipientDropdown(false);
+    setAttachments([]);
   };
 
   const handleEditDraft = (draft: Message) => {
@@ -404,6 +455,9 @@ const AdminInbox = () => {
           if (selectedMessage?._id === messageId) {
             setSelectedMessage(null);
           }
+          
+          // Refresh unread count from context
+          await refreshUnreadCount();
         } catch (err) {
           error("Failed to delete message");
         }
@@ -457,6 +511,9 @@ const AdminInbox = () => {
           if (selectedMessage?._id === messageId) {
             setSelectedMessage(null);
           }
+          
+          // Refresh unread count from context
+          await refreshUnreadCount();
         } catch (err) {
           error("Failed to restore message");
         }
@@ -577,7 +634,7 @@ const AdminInbox = () => {
   if (loading) return <Loading message="Loading inbox..." fullScreen={true} />;
 
   return (
-    <div className="flex flex-col h-[calc(100vh-8rem)] bg-white dark:bg-gray-900">
+    <div className="flex flex-col h-full w-full bg-white dark:bg-gray-900">
       {/* Mail Header */}
       <div className="flex items-center justify-between px-4 py-2 border-b border-gray-200 dark:border-gray-700">
         <div className="flex items-center gap-4 flex-1">
@@ -591,7 +648,19 @@ const AdminInbox = () => {
             <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center shadow-md">
               <InboxIcon className="w-6 h-6 text-white" />
             </div>
-            <span className="text-2xl font-semibold text-gray-800 dark:text-gray-200">Mail</span>
+            <div className="flex items-center gap-2">
+              <span className="text-2xl font-semibold text-gray-800 dark:text-gray-200">Mail</span>
+              <div className="flex items-center gap-1">
+                {unreadCounts[currentView] > 0 && (
+                  <span className="flex items-center justify-center min-w-[28px] h-7 px-2 text-sm font-bold bg-red-500 text-white rounded-full">
+                    {unreadCounts[currentView] > 99 ? '99+' : unreadCounts[currentView]}
+                  </span>
+                )}
+                <span className="text-sm text-gray-500 dark:text-gray-400">
+                  ({allMessages[currentView]?.length || 0})
+                </span>
+              </div>
+            </div>
           </div>
         </div>
         
@@ -632,7 +701,10 @@ const AdminInbox = () => {
 
           <div className="space-y-1">
             <button
-              onClick={() => setCurrentView("inbox")}
+              onClick={() => {
+                setCurrentView("inbox");
+                setSelectedMessage(null); // Close current message
+              }}
               className={`w-full flex items-center gap-3 px-4 py-2 rounded-r-full transition-all duration-200 ease-in-out ${
                 currentView === "inbox"
                   ? "bg-red-100 dark:bg-red-900/30"
@@ -641,12 +713,16 @@ const AdminInbox = () => {
             >
               <InboxIcon className="w-5 h-5" />
               <span className="font-medium flex-1 text-left">Inbox</span>
-              {unreadCount > 0 && (
-                <span className="text-sm font-bold">{unreadCount}</span>
+              {unreadCounts.inbox > 0 && (
+                <span className="text-sm font-bold text-red-600 dark:text-red-400">{unreadCounts.inbox}</span>
               )}
+              <span className="text-xs text-gray-500">({allMessages.inbox?.length || 0})</span>
             </button>
             <button
-              onClick={() => setCurrentView("starred")}
+              onClick={() => {
+                setCurrentView("starred");
+                setSelectedMessage(null); // Close current message
+              }}
               className={`w-full flex items-center gap-3 px-4 py-2 rounded-r-full transition-all duration-200 ease-in-out ${
                 currentView === "starred"
                   ? "bg-red-100 dark:bg-red-900/30"
@@ -654,10 +730,17 @@ const AdminInbox = () => {
               }`}
             >
               <Star className="w-5 h-5" />
-              <span className="text-left">Starred</span>
+              <span className="text-left flex-1">Starred</span>
+              {unreadCounts.starred > 0 && (
+                <span className="text-sm font-bold text-red-600 dark:text-red-400">{unreadCounts.starred}</span>
+              )}
+              <span className="text-xs text-gray-500">({allMessages.starred?.length || 0})</span>
             </button>
             <button
-              onClick={() => setCurrentView("sent")}
+              onClick={() => {
+                setCurrentView("sent");
+                setSelectedMessage(null); // Close current message
+              }}
               className={`w-full flex items-center gap-3 px-4 py-2 rounded-r-full transition-all duration-200 ease-in-out ${
                 currentView === "sent"
                   ? "bg-red-100 dark:bg-red-900/30"
@@ -665,10 +748,14 @@ const AdminInbox = () => {
               }`}
             >
               <Send className="w-5 h-5" />
-              <span className="text-left">Sent</span>
+              <span className="text-left flex-1">Sent</span>
+              <span className="text-xs text-gray-500">({allMessages.sent?.length || 0})</span>
             </button>
             <button
-              onClick={() => setCurrentView("drafts")}
+              onClick={() => {
+                setCurrentView("drafts");
+                setSelectedMessage(null); // Close current message
+              }}
               className={`w-full flex items-center gap-3 px-4 py-2 rounded-r-full transition-all duration-200 ease-in-out ${
                 currentView === "drafts"
                   ? "bg-red-100 dark:bg-red-900/30"
@@ -676,10 +763,14 @@ const AdminInbox = () => {
               }`}
             >
               <Edit3 className="w-5 h-5" />
-              <span className="text-left">Drafts</span>
+              <span className="text-left flex-1">Drafts</span>
+              <span className="text-xs text-gray-500">({allMessages.drafts?.length || 0})</span>
             </button>
             <button
-              onClick={() => setCurrentView("trash")}
+              onClick={() => {
+                setCurrentView("trash");
+                setSelectedMessage(null); // Close current message
+              }}
               className={`w-full flex items-center gap-3 px-4 py-2 rounded-r-full transition-all duration-200 ease-in-out ${
                 currentView === "trash"
                   ? "bg-red-100 dark:bg-red-900/30"
@@ -687,7 +778,11 @@ const AdminInbox = () => {
               }`}
             >
               <Trash2 className="w-5 h-5" />
-              <span className="text-left">Trash</span>
+              <span className="text-left flex-1">Trash</span>
+              {unreadCounts.trash > 0 && (
+                <span className="text-sm font-bold text-red-600 dark:text-red-400">{unreadCounts.trash}</span>
+              )}
+              <span className="text-xs text-gray-500">({allMessages.trash?.length || 0})</span>
             </button>
           </div>
         </div>
@@ -872,6 +967,18 @@ const AdminInbox = () => {
                           </span>
                         </div>
                         <div className="flex items-center gap-2">
+                          {message.isReplied && currentView === "sent" && (
+                            <span className="text-xs text-green-600 dark:text-green-400 font-medium flex items-center gap-1">
+                              <Reply className="w-3 h-3" />
+                              Replied
+                            </span>
+                          )}
+                          {message.attachments && message.attachments.length > 0 && (
+                            <span className="text-xs text-gray-600 dark:text-gray-400 flex items-center gap-1">
+                              <Paperclip className="w-3 h-3" />
+                              {message.attachments.length}
+                            </span>
+                          )}
                           {message.isDraft && (
                             <span className="text-xs text-red-600 dark:text-red-400 font-medium">Draft</span>
                           )}
@@ -1019,6 +1126,36 @@ const AdminInbox = () => {
                   {selectedMessage.message}
                 </div>
 
+                {/* Attachments */}
+                {selectedMessage.attachments && selectedMessage.attachments.length > 0 && (
+                  <div className="mb-8">
+                    <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
+                      <Paperclip className="w-4 h-4" />
+                      Attachments ({selectedMessage.attachments.length})
+                    </h3>
+                    <div className="grid grid-cols-2 gap-3">
+                      {selectedMessage.attachments.map((attachment, index) => (
+                        <a
+                          key={index}
+                          href={attachment.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-3 p-3 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg transition-colors group"
+                        >
+                          <FileText className="w-8 h-8 text-blue-500 flex-shrink-0" />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                              {attachment.filename}
+                            </p>
+                            <p className="text-xs text-gray-500">Click to download</p>
+                          </div>
+                          <Download className="w-4 h-4 text-gray-400 group-hover:text-blue-500 flex-shrink-0" />
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 {selectedMessage.replies && selectedMessage.replies.length > 0 && (
                   <div className="space-y-6 mb-8">
                     {selectedMessage.replies.map((reply) => (
@@ -1041,9 +1178,29 @@ const AdminInbox = () => {
                             </div>
                           </div>
                         </div>
-                        <div className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
+                        <div className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap mb-3">
                           {reply.message}
                         </div>
+                        {/* Reply Attachments */}
+                        {reply.attachments && reply.attachments.length > 0 && (
+                          <div className="mt-3">
+                            <div className="flex flex-wrap gap-2">
+                              {reply.attachments.map((attachment, index) => (
+                                <a
+                                  key={index}
+                                  href={attachment.url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="flex items-center gap-2 px-3 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg text-sm transition-colors"
+                                >
+                                  <Paperclip className="w-3 h-3" />
+                                  <span className="truncate max-w-[200px]">{attachment.filename}</span>
+                                  <Download className="w-3 h-3" />
+                                </a>
+                              ))}
+                            </div>
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>
@@ -1076,6 +1233,42 @@ const AdminInbox = () => {
                           rows={6}
                           className="mb-4"
                         />
+                        
+                        {/* Attachment Upload for Reply */}
+                        <div className="mb-4">
+                          <label className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg cursor-pointer w-fit transition-colors">
+                            <Paperclip className="w-4 h-4" />
+                            <span className="text-sm">Attach Files</span>
+                            <input
+                              type="file"
+                              multiple
+                              onChange={(e) => {
+                                if (e.target.files) {
+                                  setAttachments(Array.from(e.target.files));
+                                }
+                              }}
+                              className="hidden"
+                              accept=".jpg,.jpeg,.png,.gif,.webp,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.zip,.rar,.7z"
+                            />
+                          </label>
+                          {attachments.length > 0 && (
+                            <div className="mt-3 space-y-2">
+                              {attachments.map((file, index) => (
+                                <div key={index} className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 px-3 py-2 rounded">
+                                  <FileText className="w-4 h-4" />
+                                  <span className="flex-1 truncate">{file.name}</span>
+                                  <button
+                                    onClick={() => setAttachments(attachments.filter((_, i) => i !== index))}
+                                    className="text-red-500 hover:text-red-700"
+                                  >
+                                    <X className="w-4 h-4" />
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                        
                         <div className="flex gap-3">
                           <button
                             onClick={handleSendReply}
@@ -1087,6 +1280,7 @@ const AdminInbox = () => {
                           <button 
                             onClick={() => {
                               setReplyText("");
+                              setAttachments([]);
                               setShowReplySection(false);
                             }} 
                             className="px-6 py-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded"
@@ -1220,6 +1414,58 @@ const AdminInbox = () => {
                 <span>{composeForm.message.length} characters</span>
                 <span>Be clear and professional in your message</span>
               </div>
+            </div>
+
+            {/* Attachments Field */}
+            <div className="space-y-2">
+              <Label className="text-sm font-semibold text-gray-900 dark:text-white">
+                Attachments
+              </Label>
+              <label className="flex items-center gap-2 px-4 py-3 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer transition-colors">
+                <Paperclip className="w-5 h-5 text-gray-400" />
+                <span className="text-sm text-gray-600 dark:text-gray-400">
+                  Click to attach files (max 5 files, 10MB each)
+                </span>
+                <input
+                  type="file"
+                  multiple
+                  onChange={(e) => {
+                    if (e.target.files) {
+                      const newFiles = Array.from(e.target.files);
+                      if (attachments.length + newFiles.length > 5) {
+                        error("Maximum 5 files allowed");
+                        return;
+                      }
+                      setAttachments([...attachments, ...newFiles]);
+                    }
+                  }}
+                  className="hidden"
+                  accept=".jpg,.jpeg,.png,.gif,.webp,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.zip,.rar,.7z"
+                />
+              </label>
+              {attachments.length > 0 && (
+                <div className="space-y-2">
+                  {attachments.map((file, index) => (
+                    <div key={index} className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                      <FileText className="w-5 h-5 text-blue-500 flex-shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                          {file.name}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          {(file.size / 1024 / 1024).toFixed(2)} MB
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => setAttachments(attachments.filter((_, i) => i !== index))}
+                        className="p-1 hover:bg-gray-200 dark:hover:bg-gray-700 rounded text-red-500 hover:text-red-700"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 

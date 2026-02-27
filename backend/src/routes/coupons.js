@@ -7,7 +7,7 @@ import {
   validateCoupon,
   applyCoupon,
 } from "../controllers/couponController.js";
-import { protect, admin } from "../middleware/authMiddleware.js";
+import { auth as protect, isAdmin as admin, isVerified as verified } from "../middleware/auth.js";
 
 const router = express.Router();
 

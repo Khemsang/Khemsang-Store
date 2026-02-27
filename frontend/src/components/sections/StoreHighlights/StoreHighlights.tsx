@@ -52,13 +52,6 @@ interface AboutData {
   bestProductsDescription: string;
 }
 
-interface Brand {
-  _id: string;
-  name: string;
-  logo: string;
-  website?: string;
-}
-
 const StoreHighlights: React.FC = () => {
   const navigate = useNavigate();
   const { addToCart } = useCart();
@@ -66,7 +59,6 @@ const StoreHighlights: React.FC = () => {
   const { success, error } = useToast();
 
   const [aboutData, setAboutData] = useState<AboutData | null>(null);
-  const [brands, setBrands] = useState<Brand[]>([]);
   const [loading, setLoading] = useState(true);
   const [hoveredProduct, setHoveredProduct] = useState<string | null>(null);
   const [hoveredImageIndex, setHoveredImageIndex] = useState<{
@@ -81,7 +73,6 @@ const StoreHighlights: React.FC = () => {
 
   useEffect(() => {
     fetchAboutData();
-    fetchBrands();
     // Load wishlist from localStorage
     const saved = localStorage.getItem("wishlist");
     if (saved) setWishlist(JSON.parse(saved));
@@ -96,15 +87,6 @@ const StoreHighlights: React.FC = () => {
       console.error("Error fetching about data:", err);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const fetchBrands = async () => {
-    try {
-      const { data } = await api.get("/brands");
-      setBrands(data);
-    } catch (err) {
-      console.error("Error fetching brands:", err);
     }
   };
 
@@ -141,8 +123,12 @@ const StoreHighlights: React.FC = () => {
     }
     try {
       setAddingToCart(product._id);
-      await addToCart(product._id, 1);
-      success("Added to cart!");
+      const result = await addToCart(product._id, 1);
+      
+      // Only show toast if it's a new item
+      if (result?.isNew) {
+        success("Added to cart!");
+      }
     } catch (err: any) {
       error(err.response?.data?.message || "Failed to add to cart");
     } finally {
@@ -462,7 +448,7 @@ const StoreHighlights: React.FC = () => {
                   className="absolute -top-4 -left-4 md:left-8 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-4"
                 >
                   <div className="text-center">
-                    <p className="text-3xl font-black bg-gradient-to-r from-[var(--root-color)] to-purple-600 bg-clip-text text-transparent">
+                    <p className="text-3xl font-black bg-blue-600 bg-clip-text text-transparent">
                       {aboutData.happyCustomers >= 1000
                         ? `${Math.floor(aboutData.happyCustomers / 1000)}K+`
                         : `${aboutData.happyCustomers}+`}
@@ -785,59 +771,6 @@ const StoreHighlights: React.FC = () => {
               />
             </motion.div>
           </div>
-        </div>
-      )}
-
-      {/* Brand Logos Infinite Carousel */}
-      {brands.length > 0 && (
-        <div className="py-12 bg-white dark:bg-gray-900 border-y border-gray-100 dark:border-gray-800 overflow-hidden">
-          <motion.p
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            className="text-center text-gray-500 text-sm font-medium mb-8"
-          >
-            TRUSTED BY LEADING BRANDS
-          </motion.p>
-
-          {/* Infinite Scroll Container */}
-          <div className="relative">
-            <div className="flex animate-scroll">
-              {/* First set of brands */}
-              {[...brands, ...brands, ...brands].map((brand, idx) => (
-                <div
-                  key={`brand-${idx}`}
-                  className="flex-shrink-0 mx-8 md:mx-12 grayscale hover:grayscale-0 transition-all duration-300 hover:scale-110 cursor-pointer"
-                  onClick={() =>
-                    brand.website && window.open(brand.website, "_blank")
-                  }
-                >
-                  <img
-                    src={brand.logo}
-                    alt={brand.name}
-                    className="h-10 md:h-14 w-auto object-contain opacity-60 hover:opacity-100 transition-opacity"
-                  />
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <style>{`
-            @keyframes scroll {
-              0% {
-                transform: translateX(0);
-              }
-              100% {
-                transform: translateX(-33.333%);
-              }
-            }
-            .animate-scroll {
-              animation: scroll 20s linear infinite;
-              width: fit-content;
-            }
-            .animate-scroll:hover {
-              animation-play-state: paused;
-            }
-          `}</style>
         </div>
       )}
     </section>

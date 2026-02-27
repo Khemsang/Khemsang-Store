@@ -45,7 +45,7 @@ const Navbar: React.FC = () => {
   const { user, logout } = useAuth();
   const { cart } = useCart();
 
-  const cartItemCount = cart.reduce((t, i) => t + i.quantity, 0);
+  const cartItemCount = cart.length; // Count unique products, not total quantity
 
   // Fetch categories from API
   useEffect(() => {
@@ -159,7 +159,7 @@ const Navbar: React.FC = () => {
       }`}
     >
       {/* Top Header */}
-      <div className="bg-gradient-to-r from-[var(--root-color)] to-purple-600 text-white text-sm py-2">
+      <div className="bg-blue-600 text-white text-sm py-2">
         <div className="container px-4">
           <Header />
         </div>
@@ -293,7 +293,7 @@ const Navbar: React.FC = () => {
               <div className="relative hidden md:block">
                 <button
                   onClick={() => setShowProfileMenu((p) => !p)}
-                  className="w-10 h-10 bg-gradient-to-r from-[var(--root-color)] to-purple-600 text-white rounded-full hover:shadow-lg transition-all flex items-center justify-center hover:scale-110 transform duration-200"
+                  className="w-10 h-10 bg-blue-600 text-white rounded-full hover:shadow-lg transition-all flex items-center justify-center hover:scale-110 transform duration-200"
                 >
                   <FaUser className="text-lg" />
                 </button>
@@ -463,7 +463,7 @@ const Navbar: React.FC = () => {
             ) : (
               <button
                 onClick={() => navigate("/login")}
-                className="hidden md:flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-[var(--root-color)] to-purple-600 text-white rounded-full font-semibold hover:shadow-lg transition-all"
+                className="hidden md:flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-full font-semibold hover:shadow-lg transition-all"
               >
                 <FaUser /> Login
               </button>

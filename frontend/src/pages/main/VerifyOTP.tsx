@@ -86,7 +86,6 @@ const VerifyOTP = () => {
       if (pendingItem) {
         try {
           const { productId, quantity, returnTo } = JSON.parse(pendingItem);
-          console.log("🛒 Adding pending cart item:", productId, "qty:", quantity);
           
           // Import addToCart from context
           const { addToCart } = await import('../../context/CartContext');
@@ -100,14 +99,12 @@ const VerifyOTP = () => {
             body: JSON.stringify({ productId, quantity })
           });
           
-          console.log("✅ Pending cart item added successfully");
           sessionStorage.removeItem('pendingCartItem');
           
           // Redirect to the return page (product page or cart)
           window.location.href = returnTo || '/cart';
           return;
         } catch (cartError) {
-          console.error("❌ Failed to add pending cart item:", cartError);
           // Continue with normal redirect even if cart add fails
         }
       }

@@ -84,14 +84,6 @@ const EstimatedDelivery = ({
           </div>
         </div>
       </div>
-
-      {/* Free Shipping Notice */}
-      <div className="mt-3 pt-3 border-t border-green-200 dark:border-green-800">
-        <p className="text-xs text-green-600 dark:text-green-500 flex items-center gap-1">
-          <span className="text-lg">🎉</span>
-          Free shipping on orders above Rs. 2,000
-        </p>
-      </div>
     </div>
   );
 };

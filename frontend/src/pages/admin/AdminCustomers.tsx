@@ -4,6 +4,7 @@ import { useToast } from "../../context/ToastContext";
 import { useMinimumLoading } from "../../hooks/useMinimumLoading";
 import { Card, CardContent } from "../../components/ui/card";
 import { Input } from "../../components/ui/input";
+import { Button } from "../../components/ui/button";
 import { Badge } from "../../components/ui/badge";
 import { Loading } from "../../components/ui/loading";
 import { Users, Search, Mail, Phone, MapPin, ShoppingBag } from "lucide-react";
@@ -25,6 +26,8 @@ const AdminCustomers = () => {
   const [loading, setLoading] = useState(true);
   const showLoading = useMinimumLoading(loading, 1000);
   const [search, setSearch] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(9);
   const { error } = useToast();
 
   useEffect(() => {
@@ -49,6 +52,17 @@ const AdminCustomers = () => {
       c.email?.toLowerCase().includes(search.toLowerCase())
   );
 
+  // Pagination logic
+  const totalPages = Math.ceil(filteredCustomers.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentCustomers = filteredCustomers.slice(startIndex, endIndex);
+
+  // Reset to page 1 when search changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search]);
+
   if (showLoading) return <Loading message="Loading customers..." fullScreen={true} />;
 
   return (
@@ -72,7 +86,7 @@ const AdminCustomers = () => {
 
       {/* Customers Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filteredCustomers.map((customer) => (
+        {currentCustomers.map((customer) => (
           <Card key={customer._id} className="hover:shadow-lg transition-shadow">
             <CardContent className="p-6">
               <div className="flex items-start gap-4 mb-4">
@@ -122,6 +136,59 @@ const AdminCustomers = () => {
         <div className="text-center py-12">
           <Users className="w-16 h-16 mx-auto text-gray-400 mb-4" />
           <p className="text-gray-500">No customers found</p>
+        </div>
+      )}
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center gap-2 mt-6">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+            disabled={currentPage === 1}
+          >
+            Previous
+          </Button>
+          
+          <div className="flex gap-1">
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
+              if (
+                page === 1 ||
+                page === totalPages ||
+                (page >= currentPage - 1 && page <= currentPage + 1)
+              ) {
+                return (
+                  <Button
+                    key={page}
+                    size="sm"
+                    variant={currentPage === page ? "default" : "outline"}
+                    onClick={() => setCurrentPage(page)}
+                  >
+                    {page}
+                  </Button>
+                );
+              } else if (page === currentPage - 2 || page === currentPage + 2) {
+                return <span key={page} className="px-2">...</span>;
+              }
+              return null;
+            })}
+          </div>
+          
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+            disabled={currentPage === totalPages}
+          >
+            Next
+          </Button>
+        </div>
+      )}
+      
+      {filteredCustomers.length > 0 && (
+        <div className="text-center text-sm text-gray-500 mt-4">
+          Showing {startIndex + 1} to {Math.min(endIndex, filteredCustomers.length)} of {filteredCustomers.length} customers
         </div>
       )}
     </div>

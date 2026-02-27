@@ -13,7 +13,7 @@ const ProductShowcase = () => {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const { addToCart } = useCart();
-  const { showToast } = useToast();
+  const { success: showToast } = useToast();
 
   useEffect(() => {
     fetchFeaturedProducts();
@@ -24,20 +24,14 @@ const ProductShowcase = () => {
       setLoading(true);
 
       // Fetch featured products from admin panel
-      const { data } = await api.get("/featured-products");
+      const { data: featuredData } = await api.get("/featured-products");
 
-      // Fetch all real products to match
-      let allProducts: any[] = [];
-      try {
-        const productsResponse = await api.get("/products");
-        allProducts = productsResponse.data;
-      } catch (err) {
-        // Silently handle error
-      }
+      // Fetch all real products
+      const { data: allProducts } = await api.get("/products");
 
-      // Sort by newest first and take only latest 4
-      const latestFeatured = data
-        .filter((item: any) => item.isActive)
+      // Map featured products to real products
+      const mappedProducts = featuredData
+        .filter((item: any) => item.isActive && item.productId)
         .sort((a: any, b: any) => {
           const dateA = new Date(a.createdAt || 0).getTime();
           const dateB = new Date(b.createdAt || 0).getTime();
@@ -45,30 +39,38 @@ const ProductShowcase = () => {
         })
         .slice(0, 4)
         .map((featured: any) => {
-          // If productId exists, use it
-          if (featured.productId) {
-            return featured;
+          // Find the real product
+          const realProduct = allProducts.find((p: any) => p._id === featured.productId);
+          
+          if (realProduct) {
+            // Return real product with featured badge info
+            return {
+              ...realProduct,
+              isFeatured: true,
+              featuredId: featured._id,
+            };
           }
+          
+          return null;
+        })
+        .filter((p: any) => p !== null);
 
-          // Try to find matching product by title
-          const matchingProduct = allProducts.find(
-            (p: any) =>
-              p.title.toLowerCase().trim() ===
-              featured.title.toLowerCase().trim()
-          );
-
-          if (matchingProduct) {
-            return { ...featured, productId: matchingProduct._id };
-          }
-
-          return featured;
-        });
-
-      setProducts(latestFeatured);
+      setProducts(mappedProducts);
     } catch (error) {
-      // Silently handle error
+      console.error("Error fetching featured products:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleAddToCart = async (product: any) => {
+    try {
+      // Add to cart directly with quantity 1
+      await addToCart(product._id, 1);
+      showToast("Added to cart!");
+    } catch (error: any) {
+      console.error("Error adding to cart:", error);
+      showToast(error.response?.data?.message || "Failed to add to cart");
     }
   };
 
@@ -77,25 +79,27 @@ const ProductShowcase = () => {
   }
 
   return (
-    <div className="bg-gradient-to-br from-gray-50 via-blue-50 to-orange-50 dark:from-gray-900 dark:via-blue-900/10 dark:to-gray-900 py-12 px-4">
+    <div className="bg-gradient-to-b from-gray-50 to-white dark:from-gray-800 dark:to-gray-900 py-10 px-4">
       <div className="container mx-auto max-w-7xl">
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600/10 to-orange-600/10 rounded-full mb-3">
-            <svg
-              className="w-5 h-5 text-blue-600"
-              fill="currentColor"
-              viewBox="0 0 20 20"
-            >
-              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-            </svg>
-            <span className="text-sm font-semibold text-blue-600">
-              Featured Collection
-            </span>
+        {/* Attractive Header */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-1">
+                Featured Products
+              </h2>
+              <div className="h-1 w-20 bg-gradient-to-r from-orange-500 to-pink-500 rounded-full"></div>
+            </div>
+            {products.length > 0 && (
+              <button 
+                onClick={() => navigate("/featured-products")}
+                className="px-6 py-2 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white text-sm font-semibold rounded-lg transition-all duration-300 shadow-md hover:shadow-lg"
+              >
+                View All →
+              </button>
+            )}
           </div>
-          <h2 className="text-3xl md:text-4xl font-bold mb-2 bg-gradient-to-r from-blue-600 to-orange-600 bg-clip-text text-transparent">
-            Featured Products
-          </h2>
-          <p className="text-gray-600 dark:text-gray-400 text-justify">
+          <p className="text-gray-600 dark:text-gray-400 text-sm">
             Handpicked premium products just for you
           </p>
         </div>
@@ -107,38 +111,23 @@ const ProductShowcase = () => {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
             {products.map((product) => (
               <SimpleProductCard
                 key={product._id}
                 product={product}
-                onAddToCart={() => {
-                  if (product.productId) {
-                    addToCart(product.productId, 1);
-                    showToast(`${product.title} added to cart!`, "success");
-                  } else {
-                    navigate(`/featured/${product._id}`);
-                  }
-                }}
+                onAddToCart={() => handleAddToCart(product)}
+                showOriginalPrice={true}
+                showColorVariants={true}
                 badge={
-                  <span className="px-2 py-0.5 bg-gradient-to-r from-yellow-500 to-orange-500 text-white text-[10px] font-bold rounded flex items-center gap-1">
+                  <div className="px-2 py-0.5 bg-gradient-to-r from-yellow-500 to-orange-500 text-white rounded text-xs font-bold flex items-center gap-1">
                     <FaStar className="w-2.5 h-2.5" />
                     Featured
-                  </span>
+                  </div>
                 }
-                linkPrefix="/featured"
               />
             ))}
           </div>
-        )}
-
-        {/* View All Button */}
-        {products.length > 0 && (
-          <ViewAllButton
-            to="/featured-products"
-            label="View All Featured Products"
-            variant="primary"
-          />
         )}
       </div>
     </div>

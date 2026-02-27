@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Star, ShoppingCart, ArrowLeft } from "lucide-react";
+import { Star, ShoppingCart, ArrowLeft, Flame, TrendingUp, Sparkles } from "lucide-react";
 import { api } from "../../services/api";
 import { useCart } from "../../context/CartContext";
 import { useToast } from "../../context/ToastContext";
@@ -8,6 +8,8 @@ import { Card } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
 import { Badge } from "../../components/ui/badge";
 import { Loading } from "../../components/ui/loading";
+import SimpleProductCard from "../../components/products/SimpleProductCard";
+import FlashProductCard from "../../components/products/FlashProductCard";
 
 interface FeaturedProduct {
   _id: string;
@@ -22,8 +24,27 @@ interface FeaturedProduct {
   isActive: boolean;
 }
 
+interface Product {
+  _id: string;
+  title: string;
+  price: number;
+  originalPrice?: number;
+  images?: string[];
+  image?: string;
+  stock?: number;
+  discount?: number;
+  rating?: number;
+  numReviews?: number;
+  flashEndTime?: string;
+  isFlashSale?: boolean;
+  flashStock?: number;
+}
+
 const AllFeaturedProducts = () => {
   const [products, setProducts] = useState<FeaturedProduct[]>([]);
+  const [flashProducts, setFlashProducts] = useState<Product[]>([]);
+  const [latestProducts, setLatestProducts] = useState<Product[]>([]);
+  const [topSellingProducts, setTopSellingProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
   const navigate = useNavigate();
@@ -31,14 +52,26 @@ const AllFeaturedProducts = () => {
   const { showToast } = useToast();
 
   useEffect(() => {
-    fetchAllFeaturedProducts();
+    fetchAllData();
   }, []);
+
+  const fetchAllData = async () => {
+    try {
+      setLoading(true);
+      await Promise.all([
+        fetchAllFeaturedProducts(),
+        fetchFlashSales(),
+        fetchLatestProducts(),
+        fetchTopSellingProducts()
+      ]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const fetchAllFeaturedProducts = async () => {
     try {
-      setLoading(true);
       const { data } = await api.get("/featured-products");
-      console.log("Featured products data:", data);
       const activeProducts = data
         .filter((item: FeaturedProduct) => item.isActive)
         .sort((a: any, b: any) => {
@@ -46,26 +79,63 @@ const AllFeaturedProducts = () => {
           const dateB = new Date(b.createdAt || 0).getTime();
           return dateB - dateA;
         });
-      console.log("Active products:", activeProducts);
-      console.log("First product image:", activeProducts[0]?.image);
       setProducts(activeProducts);
     } catch (error) {
-      console.error("Error fetching featured products:", error);
-    } finally {
-      setLoading(false);
+      showToast("Failed to load featured products", "error");
+    }
+  };
+
+  const fetchFlashSales = async () => {
+    try {
+      const { data } = await api.get("/flash-sales/home?limit=8");
+      setFlashProducts(data);
+    } catch (error) {
+      // Silently fail - flash sales are optional
+    }
+  };
+
+  const fetchLatestProducts = async () => {
+    try {
+      const { data } = await api.get("/products?sort=-createdAt&limit=8");
+      setLatestProducts(data.products || data);
+    } catch (error) {
+      // Silently fail - latest products are optional
+    }
+  };
+
+  const fetchTopSellingProducts = async () => {
+    try {
+      const { data } = await api.get("/products?sort=-sold&limit=8");
+      setTopSellingProducts(data.products || data);
+    } catch (error) {
+      // Silently fail - top selling products are optional
+    }
+  };
+
+  const handleAddToCartProduct = async (product: Product) => {
+    try {
+      const result = await addToCart(product._id, 1);
+      if (result.isNew) {
+        showToast("Added to cart!", "success");
+      } else {
+        showToast("Quantity updated in cart", "info");
+      }
+    } catch (error: any) {
+      showToast(error.response?.data?.message || "Failed to add to cart", "error");
     }
   };
 
   const handleAddToCart = async (product: FeaturedProduct) => {
-    if (product.productId) {
-      try {
-        await addToCart(product.productId, 1);
-        showToast(`${product.title} added to cart!`, "success");
-      } catch (error) {
-        showToast("Failed to add to cart", "error");
-      }
-    } else {
-      navigate(`/featured/${product._id}`);
+    if (!product.productId) {
+      showToast("This product is not available for purchase", "error");
+      return;
+    }
+
+    try {
+      await addToCart(product.productId, 1);
+      showToast("Added to cart!", "success");
+    } catch (error: any) {
+      showToast(error.response?.data?.message || "Failed to add to cart", "error");
     }
   };
 
@@ -82,15 +152,15 @@ const AllFeaturedProducts = () => {
   }
 
   return (
-    <section className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-orange-50 dark:from-gray-900 dark:via-blue-900/10 dark:to-gray-900 py-16 md:py-20">
+    <section className="min-h-screen bg-gray-50 dark:bg-gray-900 py-16 md:py-20">
       <div className="container mx-auto px-4 md:px-6 lg:px-8 max-w-7xl">
         {/* Header */}
         <div className="text-center mb-12">
-          <Badge className="mb-4 bg-gradient-to-r from-blue-600 to-orange-600 text-white">
+          <Badge className="mb-4 bg-blue-600 text-white">
             <Star className="w-4 h-4 mr-1" />
             Featured Collection
           </Badge>
-          <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-blue-600 to-orange-600 bg-clip-text text-transparent">
+          <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-blue-600 bg-clip-text text-transparent">
             All Featured Products
           </h1>
           <p className="text-gray-600 dark:text-gray-400 text-lg">
@@ -112,25 +182,22 @@ const AllFeaturedProducts = () => {
           </Card>
         ) : (
           <>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 mb-16">
               {products.map((product) => (
                 <Card key={product._id} className="group overflow-hidden hover:shadow-xl transition-all">
                   <div className="relative aspect-square bg-gray-100 dark:bg-gray-800">
                     {imageErrors[product._id] ? (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <ShoppingCart className="w-16 h-16 text-gray-400" />
+                      <div className="w-full h-full flex flex-col items-center justify-center text-gray-400">
+                        <ShoppingCart className="w-16 h-16 mb-2" />
+                        <span className="text-sm">Image not available</span>
                       </div>
                     ) : (
                       <img
-                        src={product.image}
+                        src={product.image || '/placeholder-image.jpg'}
                         alt={product.title}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 cursor-pointer"
                         onClick={() => navigate(`/featured/${product._id}`)}
-                        onError={(e) => {
-                          console.error("Image failed to load:", product.image);
-                          handleImageError(product._id);
-                        }}
-                        onLoad={() => console.log("Image loaded successfully:", product.image)}
+                        onError={() => handleImageError(product._id)}
                       />
                     )}
                     {product.discount && product.discount > 0 && (
@@ -138,7 +205,7 @@ const AllFeaturedProducts = () => {
                         -{product.discount}%
                       </Badge>
                     )}
-                    <Badge className="absolute top-2 right-2 bg-gradient-to-r from-blue-600 to-orange-600 text-white">
+                    <Badge className="absolute top-2 right-2 bg-blue-600 text-white">
                       <Star className="w-3 h-3 mr-1" />
                       Featured
                     </Badge>
@@ -166,15 +233,87 @@ const AllFeaturedProducts = () => {
                     <Button
                       onClick={() => handleAddToCart(product)}
                       className="w-full"
-                      disabled={!product.productId}
                     >
                       <ShoppingCart className="w-4 h-4 mr-2" />
-                      {product.productId ? "Add to Cart" : "View Details"}
+                      Add to Cart
                     </Button>
                   </div>
                 </Card>
               ))}
             </div>
+
+            {/* Flash Sale Section */}
+            {flashProducts.length > 0 && (
+              <div className="mb-16">
+                <div className="flex items-center gap-3 mb-6">
+                  <Flame className="w-8 h-8 text-orange-500" />
+                  <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
+                    Flash Sale
+                  </h2>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+                  {flashProducts.map((product, index) => {
+                    const colorSchemes: Array<"blue" | "purple" | "orange"> = ["blue", "purple", "orange"];
+                    const colorScheme = colorSchemes[index % 3];
+                    
+                    return (
+                      <FlashProductCard
+                        key={product._id}
+                        product={product}
+                        onAddToCart={handleAddToCartProduct}
+                        colorScheme={colorScheme}
+                      />
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Latest Products Section */}
+            {latestProducts.length > 0 && (
+              <div className="mb-16">
+                <div className="flex items-center gap-3 mb-6">
+                  <Sparkles className="w-8 h-8 text-blue-500" />
+                  <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
+                    Latest Products
+                  </h2>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                  {latestProducts.map((product) => (
+                    <SimpleProductCard
+                      key={product._id}
+                      product={product}
+                      onAddToCart={handleAddToCartProduct}
+                      showOriginalPrice={true}
+                      showColorVariants={true}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Top Selling Section */}
+            {topSellingProducts.length > 0 && (
+              <div className="mb-16">
+                <div className="flex items-center gap-3 mb-6">
+                  <TrendingUp className="w-8 h-8 text-green-500" />
+                  <h2 className="text-3xl font-bold text-gray-900 dark:text-white">
+                    Top Selling Products
+                  </h2>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+                  {topSellingProducts.map((product) => (
+                    <SimpleProductCard
+                      key={product._id}
+                      product={product}
+                      onAddToCart={handleAddToCartProduct}
+                      showOriginalPrice={true}
+                      showColorVariants={true}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
 
             {/* Back Button */}
             <div className="text-center mt-12">

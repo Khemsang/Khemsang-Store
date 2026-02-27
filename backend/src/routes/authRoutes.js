@@ -13,6 +13,7 @@ import {
   updateProfile,
   changePassword,
   getUserStats,
+  getUsersCount,
   forgotPassword,
   resetPassword,
   getAddresses,
@@ -38,6 +39,7 @@ router.post("/resend-otp", authLimiter, resendOTP);
 router.post("/logout", logout);
 router.post("/forgot-password", strictLimiter, forgotPassword);
 router.post("/reset-password", authLimiter, resetPassword);
+router.get("/users/count", getUsersCount); // Public endpoint for stats
 
 // Debug route (development only)
 if (process.env.NODE_ENV === "development") {

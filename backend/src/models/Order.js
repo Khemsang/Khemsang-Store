@@ -23,6 +23,11 @@ const orderSchema = new mongoose.Schema(
           type: Number,
           required: true,
         },
+        // Color variant information
+        colorVariant: {
+          colorName: String,
+          colorCode: String,
+        },
       },
     ],
     totalAmount: {

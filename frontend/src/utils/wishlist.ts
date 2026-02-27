@@ -1,9 +1,5 @@
 import { api } from "../services/api";
 
-/**
- * Add product to wishlist
- * Uses backend API if user is logged in, otherwise localStorage
- */
 export const addToWishlist = async (productId: string, isLoggedIn: boolean) => {
   if (isLoggedIn) {
     await api.post("/auth/wishlist", { productId });
@@ -17,9 +13,6 @@ export const addToWishlist = async (productId: string, isLoggedIn: boolean) => {
   }
 };
 
-/**
- * Remove product from wishlist
- */
 export const removeFromWishlist = async (
   productId: string,
   isLoggedIn: boolean
@@ -34,24 +27,15 @@ export const removeFromWishlist = async (
   }
 };
 
-/**
- * Check if product is in wishlist
- */
 export const isInWishlist = (productId: string, wishlistIds: string[]) => {
   return wishlistIds.includes(productId);
 };
 
-/**
- * Get wishlist IDs from localStorage (for non-logged in users)
- */
 export const getLocalWishlist = (): string[] => {
   const saved = localStorage.getItem("wishlist");
   return saved ? JSON.parse(saved) : [];
 };
 
-/**
- * Toggle wishlist status
- */
 export const toggleWishlist = async (
   productId: string,
   isLoggedIn: boolean,

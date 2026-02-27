@@ -28,7 +28,6 @@ export const signup = async (req, res) => {
 
     // Generate verification token
     const verificationToken = crypto.randomBytes(32).toString("hex");
-    console.log("🔑 Generated verification token:", verificationToken.substring(0, 10) + "...");
 
     // Create user - always as customer, admins can only be created by super admin
     const user = await User.create({
@@ -42,13 +41,10 @@ export const signup = async (req, res) => {
       verificationTokenExpires: new Date(Date.now() + 15 * 60 * 1000), // 15 minutes
     });
 
-    console.log("👤 User created:", user.email);
-    console.log("⏰ Token expires at:", user.verificationTokenExpires);
 
     // Send verification email
     try {
       await sendVerificationEmail(email, verificationToken);
-      console.log("✅ Verification email sent to:", email);
     } catch (emailError) {
       console.error(
         "❌ Failed to send verification email:",
@@ -76,11 +72,8 @@ export const verifyEmail = async (req, res) => {
   try {
     // Get token from URL parameter or query parameter
     const token = req.params.token || req.query.token;
-    console.log("🔍 Verification attempt with token:", token ? token.substring(0, 10) + "..." : "missing");
-    console.log("🔍 Token source:", req.params.token ? "URL parameter" : req.query.token ? "Query parameter" : "Not found");
 
     if (!token) {
-      console.log("❌ No token provided");
       return res.status(400).json({
         message: "Verification token is required.",
       });
@@ -91,24 +84,18 @@ export const verifyEmail = async (req, res) => {
       verificationTokenExpires: { $gt: Date.now() },
     });
 
-    console.log("👤 User found:", !!user);
     if (user) {
-      console.log("📧 User email:", user.email);
-      console.log("⏰ Token expires:", user.verificationTokenExpires);
-      console.log("🕐 Current time:", new Date());
     }
 
     if (!user) {
       // Check if token exists but expired
       const expiredUser = await User.findOne({ verificationToken: token });
       if (expiredUser) {
-        console.log("⚠️ Token found but expired");
         return res.status(400).json({
           message: "Verification link has expired. Please request a new verification email.",
         });
       }
       
-      console.log("❌ No user found with this token");
       return res.status(400).json({
         message: "Invalid or expired verification link.",
       });
@@ -119,12 +106,10 @@ export const verifyEmail = async (req, res) => {
     user.verificationTokenExpires = undefined;
     await user.save();
 
-    console.log("✅ Email verified successfully for:", user.email);
     
     // Send notification to admins about new customer
     try {
       await notifyNewCustomer(user);
-      console.log("✅ New customer notification sent to admins");
     } catch (notifError) {
       console.error("❌ Failed to send customer notification:", notifError.message);
     }
@@ -146,7 +131,6 @@ export const verifyEmail = async (req, res) => {
 export const resendVerification = async (req, res) => {
   try {
     const { email } = req.body;
-    console.log("🔄 Resend verification request for:", email);
     
     const user = await User.findOne({ email });
     if (!user) return res.status(404).json({ message: "User not found" });
@@ -158,10 +142,8 @@ export const resendVerification = async (req, res) => {
     user.verificationTokenExpires = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
     await user.save();
     
-    console.log("🔑 New verification token generated:", verificationToken.substring(0, 10) + "...");
     
     await sendVerificationEmail(email, verificationToken);
-    console.log("✅ Verification email resent to:", email);
 
     res.json({ 
       message: "Verification email sent",
@@ -219,7 +201,6 @@ export const login = async (req, res) => {
     // Check if OTP was verified within last 15 minutes - skip OTP if yes
     const fifteenMinutesAgo = new Date(Date.now() - 15 * 60 * 1000);
     if (user.otpVerifiedAt && user.otpVerifiedAt > fifteenMinutesAgo) {
-      console.log("✅ OTP verified within 15 minutes - skipping OTP for:", email);
       
       // Generate token and login directly
       const token = generateToken(user._id);
@@ -252,7 +233,6 @@ export const login = async (req, res) => {
 
     // Generate and send OTP for ALL users (including Super Admin)
     const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
-    console.log("🔑 Generated OTP:", otpCode, "for email:", email);
     
     await OTP.deleteMany({ email });
     await OTP.create({
@@ -263,7 +243,6 @@ export const login = async (req, res) => {
 
     try {
       await sendOTPEmail(email, otpCode);
-      console.log("✅ OTP sent to:", email);
     } catch (emailError) {
       console.error("❌ Failed to send OTP:", emailError.message);
       // In development, show OTP in response
@@ -289,34 +268,24 @@ export const login = async (req, res) => {
 export const verifyOTP = async (req, res) => {
   try {
     const { email, otp } = req.body;
-    console.log("🔍 OTP Verification attempt:");
-    console.log("  Email:", email);
-    console.log("  OTP received:", otp, "Type:", typeof otp);
     
     const otpRecord = await OTP.findOne({ email }).sort({ createdAt: -1 });
     if (!otpRecord) {
-      console.log("❌ No OTP record found for:", email);
       return res.status(400).json({ message: "OTP not found or expired" });
     }
 
-    console.log("  OTP record found, expires at:", otpRecord.expiresAt);
-    console.log("  Current time:", new Date());
 
     if (new Date() > otpRecord.expiresAt) {
       await OTP.deleteOne({ _id: otpRecord._id });
-      console.log("❌ OTP expired");
       return res.status(400).json({ message: "OTP expired" });
     }
 
     // Convert OTP to string if it's a number
     const otpString = String(otp);
-    console.log("  OTP as string:", otpString);
     
     const isMatch = await otpRecord.matchOTP(otpString);
-    console.log("  OTP match result:", isMatch);
     
     if (!isMatch) {
-      console.log("❌ Invalid OTP");
       return res.status(400).json({ message: "Invalid OTP" });
     }
 
@@ -377,7 +346,6 @@ export const resendOTP = async (req, res) => {
     try {
       await sendOTPEmail(email, otpCode);
     } catch {
-      console.log(`Dev OTP for ${email}: ${otpCode}`);
     }
 
     res.json({
@@ -489,10 +457,8 @@ export const forgotPassword = async (req, res) => {
       // Use appropriate email template based on user type
       if (user.isSuperAdmin) {
         await sendSuperAdminPasswordResetEmail(email, resetToken);
-        console.log("✅ Super Admin password reset email sent to:", email);
       } else {
         await sendPasswordResetEmail(email, resetToken);
-        console.log("✅ Password reset email sent to:", email);
       }
       
       res.json({ 
@@ -533,11 +499,8 @@ export const resetPassword = async (req, res) => {
 
     // First check if token exists (without expiry check)
     const userWithToken = await User.findOne({ resetPasswordToken: token });
-    console.log("User with token found:", !!userWithToken);
 
     if (userWithToken) {
-      console.log("Token expires:", userWithToken.resetPasswordExpires);
-      console.log("Current time:", new Date());
       console.log(
         "Is expired:",
         new Date() > userWithToken.resetPasswordExpires
@@ -596,6 +559,16 @@ export const getUserStats = async (req, res) => {
     wishlistItems: 0,
     reviewsGiven: 0,
   });
+};
+
+// Get total users count (public - for stats display)
+export const getUsersCount = async (req, res) => {
+  try {
+    const totalUsers = await User.countDocuments();
+    res.json({ totalUsers });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
 };
 
 // ADDRESS MANAGEMENT
@@ -851,7 +824,6 @@ export const cleanupExpiredTokens = async () => {
         },
       }
     );
-    console.log(`🧹 Cleaned up expired refresh tokens from ${result.modifiedCount} users`);
   } catch (err) {
     console.error("❌ Token cleanup error:", err);
   }

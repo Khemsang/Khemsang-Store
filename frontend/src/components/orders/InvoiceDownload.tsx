@@ -40,7 +40,7 @@ const InvoiceDownload = ({ orderId, className = "" }: InvoiceDownloadProps) => {
     <button
       onClick={downloadInvoice}
       disabled={loading}
-      className={`inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[var(--root-color)] to-purple-600 text-white rounded-lg hover:opacity-90 transition-all disabled:opacity-50 ${className}`}
+      className={`inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:opacity-90 transition-all disabled:opacity-50 ${className}`}
     >
       {loading ? <FaSpinner className="animate-spin" /> : <FaFileDownload />}
       {loading ? "Generating..." : "Download Invoice"}

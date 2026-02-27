@@ -203,7 +203,7 @@ export const sendOrderConfirmationEmail = async (order, user) => {
                     <div class="item-name">${item.product?.title || item.product?.name || 'Product'}</div>
                     <div class="item-meta">
                       Quantity: ${item.quantity} × Rs. ${item.price.toLocaleString()}
-                      ${item.color ? `<br>Color: ${item.color}` : ''}
+                      ${item.colorVariant ? `<br><span style="display: inline-flex; align-items: center; gap: 6px;">Color: ${item.colorVariant.colorName} <span style="display: inline-block; width: 16px; height: 16px; border-radius: 50%; background-color: ${item.colorVariant.colorCode}; border: 2px solid #e5e7eb;"></span></span>` : ''}
                       ${item.size ? ` | Size: ${item.size}` : ''}
                     </div>
                   </div>

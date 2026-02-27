@@ -4,6 +4,7 @@ import { useCart } from "../../context/CartContext";
 import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../context/ToastContext";
 import { useProducts } from "../../hooks/useProducts";
+import { useScrollToTop } from "../../hooks/useScrollToTop";
 import Pagination from "../../components/common/Pagination";
 import ProductFilters from "../../components/products/ProductFilters";
 import ProductCard from "../../components/products/ProductCard";
@@ -16,6 +17,10 @@ import { FaBalanceScale } from "react-icons/fa";
 
 const Products = () => {
   const [currentPage, setCurrentPage] = useState(1);
+  
+  // Scroll to top when page changes
+  useScrollToTop(currentPage);
+  
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
   const [priceRange, setPriceRange] = useState({ min: 0, max: 500000 });
@@ -25,14 +30,17 @@ const Products = () => {
   const itemsPerPage = 16;
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { addToCart } = useCart();
+  const { addToCart, cart } = useCart();
   const { user } = useAuth();
   const { success, error } = useToast();
-  const {
-    products: allProducts,
-    allCategories,
-    loading,
-  } = useProducts(selectedCategory, searchTerm);
+  const [addingToCart, setAddingToCart] = useState<string | null>(null);
+  const { data: allProducts = [], isLoading: loading } = useProducts(false);
+  
+  // Get unique categories from products
+  const allCategories = useMemo(() => {
+    const categories = allProducts.map((p) => p.category);
+    return [...new Set(categories)];
+  }, [allProducts]);
 
   const handleQuickView = (product: any) => {
     setQuickViewProduct(product);
@@ -50,12 +58,18 @@ const Products = () => {
     }
   };
 
-  // Filter products by price range
+  // Filter products by category, search term, and price range
   const products = useMemo(() => {
-    return allProducts.filter(
-      (p) => p.price >= priceRange.min && p.price <= priceRange.max
-    );
-  }, [allProducts, priceRange]);
+    return allProducts.filter((p) => {
+      const matchesCategory = !selectedCategory || p.category === selectedCategory;
+      const matchesSearch = !searchTerm || 
+        p.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        p.description?.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesPrice = p.price >= priceRange.min && p.price <= priceRange.max;
+      
+      return matchesCategory && matchesSearch && matchesPrice;
+    });
+  }, [allProducts, selectedCategory, searchTerm, priceRange]);
 
   // Read category from URL on mount
   useEffect(() => {
@@ -72,15 +86,34 @@ const Products = () => {
   const totalPages = Math.ceil(products.length / itemsPerPage);
 
   const handleAddToCart = async (productId: string) => {
+    // Prevent rapid clicks
+    if (addingToCart === productId) {
+      return;
+    }
+
     if (!user) {
       navigate("/login", { state: { from: "/products" } });
       return;
     }
+    
     try {
+      setAddingToCart(productId);
+      
+      // Check if product already exists in cart BEFORE API call
+      const isExistingItem = cart.some((item) => {
+        return item.product?._id === productId && !item.colorVariant;
+      });
+      
       await addToCart(productId, 1);
-      success("Added to cart!");
+      
+      // Only show toast if it was a NEW item
+      if (!isExistingItem) {
+        success("Added to cart!");
+      }
     } catch (err: any) {
       error(err.response?.data?.message || "Failed to add to cart");
+    } finally {
+      setAddingToCart(null);
     }
   };
 
@@ -90,7 +123,7 @@ const Products = () => {
         {/* Header */}
         <div className="text-center mb-12 md:mb-16">
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4">
-            Our <span className="bg-gradient-to-r from-blue-600 to-orange-600 bg-clip-text text-transparent">Products</span>
+            Our <span className="bg-blue-600 bg-clip-text text-transparent">Products</span>
           </h1>
           <p className="text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
             Discover our collection of premium products crafted with care
@@ -115,7 +148,7 @@ const Products = () => {
           <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40">
             <button
               onClick={() => setShowCompare(true)}
-              className="flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-blue-600 to-orange-600 text-white rounded-full shadow-2xl hover:shadow-blue-500/50 transition-all"
+              className="flex items-center gap-3 px-6 py-3 bg-blue-600 text-white rounded-full shadow-2xl hover:shadow-blue-500/50 transition-all"
             >
               <FaBalanceScale className="w-5 h-5" />
               <span className="font-semibold">
@@ -152,7 +185,7 @@ const Products = () => {
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-4 sm:gap-6">
               {currentItems.map((product) => (
                 <ProductCard
                   key={product._id}

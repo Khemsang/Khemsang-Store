@@ -10,6 +10,9 @@ import TestimonialSection from "../../components/sections/TestimonialSection/Tes
 import BrowseByCategory from "../../components/sections/BrowseByCategory/BrowseByCategory";
 import Counterbar from "../../components/sections/Counterbar/Counterbar";
 import StoreHighlights from "../../components/sections/StoreHighlights/StoreHighlights";
+import BrandBanner from "../../components/sections/BrandBanner/BrandBanner";
+import TopSellingProducts from "../../components/sections/TopSellingProducts/TopSellingProducts";
+import FlashSaleSection from "../../components/sections/FlashSaleSection/FlashSaleSection";
 
 const fadeUpVariant = {
   hidden: { opacity: 0, y: 50 },
@@ -57,7 +60,15 @@ const Home = () => {
       </AnimatedSection>
 
       <AnimatedSection>
+        <BrandBanner />
+      </AnimatedSection>
+
+      <AnimatedSection>
         <BrowseByCategory />
+      </AnimatedSection>
+
+      <AnimatedSection>
+        <FlashSaleSection />
       </AnimatedSection>
 
       <AnimatedSection>
@@ -65,11 +76,15 @@ const Home = () => {
       </AnimatedSection>
 
       <AnimatedSection>
-        <LatestItems />
+        <TopSellingProducts />
       </AnimatedSection>
 
       <AnimatedSection>
         <StoreHighlights />
+      </AnimatedSection>
+
+      <AnimatedSection>
+        <LatestItems />
       </AnimatedSection>
 
       <AnimatedSection>

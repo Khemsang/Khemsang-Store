@@ -41,9 +41,9 @@ const HeroSection: React.FC = () => {
     if (banners.length <= 1 || paused) return;
     const interval = setInterval(() => {
       setCurrent((prev) => (prev + 1) % banners.length);
-    }, 6000);
+    }, 3000); // 3 seconds per slide
     return () => clearInterval(interval);
-  }, [banners.length, paused]);
+  }, [banners.length, paused, current]); // Added current to dependencies
 
   const goTo = useCallback((index: number) => {
     setCurrent(index);
@@ -60,35 +60,32 @@ const HeroSection: React.FC = () => {
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >
-      {/* Background Image Slider */}
+      {/* Background Image Slider - Carousel Style */}
       {banners.length > 0 && (
         <div className="absolute inset-0 z-0 overflow-hidden">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={current}
-              initial={{ scale: 1.05, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.98, opacity: 0 }}
-              transition={{ 
-                duration: 1,
-                ease: [0.43, 0.13, 0.23, 0.96]
-              }}
-              className="absolute inset-0"
-            >
-              <motion.img
-                src={currentBanner?.image}
-                alt={currentBanner?.title}
-                className="w-full h-full object-cover"
-                initial={{ scale: 1 }}
-                animate={{ scale: 1.03 }}
-                transition={{ 
-                  duration: 7,
-                  ease: "linear"
-                }}
-              />
-              <div className="absolute inset-0 bg-black/40"></div>
-            </motion.div>
-          </AnimatePresence>
+          <motion.div
+            className="flex h-full"
+            animate={{ x: `-${current * 100}%` }}
+            transition={{ 
+              duration: 0.6,
+              ease: [0.32, 0.72, 0, 1]
+            }}
+          >
+            {banners.map((banner, index) => (
+              <div
+                key={banner._id}
+                className="relative min-w-full h-full flex-shrink-0"
+              >
+                <img
+                  src={banner.image}
+                  alt={banner.title || 'Banner'}
+                  className="w-full h-full object-cover"
+                  loading={index === 0 ? "eager" : "lazy"}
+                />
+                <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/40 to-black/50"></div>
+              </div>
+            ))}
+          </motion.div>
         </div>
       )}
 

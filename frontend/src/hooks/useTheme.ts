@@ -1,10 +1,6 @@
 import { useContext } from "react";
 import { ThemeContext } from "../context/ThemeContext";
 
-/**
- * Custom hook to use Theme context
- * @returns Theme context value
- */
 export const useTheme = () => {
   const context = useContext(ThemeContext);
 

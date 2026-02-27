@@ -74,10 +74,10 @@ const EcoProductSlider = () => {
           {visibleCategories.map((category, index) => (
             <div
               key={index}
-              className="bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 rounded-xl p-6 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 cursor-pointer group border border-gray-200 dark:border-gray-600"
+              className="bg-gray-100 dark:from-gray-800 dark:to-gray-700 rounded-xl p-6 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 cursor-pointer group border border-gray-200 dark:border-gray-600"
             >
               <div className="flex flex-col items-center text-center">
-                <div className="w-20 h-20 mb-4 bg-gradient-to-br from-[var(--root-color)] to-purple-600 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg">
+                <div className="w-20 h-20 mb-4 bg-blue-600 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg">
                   <svg
                     className="w-10 h-10 text-white"
                     fill="none"

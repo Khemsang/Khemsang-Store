@@ -26,7 +26,6 @@ export const verifyEsewaPayment = async (encodedData) => {
       Buffer.from(encodedData, "base64").toString("utf-8")
     );
 
-    console.log("eSewa decoded response:", decodedData);
 
     const { transaction_uuid, total_amount, product_code, status, signature } =
       decodedData;

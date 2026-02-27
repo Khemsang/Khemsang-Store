@@ -210,7 +210,7 @@ const ProductReviews: React.FC<ProductReviewsProps> = ({ productId }) => {
       {user && !userHasReviewed && !showForm && (
         <button
           onClick={() => setShowForm(true)}
-          className="w-full py-4 px-6 bg-gradient-to-r from-[var(--root-color)] to-purple-600 text-white rounded-xl hover:from-[var(--root-color)] hover:to-purple-700 transition-all duration-200 font-semibold"
+          className="w-full py-4 px-6 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all duration-200 font-semibold"
         >
           Write a Review
         </button>
@@ -252,7 +252,7 @@ const ProductReviews: React.FC<ProductReviewsProps> = ({ productId }) => {
               <button
                 type="submit"
                 disabled={submitting}
-                className="flex-1 py-3 px-6 bg-gradient-to-r from-[var(--root-color)] to-purple-600 text-white rounded-xl hover:from-[var(--root-color)] hover:to-purple-700 transition-all duration-200 font-semibold disabled:opacity-50"
+                className="flex-1 py-3 px-6 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all duration-200 font-semibold disabled:opacity-50"
               >
                 {submitting
                   ? "Submitting..."
@@ -301,7 +301,7 @@ const ProductReviews: React.FC<ProductReviewsProps> = ({ productId }) => {
               <div className="flex items-start justify-between mb-3">
                 <div>
                   <div className="flex items-center gap-3 mb-2">
-                    <div className="w-10 h-10 bg-gradient-to-r from-[var(--root-color)] to-purple-600 rounded-full flex items-center justify-center text-white font-bold">
+                    <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold">
                       {review.user.name.charAt(0).toUpperCase()}
                     </div>
                     <div>

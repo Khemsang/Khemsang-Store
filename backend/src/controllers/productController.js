@@ -54,8 +54,6 @@ export const createProduct = async (req, res) => {
   try {
     const { title, description, price, category, stock, discount } = req.body;
 
-    console.log("Creating product:", title);
-    console.log("Files received:", req.files?.length || 0);
 
     // Validate discount
     if (discount !== undefined && discount !== null && discount !== '') {
@@ -70,9 +68,7 @@ export const createProduct = async (req, res) => {
     // Upload images
     let imageUrls = [];
     if (req.files?.length) {
-      console.log("Uploading images to Cloudinary...");
       imageUrls = await uploadMultipleToCloudinary(req.files);
-      console.log("Images uploaded:", imageUrls.length);
     } else {
       console.warn("No images provided for product:", title);
     }
@@ -88,12 +84,10 @@ export const createProduct = async (req, res) => {
       createdBy: req.user._id,
     });
 
-    console.log("Product created with images:", product.images.length);
     
     // Send notification to admins
     try {
       await notifyNewProduct(product);
-      console.log("✅ Product creation notification sent to admins");
     } catch (notifError) {
       console.error("❌ Failed to send product notification:", notifError.message);
     }
@@ -186,7 +180,6 @@ export const deleteProduct = async (req, res) => {
     // Send notification before deleting
     try {
       await notifyProductDeleted(product);
-      console.log("✅ Product deletion notification sent to admins");
     } catch (notifError) {
       console.error("❌ Failed to send deletion notification:", notifError.message);
     }
@@ -194,6 +187,51 @@ export const deleteProduct = async (req, res) => {
     await Product.findByIdAndDelete(req.params.id);
     res.json({ message: "Product deleted successfully" });
   } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+
+export const getTopSellingProducts = async (req, res) => {
+  try {
+    const limit = parseInt(req.query.limit) || 12;
+
+    // Aggregate products with their order counts
+    const topProducts = await Product.aggregate([
+      {
+        $lookup: {
+          from: "orders",
+          localField: "_id",
+          foreignField: "items.product",
+          as: "orders",
+        },
+      },
+      {
+        $addFields: {
+          totalOrders: { $size: "$orders" },
+        },
+      },
+      {
+        $match: {
+          stock: { $gt: 0 }, // Only in-stock products
+        },
+      },
+      {
+        $sort: { totalOrders: -1, createdAt: -1 },
+      },
+      {
+        $limit: limit,
+      },
+      {
+        $project: {
+          orders: 0, // Remove orders array from response
+        },
+      },
+    ]);
+
+    res.json(topProducts);
+  } catch (err) {
+    console.error("Error fetching top selling products:", err);
     res.status(500).json({ message: err.message });
   }
 };

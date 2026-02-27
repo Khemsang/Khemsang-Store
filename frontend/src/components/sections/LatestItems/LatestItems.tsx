@@ -21,9 +21,11 @@ const LatestItems: React.FC = () => {
   const { addToCart } = useCart();
   const { showToast } = useToast();
 
-  const handleAddToCart = (product: any) => {
-    addToCart(product._id, 1);
-    showToast(`${product.title} added to cart!`, "success");
+  const handleAddToCart = async (product: any) => {
+    const result = await addToCart(product._id, 1);
+    if (result?.isNew) {
+      showToast(`${product.title} added to cart!`, "success");
+    }
   };
 
   useEffect(() => {
@@ -51,90 +53,41 @@ const LatestItems: React.FC = () => {
   }
 
   return (
-    <section className="py-12 px-4 bg-white dark:bg-gray-800" ref={ref}>
+    <section className="py-10 px-4 bg-gradient-to-b from-white to-gray-50 dark:from-gray-900 dark:to-gray-800" ref={ref}>
       <div className="container mx-auto max-w-7xl">
-        <motion.div
-          initial="hidden"
-          animate={controls}
-          variants={{
-            hidden: { opacity: 0, y: 50 },
-            visible: { opacity: 1, y: 0, transition: { duration: 0.6 } },
-          }}
-        >
-          <div className="mb-8">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-green-100 to-emerald-100 dark:from-green-900/30 dark:to-emerald-900/30 rounded-full mb-3">
-              <svg
-                className="w-5 h-5 text-green-600 dark:text-green-400"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-              <span className="text-sm font-semibold text-green-700 dark:text-green-400">
-                Just Arrived
-              </span>
+        {/* Attractive Header */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h2 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-1">
+                Just For You
+              </h2>
+              <div className="h-1 w-20 bg-gradient-to-r from-orange-500 to-pink-500 rounded-full"></div>
             </div>
-            <h2 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent mb-2">
-              Latest Products
-            </h2>
-            <p className="text-gray-600 dark:text-gray-400">
-              Check out our newest arrivals
-            </p>
+            <button 
+              onClick={() => navigate("/products")}
+              className="px-6 py-2 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white text-sm font-semibold rounded-lg transition-all duration-300 shadow-md hover:shadow-lg"
+            >
+              View All →
+            </button>
           </div>
+          <p className="text-gray-600 dark:text-gray-400 text-sm">
+            Discover our newest arrivals and trending products
+          </p>
+        </div>
 
-          {/* Products Grid */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
-            {latestProducts.map((item, index) => (
-              <motion.div
-                key={item._id}
-                initial={{ opacity: 0, y: 30 }}
-                animate={controls}
-                variants={{
-                  visible: {
-                    opacity: 1,
-                    y: 0,
-                    transition: { delay: index * 0.05, duration: 0.5 },
-                  },
-                }}
-              >
-                <SimpleProductCard
-                  product={item}
-                  onAddToCart={handleAddToCart}
-                  badge={
-                    <span className="px-2 py-0.5 bg-gradient-to-r from-green-500 to-emerald-600 text-white text-[10px] font-bold rounded">
-                      NEW
-                    </span>
-                  }
-                />
-              </motion.div>
-            ))}
-          </div>
-
-          {/* View All Button */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={controls}
-            variants={{
-              visible: {
-                opacity: 1,
-                y: 0,
-                transition: { delay: 0.8, duration: 0.5 },
-              },
-            }}
-          >
-            <ViewAllButton
-              to="/products"
-              label="View All Products"
-              variant="green"
+        {/* Products Grid */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+          {latestProducts.map((item) => (
+            <SimpleProductCard
+              key={item._id}
+              product={item}
+              onAddToCart={handleAddToCart}
+              showOriginalPrice={true}
+              showColorVariants={true}
             />
-          </motion.div>
-        </motion.div>
+          ))}
+        </div>
       </div>
     </section>
   );

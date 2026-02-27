@@ -41,9 +41,11 @@ const QuickView = ({ product, isOpen, onClose }: QuickViewProps) => {
 
   if (!product) return null;
 
-  const handleAddToCart = () => {
-    addToCart(product, quantity);
-    showToast(`${product.title} added to cart!`, "success");
+  const handleAddToCart = async () => {
+    const result = await addToCart(product._id, quantity);
+    if (result?.isNew) {
+      showToast(`${product.title} added to cart!`, "success");
+    }
     onClose();
   };
 

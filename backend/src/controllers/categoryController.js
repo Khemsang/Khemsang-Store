@@ -1,4 +1,5 @@
 import Category from "../models/Category.js";
+import { uploadToCloudinary, deleteFromCloudinary } from "../services/cloudinaryService.js";
 
 // Get all active categories
 export const getAllCategories = async (req, res) => {
@@ -44,10 +45,18 @@ export const createCategory = async (req, res) => {
       });
     }
 
-    const category = new Category({
+    const categoryData = {
       ...req.body,
       createdBy: req.user._id,
-    });
+    };
+
+    // Handle image upload if file is provided
+    if (req.file) {
+      const imageUrl = await uploadToCloudinary(req.file);
+      categoryData.image = imageUrl;
+    }
+
+    const category = new Category(categoryData);
     await category.save();
     res.status(201).json(category);
   } catch (err) {
@@ -71,7 +80,23 @@ export const updateCategory = async (req, res) => {
     if (!category)
       return res.status(404).json({ message: "Category not found" });
 
-    const updated = await Category.findByIdAndUpdate(req.params.id, req.body, {
+    const updateData = { ...req.body };
+
+    // Handle image upload if new file is provided
+    if (req.file) {
+      // Delete old image if exists
+      if (category.image) {
+        try {
+          await deleteFromCloudinary(category.image);
+        } catch (err) {
+          console.error("Error deleting old image:", err);
+        }
+      }
+      const imageUrl = await uploadToCloudinary(req.file);
+      updateData.image = imageUrl;
+    }
+
+    const updated = await Category.findByIdAndUpdate(req.params.id, updateData, {
       new: true,
       runValidators: true,
     });

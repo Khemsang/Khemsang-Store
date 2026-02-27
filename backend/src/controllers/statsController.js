@@ -96,7 +96,6 @@ export const getAnalytics = async (req, res) => {
     const isSuperAdmin = req.user.isSuperAdmin;
     const adminId = req.user._id;
 
-    console.log("📊 Fetching analytics for:", isSuperAdmin ? "Super Admin" : "Admin", adminId);
 
     // Get products based on admin role
     let productQuery = {};
@@ -110,9 +109,6 @@ export const getAnalytics = async (req, res) => {
       Product.countDocuments(productQuery),
     ]);
 
-    console.log("📦 Total orders found:", allOrders.length);
-    console.log("👥 Total customers:", users);
-    console.log("🛍️ Total products:", products);
 
     // Filter orders based on admin role
     let orders = allOrders;
@@ -124,7 +120,6 @@ export const getAnalytics = async (req, res) => {
             item.product?.createdBy?.toString() === adminId.toString()
         );
       });
-      console.log("🔍 Filtered orders for admin:", orders.length);
     }
 
     // Calculate total revenue from filtered orders (include all payment statuses for now)
@@ -136,7 +131,6 @@ export const getAnalytics = async (req, res) => {
       return sum;
     }, 0);
 
-    console.log("💰 Total revenue calculated:", totalRevenue);
 
     // Monthly revenue (last 6 months) from filtered orders
     const monthlyRevenue = [];
@@ -156,7 +150,6 @@ export const getAnalytics = async (req, res) => {
       });
     }
 
-    console.log("📅 Monthly revenue:", monthlyRevenue);
 
     // Weekly revenue (last 7 weeks)
     const weeklyRevenue = [];
@@ -184,7 +177,6 @@ export const getAnalytics = async (req, res) => {
       });
     }
 
-    console.log("📊 Weekly revenue:", weeklyRevenue);
 
     // Daily revenue (last 7 days)
     const dailyRevenue = [];
@@ -211,7 +203,6 @@ export const getAnalytics = async (req, res) => {
       });
     }
 
-    console.log("📈 Daily revenue:", dailyRevenue);
 
     // Orders by status from filtered orders
     const ordersByStatus = {
@@ -222,7 +213,6 @@ export const getAnalytics = async (req, res) => {
       cancelled: orders.filter((o) => o.orderStatus === "cancelled").length,
     };
 
-    console.log("📋 Orders by status:", ordersByStatus);
 
     const analyticsData = {
       totalRevenue,
@@ -240,7 +230,6 @@ export const getAnalytics = async (req, res) => {
       adminRole: isSuperAdmin ? "Super Admin" : "Admin",
     };
 
-    console.log("✅ Analytics data prepared successfully");
     res.json(analyticsData);
   } catch (error) {
     console.error("❌ Error fetching analytics:", error);

@@ -75,7 +75,6 @@ const Profile = () => {
     api
       .get("/auth/stats")
       .then((res) => {
-        console.log("📊 Stats updated:", res.data);
         setUserStats(res.data);
       })
       .catch(console.error);
@@ -85,7 +84,6 @@ const Profile = () => {
     api
       .get("/orders/my-orders")
       .then((res) => {
-        console.log("📦 Orders updated:", res.data.length);
         setOrders(res.data);
       })
       .catch(console.error);
@@ -95,7 +93,6 @@ const Profile = () => {
     api
       .get("/activities")
       .then((res) => {
-        console.log("📋 Activities updated:", res.data.length);
         setActivities(res.data);
       })
       .catch(console.error);

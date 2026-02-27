@@ -8,6 +8,7 @@ import { Label } from "../../components/ui/label";
 import { Textarea } from "../../components/ui/textarea";
 import { Badge } from "../../components/ui/badge";
 import { Loading } from "../../components/ui/loading";
+import { Pagination } from "../../components/ui/pagination";
 import {
   Plus,
   Edit,
@@ -29,17 +30,21 @@ interface FeaturedProduct {
   discount?: number;
   image: string;
   category: string;
+  productId?: string; // Add productId
   isActive: boolean;
   order: number;
 }
 
 const AdminFeaturedProducts = () => {
   const [products, setProducts] = useState<FeaturedProduct[]>([]);
+  const [allProducts, setAllProducts] = useState<any[]>([]); // All regular products for linking
   const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(12);
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -47,6 +52,7 @@ const AdminFeaturedProducts = () => {
     originalPrice: "",
     discount: "",
     category: "",
+    productId: "", // Add productId field
     order: "0",
     isActive: true,
   });
@@ -60,12 +66,14 @@ const AdminFeaturedProducts = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [productsRes, categoriesRes] = await Promise.all([
+      const [productsRes, categoriesRes, allProductsRes] = await Promise.all([
         api.get("/featured-products"),
         api.get("/categories?adminOnly=true"),
+        api.get("/products"), // Fetch all regular products
       ]);
       setProducts(productsRes.data);
       setCategories(categoriesRes.data.filter((c: any) => c.isActive));
+      setAllProducts(allProductsRes.data); // Store all products
     } catch (err) {
       error("Failed to fetch data");
     } finally {
@@ -85,6 +93,11 @@ const AdminFeaturedProducts = () => {
       data.append("category", formData.category);
       data.append("order", formData.order);
       data.append("isActive", formData.isActive.toString());
+      
+      // Add productId field
+      if (formData.productId) {
+        data.append("productId", formData.productId);
+      }
       
       if (formData.originalPrice) data.append("originalPrice", formData.originalPrice);
       if (formData.discount) data.append("discount", formData.discount);
@@ -122,6 +135,7 @@ const AdminFeaturedProducts = () => {
       originalPrice: product.originalPrice?.toString() || "",
       discount: product.discount?.toString() || "",
       category: product.category,
+      productId: product.productId || "", // Add productId
       order: product.order.toString(),
       isActive: product.isActive,
     });
@@ -148,6 +162,7 @@ const AdminFeaturedProducts = () => {
       originalPrice: "",
       discount: "",
       category: "",
+      productId: "", // Reset productId
       order: "0",
       isActive: true,
     });
@@ -159,6 +174,17 @@ const AdminFeaturedProducts = () => {
   const filteredProducts = products.filter((p) =>
     p.title.toLowerCase().includes(search.toLowerCase())
   );
+
+  // Pagination logic
+  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentProducts = filteredProducts.slice(startIndex, endIndex);
+
+  // Reset to page 1 when search changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search]);
 
   if (loading) return <Loading message="Loading featured products..." fullScreen={true} />;
 
@@ -193,6 +219,35 @@ const AdminFeaturedProducts = () => {
                     onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                     placeholder="Product name"
                   />
+                </div>
+                <div>
+                  <Label>Link to Product * (Required for purchasing)</Label>
+                  <select
+                    required
+                    value={formData.productId}
+                    onChange={(e) => {
+                      const selectedProd = allProducts.find(p => p._id === e.target.value);
+                      setFormData({ 
+                        ...formData, 
+                        productId: e.target.value,
+                        // Auto-fill price if not set
+                        price: formData.price || selectedProd?.price || '',
+                        // Auto-fill category if not set
+                        category: formData.category || selectedProd?.category || ''
+                      });
+                    }}
+                    className="w-full px-3 py-2 border rounded-lg dark:bg-gray-800 dark:border-gray-700"
+                  >
+                    <option value="">Select a product to link</option>
+                    {allProducts.map((prod) => (
+                      <option key={prod._id} value={prod._id}>
+                        {prod.title} - Rs. {prod.price}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="text-xs text-gray-500 mt-1">
+                    ⚠️ Required: Link this featured product to an actual product for cart functionality and proper display
+                  </p>
                 </div>
                 <div>
                   <Label>Category *</Label>
@@ -303,7 +358,7 @@ const AdminFeaturedProducts = () => {
 
       {/* Products Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-        {filteredProducts.map((product) => (
+        {currentProducts.map((product) => (
           <Card key={product._id} className="overflow-hidden hover:shadow-lg transition-shadow">
             <div className="aspect-square bg-gray-100 dark:bg-gray-800 relative">
               {product.image ? (
@@ -399,6 +454,18 @@ const AdminFeaturedProducts = () => {
           <Star className="w-16 h-16 mx-auto text-gray-400 mb-4" />
           <p className="text-gray-500">No featured products found</p>
         </div>
+      )}
+
+      {/* Pagination */}
+      {filteredProducts.length > 0 && (
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          totalItems={filteredProducts.length}
+          itemsPerPage={itemsPerPage}
+          onPageChange={setCurrentPage}
+          onItemsPerPageChange={setItemsPerPage}
+        />
       )}
     </div>
   );

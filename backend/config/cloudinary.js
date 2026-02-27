@@ -10,7 +10,6 @@ cloudinary.config({
 
 // Log Cloudinary connection status
 if (process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_CLOUD_NAME) {
-  console.log(`☁️  Cloudinary Connected: ${process.env.CLOUDINARY_CLOUD_NAME}`);
 } else {
   console.error("❌ Cloudinary configuration missing in .env");
 }

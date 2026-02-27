@@ -111,7 +111,6 @@ const sendAdminBlockEmail = async (adminEmail, adminName, reason = "") => {
       subject: `🚫 Your Admin Account Has Been Suspended - ${storeName}`,
       html,
     });
-    console.log(`✅ Block email sent to ${adminEmail}`);
   } catch (err) {
     console.error("Failed to send block notification email:", err.message);
   }
@@ -195,7 +194,6 @@ const sendAdminUnblockEmail = async (adminEmail, adminName) => {
       subject: `✅ Your Admin Account Has Been Reactivated - ${storeName}`,
       html,
     });
-    console.log(`✅ Unblock email sent to ${adminEmail}`);
   } catch (err) {
     console.error("Failed to send unblock notification email:", err.message);
   }
@@ -288,7 +286,6 @@ const sendPasswordResetNotificationEmail = async (
       subject: `🔑 Your Password Has Been Reset - ${storeName}`,
       html,
     });
-    console.log(`✅ Password reset email sent to ${adminEmail}`);
   } catch (err) {
     console.error(
       "Failed to send password reset notification email:",
@@ -385,7 +382,6 @@ const sendAdminWarningEmail = async (adminEmail, adminName, warningMessage) => {
       subject: `⚠️ Warning Notice - ${storeName}`,
       html,
     });
-    console.log(`✅ Warning email sent to ${adminEmail}`);
   } catch (err) {
     console.error("Failed to send warning notification email:", err.message);
   }

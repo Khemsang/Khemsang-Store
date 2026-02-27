@@ -4,6 +4,18 @@ import { useCart } from "../../context/CartContext";
 import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../context/ToastContext";
 import { api } from "../../services/api";
+import { analytics } from "../../services/analytics";
+
+interface ColorVariant {
+  _id: string;
+  colorName: string;
+  colorCode: string;
+  images: string[];
+  stock: number;
+  price?: number;
+  sku?: string;
+  isActive: boolean;
+}
 
 interface FeaturedProduct {
   _id: string;
@@ -17,16 +29,31 @@ interface FeaturedProduct {
   productId?: string;
 }
 
+interface RegularProduct {
+  _id: string;
+  title: string;
+  description: string;
+  price: number;
+  category: string;
+  images: string[];
+  stock: number;
+  colorVariants?: ColorVariant[];
+}
+
 const FeaturedProductDetails = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { addToCart } = useCart();
+  const { addToCart, cart } = useCart();
   const { user } = useAuth();
   const { success, error } = useToast();
   const [product, setProduct] = useState<FeaturedProduct | null>(null);
+  const [regularProduct, setRegularProduct] = useState<RegularProduct | null>(null);
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
   const [imageError, setImageError] = useState(false);
+  const [addingToCart, setAddingToCart] = useState(false);
+  const [selectedVariant, setSelectedVariant] = useState<ColorVariant | null>(null);
+  const [productExists, setProductExists] = useState(true);
 
   useEffect(() => {
     fetchFeaturedProduct();
@@ -36,48 +63,231 @@ const FeaturedProductDetails = () => {
     try {
       const { data } = await api.get(`/featured-products/${id}`);
       setProduct(data);
+      
+      // Track product view
+      analytics.trackProductView({
+        productId: data._id,
+        productName: data.title,
+        productCategory: data.category,
+        productPrice: data.price,
+        isFeatured: true
+      });
+      
+      // If product has productId, fetch the regular product for variants
+      if (data.productId) {
+        try {
+          const { data: regularData } = await api.get(`/products/${data.productId}`);
+          setRegularProduct(regularData);
+          setProductExists(true);
+          
+          // Auto-select first active variant if available
+          if (regularData.colorVariants && regularData.colorVariants.length > 0) {
+            const firstActive = regularData.colorVariants.find((v: ColorVariant) => v.isActive);
+            if (firstActive) {
+              setSelectedVariant(firstActive);
+            }
+          }
+        } catch (err: any) {
+          console.error("Failed to fetch linked product:", err);
+          setProductExists(false);
+          error("The linked product is no longer available");
+        }
+      }
     } catch (err: any) {
-      error(err.response?.data?.message || "Failed to fetch product");
+      console.error("Failed to fetch featured product:", err);
+      const errorMessage = err.response?.status === 404 
+        ? "Featured product not found" 
+        : err.response?.data?.message || "Failed to fetch product";
+      error(errorMessage);
+      // Navigate back to home after showing error
+      setTimeout(() => navigate("/"), 2000);
     } finally {
       setLoading(false);
     }
   };
 
+  const handleVariantChange = (variant: ColorVariant) => {
+    setSelectedVariant(variant);
+    setQuantity(0); // Reset quantity to 0 when changing variant - user must select quantity
+  };
+
   const handleAddToCart = async () => {
+    
     if (!user) {
+      sessionStorage.setItem('pendingCartItem', JSON.stringify({
+        productId: product?.productId || product?._id,
+        quantity: quantity,
+        returnTo: `/featured/${id}`
+      }));
       navigate("/login", { state: { from: `/featured/${id}` } });
       return;
     }
+    
+    if (addingToCart) {
+      return;
+    }
+    
 
-    // If productId exists, add that product to cart
-    if (product?.productId) {
-      try {
-        await addToCart(product.productId, quantity);
-        success("Added to cart!");
-      } catch (err: any) {
-        error(err.response?.data?.message || "Failed to add to cart");
+    try {
+      setAddingToCart(true);
+      
+      // Use productId if available, otherwise use featured product's own _id
+      const targetProductId = product?.productId || product?._id;
+      
+      if (!targetProductId) {
+        error("Product ID not found");
+        return;
       }
-    } else {
-      error("This product is not available for purchase");
+      
+      // Check if product still exists (only if productId is set)
+      if (product?.productId && !productExists) {
+        error("Product no longer available");
+        return;
+      }
+      
+      // Prepare variant info if variant is selected
+      const variantInfo = selectedVariant ? {
+        colorName: selectedVariant.colorName,
+        colorCode: selectedVariant.colorCode
+      } : undefined;
+      
+      // Check if product already exists in cart BEFORE API call
+      const isExistingItem = cart.some((item) => {
+        if (!item.product) {
+          return false;
+        }
+        const sameProduct = item.product._id === targetProductId;
+        const sameVariant = variantInfo 
+          ? (item.colorVariant?.colorName === variantInfo.colorName)
+          : !item.colorVariant;
+        return sameProduct && sameVariant;
+      });
+      
+      // Make API call - featured products can be bought just like normal products
+      await addToCart(targetProductId, quantity, variantInfo);
+      
+      // Track analytics
+      analytics.trackAddToCart({
+        productId: targetProductId,
+        productName: product.title,
+        quantity: quantity,
+        price: selectedVariant?.price || product.price,
+        variant: selectedVariant?.colorName,
+        source: 'featured_showcase',
+        isNewItem: !isExistingItem,
+        isFeatured: true,
+        toastShown: !isExistingItem
+      });
+      
+      // Only show toast if it was a NEW item (checked BEFORE API call)
+      if (!isExistingItem) {
+        success("Added to cart!");
+      } else {
+      }
+    } catch (err: any) {
+      error(err.response?.data?.message || "Failed to add to cart");
+      
+      // Track error
+      analytics.trackError({
+        action: 'add_to_cart',
+        errorMessage: err.response?.data?.message || "Failed to add to cart",
+        productId: product?.productId,
+        source: 'featured_showcase'
+      });
+    } finally {
+      setAddingToCart(false);
     }
   };
 
   const handleBuyNow = async () => {
+    
     if (!user) {
-      navigate("/login", { state: { from: `/featured/${id}` } });
+      sessionStorage.setItem('pendingCartItem', JSON.stringify({
+        productId: product?.productId || product?._id,
+        quantity: quantity,
+        returnTo: '/checkout'
+      }));
+      navigate("/login", { state: { from: '/checkout' } });
       return;
     }
+    
+    if (addingToCart) {
+      return;
+    }
+    
 
-    if (product?.productId) {
-      try {
-        await addToCart(product.productId, quantity);
-        success("Product added to cart!");
-        navigate("/checkout");
-      } catch (err: any) {
-        error(err.response?.data?.message || "Failed to add to cart");
+    try {
+      setAddingToCart(true);
+      
+      // Use productId if available, otherwise use featured product's own _id
+      const targetProductId = product?.productId || product?._id;
+      
+      if (!targetProductId) {
+        error("Product ID not found");
+        return;
       }
-    } else {
-      error("This product is not available for purchase");
+      
+      // Check if product still exists (only if productId is set)
+      if (product?.productId && !productExists) {
+        error("Product no longer available");
+        return;
+      }
+      
+      // Prepare variant info if variant is selected
+      const variantInfo = selectedVariant ? {
+        colorName: selectedVariant.colorName,
+        colorCode: selectedVariant.colorCode
+      } : undefined;
+      
+      
+      // Check if product already exists in cart BEFORE API call
+      const isExistingItem = cart.some((item) => {
+        if (!item.product) {
+          return false;
+        }
+        const sameProduct = item.product._id === targetProductId;
+        const sameVariant = variantInfo 
+          ? (item.colorVariant?.colorName === variantInfo.colorName)
+          : !item.colorVariant;
+        return sameProduct && sameVariant;
+      });
+      
+      
+      // Make API call - featured products can be bought just like normal products
+      await addToCart(targetProductId, quantity, variantInfo);
+      
+      // Track analytics
+      analytics.trackAddToCart({
+        productId: targetProductId,
+        productName: product.title,
+        quantity: quantity,
+        price: selectedVariant?.price || product.price,
+        variant: selectedVariant?.colorName,
+        source: 'featured_showcase',
+        isNewItem: !isExistingItem,
+        isFeatured: true,
+        toastShown: !isExistingItem
+      });
+      
+      // Only show toast if it was a NEW item (checked BEFORE API call)
+      if (!isExistingItem) {
+        success("Product added to cart!");
+      } else {
+      }
+      
+      navigate("/checkout");
+    } catch (err: any) {
+      error(err.response?.data?.message || "Failed to add to cart");
+      
+      // Track error
+      analytics.trackError({
+        action: 'buy_now',
+        errorMessage: err.response?.data?.message || "Failed to add to cart",
+        productId: product?.productId,
+        source: 'featured_showcase'
+      });
+    } finally {
+      setAddingToCart(false);
     }
   };
 
@@ -98,7 +308,7 @@ const FeaturedProductDetails = () => {
           </h2>
           <button
             onClick={() => navigate("/")}
-            className="px-6 py-3 bg-gradient-to-r from-blue-600 to-orange-600 text-white rounded-xl hover:from-blue-700 hover:to-orange-700 transition-all duration-200"
+            className="px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all duration-200"
           >
             Back to Home
           </button>
@@ -108,7 +318,7 @@ const FeaturedProductDetails = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-orange-50 dark:from-gray-900 dark:via-blue-900/10 dark:to-gray-900 py-8 md:py-12">
+    <div className="min-h-screen bg-gray-50 dark:from-gray-900 dark:via-blue-900/10 dark:to-gray-900 py-8 md:py-12">
       <div className="container mx-auto px-4 md:px-6 lg:px-8 max-w-7xl">
         {/* Breadcrumb */}
         <nav className="flex items-center gap-2 text-sm mb-6 bg-white dark:bg-gray-800 px-4 py-3 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
@@ -154,7 +364,7 @@ const FeaturedProductDetails = () => {
           <div className="lg:col-span-5 space-y-4">
             <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-xl border border-gray-200 dark:border-gray-700">
               <div className="relative">
-                <div className="relative w-full aspect-square rounded-xl overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-800">
+                <div className="relative w-full aspect-square rounded-xl overflow-hidden bg-gray-100 dark:from-gray-700 dark:to-gray-800">
                   {imageError ? (
                     <div className="w-full h-full flex items-center justify-center">
                       <svg
@@ -184,7 +394,7 @@ const FeaturedProductDetails = () => {
                       -{product.discount}% OFF
                     </div>
                   )}
-                  <div className="absolute top-4 right-4 bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-4 py-2 rounded-xl font-bold shadow-lg flex items-center gap-2">
+                  <div className="absolute top-4 right-4 bg-yellow-500 text-white px-4 py-2 rounded-xl font-bold shadow-lg flex items-center gap-2">
                     <svg
                       className="w-5 h-5"
                       fill="currentColor"
@@ -203,7 +413,7 @@ const FeaturedProductDetails = () => {
           <div className="lg:col-span-7 space-y-6">
             <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 md:p-8 shadow-xl border border-gray-200 dark:border-gray-700">
               <div className="flex items-start justify-between mb-4">
-                <span className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600/10 to-orange-600/10 text-blue-600 rounded-full text-sm font-semibold">
+                <span className="inline-flex items-center gap-2 px-4 py-2 bg-blue-100 text-blue-600 rounded-full text-sm font-semibold">
                   <svg
                     className="w-4 h-4"
                     fill="none"
@@ -229,13 +439,66 @@ const FeaturedProductDetails = () => {
                 {product.description}
               </p>
 
-              <div className="bg-gradient-to-r from-blue-50 to-orange-50 dark:from-blue-900/20 dark:to-orange-900/20 rounded-xl p-6 mb-6">
+              {/* Color Variants Selector */}
+              {regularProduct?.colorVariants && regularProduct.colorVariants.length > 0 && (
+                <div className="mb-6">
+                  <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
+                    Available Colors ({regularProduct.colorVariants.length})
+                  </h3>
+                  <div className="flex flex-wrap gap-3">
+                    {regularProduct.colorVariants.map((variant) => (
+                      <button
+                        key={variant._id}
+                        onClick={() => handleVariantChange(variant)}
+                        disabled={!variant.isActive || variant.stock === 0}
+                        className={`relative flex items-center gap-2 px-4 py-2 rounded-lg border-2 transition-all ${
+                          selectedVariant?._id === variant._id
+                            ? "border-blue-600 bg-blue-50 dark:bg-blue-900/20"
+                            : "border-gray-300 dark:border-gray-600 hover:border-blue-400"
+                        } ${
+                          !variant.isActive || variant.stock === 0
+                            ? "opacity-50 cursor-not-allowed"
+                            : "cursor-pointer"
+                        }`}
+                        title={`${variant.colorName} - ${variant.stock > 0 ? `${variant.stock} in stock` : 'Out of stock'}`}
+                      >
+                        <div
+                          className="w-6 h-6 rounded-full border-2 border-gray-300"
+                          style={{ backgroundColor: variant.colorCode }}
+                        />
+                        <span className="text-sm font-medium text-gray-900 dark:text-white">
+                          {variant.colorName}
+                        </span>
+                        {variant.stock === 0 && (
+                          <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full">
+                            Out
+                          </span>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                  {selectedVariant && (
+                    <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-gray-700 dark:text-gray-300">
+                          Selected: <span className="font-semibold">{selectedVariant.colorName}</span>
+                        </span>
+                        <span className={`font-semibold ${selectedVariant.stock > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                          {selectedVariant.stock > 0 ? `${selectedVariant.stock} in stock` : 'Out of stock'}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <div className="bg-blue-50 dark:from-blue-900/20 dark:to-orange-900/20 rounded-xl p-6 mb-6">
                 <div className="flex items-baseline gap-3">
-                  <span className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-blue-600 to-orange-600 bg-clip-text text-transparent">
-                    Rs. {product.price.toLocaleString()}
+                  <span className="text-4xl md:text-5xl font-bold bg-blue-600 bg-clip-text text-transparent">
+                    Rs. {(selectedVariant?.price || product.price).toLocaleString()}
                   </span>
                   {product.originalPrice &&
-                    product.originalPrice > product.price && (
+                    product.originalPrice > (selectedVariant?.price || product.price) && (
                       <span className="text-xl text-gray-500 line-through">
                         Rs. {product.originalPrice.toLocaleString()}
                       </span>
@@ -245,7 +508,7 @@ const FeaturedProductDetails = () => {
                   <p className="text-sm text-green-600 dark:text-green-400 mt-2 font-semibold">
                     You save Rs.{" "}
                     {(
-                      (product.originalPrice || 0) - product.price
+                      (product.originalPrice || 0) - (selectedVariant?.price || product.price)
                     ).toLocaleString()}{" "}
                     ({product.discount}% off)
                   </p>
@@ -259,8 +522,9 @@ const FeaturedProductDetails = () => {
                 </span>
                 <div className="flex items-center gap-2 bg-gray-100 dark:bg-gray-700 rounded-xl p-1.5">
                   <button
-                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    className="w-10 h-10 flex items-center justify-center rounded-lg bg-white dark:bg-gray-600 text-gray-700 dark:text-gray-200 hover:bg-blue-600 hover:text-white transition-all shadow-sm"
+                    onClick={() => setQuantity(Math.max(0, quantity - 1))}
+                    disabled={quantity === 0}
+                    className="w-10 h-10 flex items-center justify-center rounded-lg bg-white dark:bg-gray-600 text-gray-700 dark:text-gray-200 hover:bg-blue-600 hover:text-white transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <svg
                       className="w-5 h-5"
@@ -280,8 +544,12 @@ const FeaturedProductDetails = () => {
                     {quantity}
                   </span>
                   <button
-                    onClick={() => setQuantity(quantity + 1)}
-                    className="w-10 h-10 flex items-center justify-center rounded-lg bg-white dark:bg-gray-600 text-gray-700 dark:text-gray-200 hover:bg-blue-600 hover:text-white transition-all shadow-sm"
+                    onClick={() => {
+                      const maxStock = selectedVariant?.stock || regularProduct?.stock || 999;
+                      setQuantity(Math.min(maxStock, quantity + 1));
+                    }}
+                    disabled={quantity >= (selectedVariant?.stock || regularProduct?.stock || 999)}
+                    className="w-10 h-10 flex items-center justify-center rounded-lg bg-white dark:bg-gray-600 text-gray-700 dark:text-gray-200 hover:bg-blue-600 hover:text-white transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     <svg
                       className="w-5 h-5"
@@ -298,14 +566,19 @@ const FeaturedProductDetails = () => {
                     </svg>
                   </button>
                 </div>
+                {selectedVariant && (
+                  <span className="text-sm text-gray-500 dark:text-gray-400">
+                    Max: {selectedVariant.stock}
+                  </span>
+                )}
               </div>
 
               {/* Action Buttons */}
               <div className="flex flex-col sm:flex-row gap-3">
                 <button
                   onClick={handleAddToCart}
-                  disabled={!product.productId}
-                  className="flex-1 py-4 px-6 bg-white dark:bg-gray-700 text-gray-900 dark:text-white border-2 border-blue-600 rounded-xl hover:bg-blue-600 hover:text-white transition-all duration-200 font-semibold disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-md hover:shadow-lg"
+                  disabled={addingToCart || quantity === 0 || (selectedVariant ? selectedVariant.stock === 0 : false)}
+                  className="flex-1 py-4 px-6 bg-white dark:bg-gray-700 text-gray-900 dark:text-white border-2 border-blue-600 rounded-xl hover:bg-blue-600 hover:text-white transition-all duration-200 font-semibold flex items-center justify-center gap-2 shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <svg
                     className="w-5 h-5"
@@ -320,21 +593,48 @@ const FeaturedProductDetails = () => {
                       d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
                     />
                   </svg>
-                  Add to Cart
+                  {addingToCart ? "Adding..." : quantity === 0 ? "Select Quantity" : selectedVariant && selectedVariant.stock === 0 ? "Out of Stock" : "Add to Cart"}
                 </button>
                 <button
                   onClick={handleBuyNow}
-                  disabled={!product.productId}
-                  className="flex-1 py-4 px-6 bg-gradient-to-r from-blue-600 to-orange-600 text-white rounded-xl hover:from-blue-700 hover:to-orange-700 transition-all duration-200 font-semibold disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl transform hover:scale-[1.02]"
+                  disabled={addingToCart || quantity === 0 || (selectedVariant ? selectedVariant.stock === 0 : false)}
+                  className="flex-1 py-4 px-6 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all duration-200 font-semibold shadow-lg hover:shadow-xl transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
                 >
-                  Buy Now
+                  {addingToCart ? "Processing..." : quantity === 0 ? "Select Quantity" : selectedVariant && selectedVariant.stock === 0 ? "Out of Stock" : "Buy Now"}
                 </button>
               </div>
 
-              {!product.productId && (
-                <p className="text-sm text-orange-600 dark:text-orange-400 mt-4 text-center">
-                  This is a featured showcase item. Contact us for availability.
-                </p>
+              {/* Product Link Status - Only show if productId exists but product is deleted */}
+              {product.productId && !productExists && (
+                <div className="mt-4 p-3 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">
+                  <div className="flex items-center gap-2 text-sm text-red-800 dark:text-red-200">
+                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                    </svg>
+                    <span className="font-semibold">Product No Longer Available</span>
+                  </div>
+                  <p className="text-xs text-red-700 dark:text-red-300 mt-1 ml-7">
+                    The linked product has been removed or is no longer available for purchase.
+                  </p>
+                </div>
+              )}
+
+              {/* Featured Badge Info */}
+              {(!product.productId || productExists) && (
+                <div 
+                  className="mt-4 p-3 bg-yellow-50 dark:from-yellow-900/20 dark:to-orange-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800 cursor-help"
+                  title="This product is highlighted on the home page for a limited time. It can be purchased just like any other product."
+                >
+                  <div className="flex items-center gap-2 text-sm text-yellow-800 dark:text-yellow-200">
+                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                    </svg>
+                    <span className="font-semibold">Featured Product</span>
+                  </div>
+                  <p className="text-xs text-yellow-700 dark:text-yellow-300 mt-1 ml-7">
+                    This product is highlighted on the home page for a limited time. Shop now for the best deals!
+                  </p>
+                </div>
               )}
             </div>
           </div>

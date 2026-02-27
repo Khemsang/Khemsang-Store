@@ -13,12 +13,14 @@ import multiVendorAuthRoutes from "./routes/multiVendorAuthRoutes.js";
 import sellerManagementRoutes from "./routes/sellerManagementRoutes.js";
 import productRoutes from "./routes/productRoutes.js";
 import variantRoutes from "./routes/variantRoutes.js";
+import variantStatsRoutes from "./routes/variantStatsRoutes.js";
 import cartRoutes from "./routes/cartRoutes.js";
 import orderRoutes from "./routes/orderRoutes.js";
 import testimonialRoutes from "./routes/testimonials.js";
 import categoryRoutes from "./routes/categories.js";
 import featuredProductRoutes from "./routes/featuredProducts.js";
 import bannerRoutes from "./routes/banners.js";
+import flashSaleRoutes from "./routes/flashSaleRoutes.js";
 import statsRoutes from "./routes/stats.js";
 import reviewRoutes from "./routes/reviews.js";
 import aboutRoutes from "./routes/about.js";
@@ -30,6 +32,7 @@ import brandRoutes from "./routes/brands.js";
 import couponRoutes from "./routes/coupons.js";
 import adminManagementRoutes from "./routes/adminManagement.js";
 import messageRoutes from "./routes/messageRoutes.js";
+import colorRoutes from "./routes/colors.js";
 
 import { errorHandler } from "./middleware/errorHandler.js";
 
@@ -81,12 +84,14 @@ app.use("/api", apiLimiter);
 app.use("/api/auth", authRoutes); // Legacy auth routes
 app.use("/api/admin/sellers", sellerManagementRoutes); // Seller management
 app.use("/api/products", productRoutes);
+app.use("/api/variant-stats", variantStatsRoutes); // Must be before /api/variants
 app.use("/api/variants", variantRoutes);
 app.use("/api/cart", cartRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/testimonials", testimonialRoutes);
 app.use("/api/categories", categoryRoutes);
 app.use("/api/featured-products", featuredProductRoutes);
+app.use("/api/flash-sales", flashSaleRoutes);
 app.use("/api/banners", bannerRoutes);
 app.use("/api/stats", statsRoutes);
 app.use("/api/reviews", reviewRoutes);
@@ -99,6 +104,7 @@ app.use("/api/brands", brandRoutes);
 app.use("/api/coupons", couponRoutes);
 app.use("/api/admin-management", adminManagementRoutes);
 app.use("/api/messages", messageRoutes);
+app.use("/api/colors", colorRoutes);
 
 // Health check endpoints
 app.get("/api/health", (req, res) => {

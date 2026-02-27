@@ -20,18 +20,28 @@ export const sendMessage = async (req, res) => {
       return res.status(404).json({ message: "Recipient not found" });
     }
 
+    // Handle attachments from multer
+    const attachments = req.files
+      ? req.files.map((file) => ({
+          url: file.path, // Cloudinary URL
+          filename: file.originalname,
+        }))
+      : [];
+
     const newMessage = await Message.create({
       sender: req.user._id,
       recipient: recipientId,
       subject,
       message,
       parentMessage: parentMessageId || null,
+      attachments,
     });
 
     // If this is a reply, add to parent's replies array
     if (parentMessageId) {
       await Message.findByIdAndUpdate(parentMessageId, {
         $push: { replies: newMessage._id },
+        isReplied: true,
       });
     }
 
@@ -81,6 +91,7 @@ export const getSentMessages = async (req, res) => {
   try {
     const messages = await Message.find({
       sender: req.user._id,
+      parentMessage: null, // Only get main messages, not replies
       isDraft: false,
       deletedBy: { $ne: req.user._id },
     })
@@ -88,7 +99,7 @@ export const getSentMessages = async (req, res) => {
       .populate("recipient", "name email")
       .populate({
         path: "replies",
-        populate: { path: "sender", select: "name email" },
+        populate: { path: "sender recipient", select: "name email" },
       })
       .sort({ createdAt: -1 });
 
@@ -312,6 +323,14 @@ export const saveDraft = async (req, res) => {
   try {
     const { recipientId, subject, message, draftId } = req.body;
 
+    // Handle attachments from multer
+    const attachments = req.files
+      ? req.files.map((file) => ({
+          url: file.path, // Cloudinary URL
+          filename: file.originalname,
+        }))
+      : [];
+
     if (draftId) {
       // Update existing draft
       const draft = await Message.findById(draftId);
@@ -322,6 +341,9 @@ export const saveDraft = async (req, res) => {
       draft.recipient = recipientId;
       draft.subject = subject;
       draft.message = message;
+      if (attachments.length > 0) {
+        draft.attachments = [...draft.attachments, ...attachments];
+      }
       await draft.save();
 
       const populatedDraft = await Message.findById(draft._id)
@@ -338,6 +360,7 @@ export const saveDraft = async (req, res) => {
       subject: subject || "(No Subject)",
       message: message || "",
       isDraft: true,
+      attachments,
     });
 
     const populatedDraft = await Message.findById(newDraft._id)
@@ -458,6 +481,9 @@ export const getUnreadCount = async (req, res) => {
     const count = await Message.countDocuments({
       recipient: req.user._id,
       isRead: false,
+      isDraft: false,
+      parentMessage: null, // Only count main messages, not replies
+      deletedBy: { $ne: req.user._id }, // Exclude deleted messages
     });
 
     res.json({ count });

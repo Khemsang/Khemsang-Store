@@ -121,8 +121,11 @@ const AdminCategories = () => {
     name: "",
     description: "",
     icon: "FaBox",
+    image: "",
     isActive: true,
   });
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string>("");
   const { success, error } = useToast();
   const { user } = useAuth();
   
@@ -148,11 +151,25 @@ const AdminCategories = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      const submitData = new FormData();
+      submitData.append("name", formData.name);
+      submitData.append("description", formData.description);
+      submitData.append("icon", formData.icon);
+      submitData.append("isActive", String(formData.isActive));
+      
+      if (imageFile) {
+        submitData.append("image", imageFile);
+      }
+
       if (editingId) {
-        await api.put(`/categories/${editingId}`, formData);
+        await api.put(`/categories/${editingId}`, submitData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
         success("Category updated");
       } else {
-        await api.post("/categories", formData);
+        await api.post("/categories", submitData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
         success("Category created");
       }
       resetForm();
@@ -168,9 +185,24 @@ const AdminCategories = () => {
       name: category.name,
       description: category.description || "",
       icon: category.icon || "FaBox",
+      image: (category as any).image || "",
       isActive: category.isActive,
     });
+    setImagePreview((category as any).image || "");
+    setImageFile(null);
     setShowForm(true);
+  };
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setImageFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const handleDelete = async (id: string) => {
@@ -185,7 +217,9 @@ const AdminCategories = () => {
   };
 
   const resetForm = () => {
-    setFormData({ name: "", description: "", icon: "FaBox", isActive: true });
+    setFormData({ name: "", description: "", icon: "FaBox", image: "", isActive: true });
+    setImageFile(null);
+    setImagePreview("");
     setEditingId(null);
     setShowForm(false);
   };
@@ -247,6 +281,29 @@ const AdminCategories = () => {
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   placeholder="Optional description"
                 />
+              </div>
+
+              {/* Image Upload */}
+              <div>
+                <Label>Category Image</Label>
+                <Input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                  className="cursor-pointer"
+                />
+                {imagePreview && (
+                  <div className="mt-3">
+                    <img
+                      src={imagePreview}
+                      alt="Preview"
+                      className="w-32 h-32 object-cover rounded-lg border-2 border-gray-200 dark:border-gray-700"
+                    />
+                  </div>
+                )}
+                <p className="text-xs text-gray-500 mt-1">
+                  Optional: Upload an image for this category
+                </p>
               </div>
               
               {/* Icon Selector */}

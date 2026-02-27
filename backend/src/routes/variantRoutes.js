@@ -15,11 +15,11 @@ const upload = multer({ storage: multer.memoryStorage() });
 // Get all variants of a product
 router.get("/:productId", getProductVariants);
 
-// Add variant to product (admin only)
-router.post("/:productId", auth, isAdmin, upload.array("images", 5), addVariant);
+// Add variant to product (admin only) - max 4 images per variant
+router.post("/:productId", auth, isAdmin, upload.array("images", 4), addVariant);
 
-// Update variant (admin only)
-router.put("/:productId/:variantId", auth, isAdmin, upload.array("images", 5), updateVariant);
+// Update variant (admin only) - max 4 images per variant
+router.put("/:productId/:variantId", auth, isAdmin, upload.array("images", 4), updateVariant);
 
 // Delete variant (admin only)
 router.delete("/:productId/:variantId", auth, isAdmin, deleteVariant);

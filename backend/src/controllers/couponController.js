@@ -52,6 +52,15 @@ export const validateCoupon = async (req, res) => {
     const { code, cartTotal } = req.body;
     const orderAmount = cartTotal || 0;
 
+    // Check minimum order amount BEFORE applying coupon
+    if (orderAmount < 5000) {
+      return res.status(400).json({ 
+        message: `Minimum order amount of Rs. 5000 required to use coupons. Your current cart total is Rs. ${orderAmount}. Add Rs. ${5000 - orderAmount} more to use this coupon.`,
+        currentAmount: orderAmount,
+        minimumRequired: 5000
+      });
+    }
+
     const coupon = await Coupon.findOne({
       code: code.toUpperCase(),
       isActive: true,

@@ -210,6 +210,33 @@ const userSchema = new mongoose.Schema(
           type: Number,
           default: 1,
         },
+        colorVariant: {
+          colorName: String,
+          colorCode: String,
+        },
+        // ✅ Price snapshot - locked at cart time
+        priceSnapshot: {
+          originalPrice: {
+            type: Number,
+            required: true
+          },
+          discountedPrice: {
+            type: Number,
+            required: true
+          },
+          discount: {
+            type: Number,
+            default: 0
+          },
+          snapshotAt: {
+            type: Date,
+            default: Date.now
+          }
+        },
+        addedAt: {
+          type: Date,
+          default: Date.now
+        }
       },
     ],
   },

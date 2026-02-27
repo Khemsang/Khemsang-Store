@@ -48,15 +48,15 @@ const Categories = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-orange-50 dark:from-gray-900 dark:via-blue-900/10 dark:to-gray-900 py-16">
+    <div className="min-h-screen bg-gray-50 dark:from-gray-900 dark:via-blue-900/10 dark:to-gray-900 py-16">
       <div className="container mx-auto px-4 md:px-6 lg:px-8 max-w-7xl">
         {/* Header */}
         <div className="text-center mb-12">
-          <Badge className="mb-4 bg-gradient-to-r from-blue-600 to-orange-600 text-white">
+          <Badge className="mb-4 bg-blue-600 text-white">
             <Grid3x3 className="w-4 h-4 mr-1" />
             Browse Categories
           </Badge>
-          <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-blue-600 to-orange-600 bg-clip-text text-transparent">
+          <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-blue-600 bg-clip-text text-transparent">
             Shop by Category
           </h1>
           <p className="text-gray-600 dark:text-gray-400 text-lg max-w-2xl mx-auto">

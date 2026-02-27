@@ -21,7 +21,7 @@ const Cart = () => {
 
   if (cart.length === 0) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-white via-blue-50/30 to-orange-50/30 dark:from-gray-900 dark:via-blue-900/10 dark:to-gray-900 py-12">
+      <div className="min-h-screen bg-white dark:from-gray-900 dark:via-blue-900/10 dark:to-gray-900 py-12">
         <div className="max-w-[1200px] mx-auto px-4">
           <Card className="border-gray-200 dark:border-gray-700">
             <CardContent className="text-center py-16">
@@ -36,7 +36,7 @@ const Cart = () => {
               </p>
               <Button
                 onClick={() => navigate("/products")}
-                className="bg-gradient-to-r from-blue-600 to-orange-600 hover:from-blue-700 hover:to-orange-700"
+                className="bg-blue-600 hover:bg-blue-700"
               >
                 <ShoppingBag className="w-5 h-5 mr-2" />
                 Continue Shopping
@@ -49,36 +49,43 @@ const Cart = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-white via-blue-50/30 to-orange-50/30 dark:from-gray-900 dark:via-blue-900/10 dark:to-gray-900 py-8 sm:py-12">
+    <div className="min-h-screen bg-white dark:from-gray-900 dark:via-blue-900/10 dark:to-gray-900 py-8 sm:py-12">
       <div className="container px-4 md:px-6 lg:px-8 max-w-7xl mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-6 sm:mb-8">
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 bg-gradient-to-br from-blue-600 to-orange-600 rounded-lg flex items-center justify-center">
+            <div className="h-10 w-10 bg-blue-600 rounded-lg flex items-center justify-center">
               <ShoppingCart className="h-6 w-6 text-white" />
             </div>
-            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 dark:text-white">
-              Shopping Cart
-            </h1>
+            <div>
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 dark:text-white">
+                Shopping Cart
+              </h1>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                {cart.length} {cart.length === 1 ? "item" : "items"} • {cart.reduce((sum, item) => sum + item.quantity, 0)} total units
+              </p>
+            </div>
           </div>
-          <Badge variant="default" className="bg-gradient-to-r from-blue-600 to-orange-600 text-white">
-            {cart.length} {cart.length === 1 ? "item" : "items"}
+          <Badge variant="default" className="bg-blue-600 text-white">
+            {cart.length} {cart.length === 1 ? "variant" : "variants"}
           </Badge>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
           {/* Cart Items */}
           <div className="lg:col-span-2 space-y-4">
-            {cart.map((item) => {
+            {cart.map((item, index) => {
               if (!item.product || !item.product.title) {
                 return null;
               }
 
               const itemTotal = (item.product.price || 0) * item.quantity;
+              // Use cart item _id if available (logged in), otherwise use index (guest)
+              const itemKey = item._id || index.toString();
 
               return (
                 <Card
-                  key={item.product._id}
+                  key={itemKey}
                   className="border-gray-200 dark:border-gray-700 hover:shadow-lg transition-shadow"
                 >
                   <CardContent className="p-4 sm:p-6">
@@ -97,13 +104,59 @@ const Cart = () => {
                       {/* Product Details */}
                       <div className="flex-1 min-w-0">
                         <div className="flex justify-between items-start mb-2">
-                          <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white line-clamp-2">
-                            {item.product.title}
-                          </h3>
+                          <div className="flex-1">
+                            <h3 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white line-clamp-2">
+                              {item.product.title}
+                            </h3>
+                            {item.colorVariant && (
+                              <div className="flex items-center gap-2 mt-1">
+                                <div
+                                  className="w-5 h-5 rounded-full border-2 border-gray-300"
+                                  style={{ backgroundColor: item.colorVariant.colorCode }}
+                                  title={item.colorVariant.colorName}
+                                />
+                                <span className="text-sm text-gray-600 dark:text-gray-400">
+                                  {item.colorVariant.colorName}
+                                </span>
+                              </div>
+                            )}
+                            {/* Product Description */}
+                            {item.product.description && (
+                              <p className="text-sm text-gray-600 dark:text-gray-400 mt-2 line-clamp-2">
+                                {item.product.description}
+                              </p>
+                            )}
+                            {/* Product Brand */}
+                            {item.product.brand && (
+                              <p className="text-sm text-gray-500 dark:text-gray-500 mt-1">
+                                Brand: <span className="font-medium">{item.product.brand}</span>
+                              </p>
+                            )}
+                            {/* Stock Status */}
+                            {item.product.stock !== undefined && (
+                              <div className="flex items-center gap-2 mt-1">
+                                {item.product.stock > 0 ? (
+                                  <>
+                                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                                    <span className="text-sm text-green-600 dark:text-green-400">
+                                      In Stock ({item.product.stock} available)
+                                    </span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                                    <span className="text-sm text-red-600 dark:text-red-400">
+                                      Out of Stock
+                                    </span>
+                                  </>
+                                )}
+                              </div>
+                            )}
+                          </div>
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => removeFromCart(item.product._id)}
+                            onClick={() => removeFromCart(itemKey)}
                             className="text-red-600 hover:text-red-700 hover:bg-red-50 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-900/20 ml-2"
                           >
                             <Trash2 className="h-4 w-4" />
@@ -111,7 +164,7 @@ const Cart = () => {
                         </div>
 
                         {item.product.category && (
-                          <Badge variant="outline" className="mb-3">
+                          <Badge variant="default" className="mb-3">
                             {item.product.category}
                           </Badge>
                         )}
@@ -128,7 +181,7 @@ const Cart = () => {
                                 size="sm"
                                 onClick={() =>
                                   updateQuantity(
-                                    item.product._id,
+                                    itemKey,
                                     Math.max(1, item.quantity - 1)
                                   )
                                 }
@@ -144,7 +197,7 @@ const Cart = () => {
                                 size="sm"
                                 onClick={() =>
                                   updateQuantity(
-                                    item.product._id,
+                                    itemKey,
                                     item.quantity + 1
                                   )
                                 }
@@ -160,7 +213,7 @@ const Cart = () => {
                             <span className="text-sm text-gray-600 dark:text-gray-400">
                               Rs. {item.product.price?.toLocaleString()} each
                             </span>
-                            <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-orange-600 bg-clip-text text-transparent">
+                            <span className="text-xl font-bold bg-blue-600 bg-clip-text text-transparent">
                               Rs. {itemTotal.toLocaleString()}
                             </span>
                           </div>
@@ -186,7 +239,7 @@ const Cart = () => {
                 {/* Price Breakdown */}
                 <div className="space-y-3">
                   <div className="flex justify-between text-gray-600 dark:text-gray-400">
-                    <span>Subtotal ({cart.length} items)</span>
+                    <span>Subtotal ({cart.length} {cart.length === 1 ? "variant" : "variants"}, {cart.reduce((sum, item) => sum + item.quantity, 0)} units)</span>
                     <span className="font-semibold text-gray-900 dark:text-white">
                       Rs. {getCartTotal().toLocaleString()}
                     </span>
@@ -202,7 +255,7 @@ const Cart = () => {
                       <span className="text-lg font-bold text-gray-900 dark:text-white">
                         Total
                       </span>
-                      <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-orange-600 bg-clip-text text-transparent">
+                      <span className="text-2xl font-bold bg-blue-600 bg-clip-text text-transparent">
                         Rs. {(getCartTotal() + 100).toLocaleString()}
                       </span>
                     </div>
@@ -213,7 +266,7 @@ const Cart = () => {
                 <div className="space-y-3 pt-2">
                   <Button
                     onClick={handleCheckout}
-                    className="w-full bg-gradient-to-r from-blue-600 to-orange-600 hover:from-blue-700 hover:to-orange-700"
+                    className="w-full bg-blue-600 hover:bg-blue-700"
                     size="lg"
                   >
                     Proceed to Checkout

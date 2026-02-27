@@ -1,50 +1,91 @@
-import { useState, useEffect } from "react";
-import { api } from "../services/api";
-import { useToast } from "../context/ToastContext";
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { api } from '../services/api';
 
-export const useProducts = (selectedCategory: string, searchTerm: string) => {
-  const [products, setProducts] = useState<any[]>([]);
-  const [allCategories, setAllCategories] = useState<string[]>([]);
-  const [loading, setLoading] = useState(true);
-  const { error } = useToast();
+interface Product {
+  _id: string;
+  title: string;
+  description: string;
+  price: number;
+  category: string;
+  stock: number;
+  images: string[];
+  colorVariants?: any[];
+  discount?: number;
+  isActive?: boolean;
+}
 
-  // Fetch all categories once on mount
-  useEffect(() => {
-    fetchAllCategories();
-  }, []);
+export const productKeys = {
+  all: ['products'] as const,
+  lists: () => [...productKeys.all, 'list'] as const,
+  list: (filters: string) => [...productKeys.lists(), filters] as const,
+  details: () => [...productKeys.all, 'detail'] as const,
+  detail: (id: string) => [...productKeys.details(), id] as const,
+};
 
-  // Fetch products when filters change
-  useEffect(() => {
-    fetchProducts();
-  }, [selectedCategory, searchTerm]);
+export const useProducts = (adminOnly: boolean = false) => {
+  return useQuery({
+    queryKey: productKeys.list(adminOnly ? 'admin' : 'public'),
+    queryFn: async () => {
+      const { data } = await api.get(`/products${adminOnly ? '?adminOnly=true' : ''}`);
+      return data as Product[];
+    },
+  });
+};
 
-  const fetchAllCategories = async () => {
-    try {
-      const { data } = await api.get("/products");
-      const categories = [...new Set(data.map((p: any) => p.category))].filter(
-        Boolean
-      ) as string[];
-      setAllCategories(categories);
-    } catch (err) {
-      console.error("Failed to fetch categories");
-    }
-  };
+export const useProduct = (id: string | undefined) => {
+  return useQuery({
+    queryKey: productKeys.detail(id || ''),
+    queryFn: async () => {
+      if (!id) throw new Error('Product ID is required');
+      const { data } = await api.get(`/products/${id}`);
+      return data as Product;
+    },
+    enabled: !!id,
+  });
+};
 
-  const fetchProducts = async () => {
-    try {
-      setLoading(true);
-      const params = new URLSearchParams();
-      if (selectedCategory) params.append("category", selectedCategory);
-      if (searchTerm) params.append("search", searchTerm);
+export const useCreateProduct = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async (formData: FormData) => {
+      const { data } = await api.post('/products', formData, {
+        headers: { 'Content-Type': undefined },
+      });
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: productKeys.lists() });
+    },
+  });
+};
 
-      const { data } = await api.get(`/products?${params.toString()}`);
-      setProducts(data);
-    } catch (err: any) {
-      error(err.response?.data?.message || "Failed to fetch products");
-    } finally {
-      setLoading(false);
-    }
-  };
+export const useUpdateProduct = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async ({ id, formData }: { id: string; formData: FormData }) => {
+      const { data } = await api.put(`/products/${id}`, formData, {
+        headers: { 'Content-Type': undefined },
+      });
+      return data;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: productKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: productKeys.detail(variables.id) });
+    },
+  });
+};
 
-  return { products, allCategories, loading, refetch: fetchProducts };
+export const useDeleteProduct = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async (id: string) => {
+      await api.delete(`/products/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: productKeys.lists() });
+    },
+  });
 };

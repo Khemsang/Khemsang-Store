@@ -35,9 +35,11 @@ const ProductComparison = ({
   const { addToCart } = useCart();
   const { showToast } = useToast();
 
-  const handleAddToCart = (product: Product) => {
-    addToCart(product, 1);
-    showToast(`${product.title} added to cart!`, "success");
+  const handleAddToCart = async (product: Product) => {
+    const result = await addToCart(product._id, 1);
+    if (result?.isNew) {
+      showToast(`${product.title} added to cart!`, "success");
+    }
   };
 
   const compareFields = [

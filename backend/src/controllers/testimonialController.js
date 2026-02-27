@@ -34,7 +34,6 @@ export const getTestimonialById = async (req, res) => {
 // Create testimonial (users can submit, admin approval needed)
 export const createTestimonial = async (req, res) => {
   try {
-    console.log("Received testimonial data:", req.body);
 
     // Add default values if not provided
     const testimonialData = {
@@ -48,12 +47,10 @@ export const createTestimonial = async (req, res) => {
       isActive: true, // Auto-approve and show immediately
     };
 
-    console.log("Creating testimonial with data:", testimonialData);
 
     const testimonial = new Testimonial(testimonialData);
     await testimonial.save();
 
-    console.log("Testimonial created successfully:", testimonial._id);
 
     res.status(201).json({
       message:

@@ -229,6 +229,22 @@ export const PERMISSIONS = {
   },
 };
 
+// ============ PREDEFINED COLORS ============
+export const PREDEFINED_COLORS = [
+  { name: "Black", code: "#000000" },
+  { name: "White", code: "#FFFFFF" },
+  { name: "Red", code: "#FF0000" },
+  { name: "Blue", code: "#0000FF" },
+  { name: "Green", code: "#00FF00" },
+  { name: "Yellow", code: "#FFFF00" },
+  { name: "Orange", code: "#FFA500" },
+  { name: "Purple", code: "#800080" },
+  { name: "Pink", code: "#FFC0CB" },
+  { name: "Brown", code: "#A52A2A" },
+  { name: "Gray", code: "#808080" },
+  { name: "Navy", code: "#000080" },
+];
+
 // ============ EXPORTS ============
 export default {
   USER_ROLES,
@@ -246,4 +262,5 @@ export default {
   SUCCESS_MESSAGES,
   ACTIVITY_TYPES,
   PERMISSIONS,
+  PREDEFINED_COLORS,
 };

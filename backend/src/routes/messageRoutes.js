@@ -18,12 +18,13 @@ import {
   getAdmins,
 } from "../controllers/messageController.js";
 import { auth } from "../middleware/auth.js";
+import { uploadMessageAttachments } from "../middleware/messageUpload.js";
 
 const router = express.Router();
 
 // All routes require authentication
-router.post("/", auth, sendMessage);
-router.post("/draft", auth, saveDraft);
+router.post("/", auth, uploadMessageAttachments, sendMessage);
+router.post("/draft", auth, uploadMessageAttachments, saveDraft);
 router.get("/inbox", auth, getInbox);
 router.get("/sent", auth, getSentMessages);
 router.get("/starred", auth, getStarredMessages);

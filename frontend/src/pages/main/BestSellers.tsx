@@ -21,8 +21,9 @@ const BestSellers = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
-  const { addToCart } = useCart();
+  const { addToCart, cart } = useCart();
   const { showToast } = useToast();
+  const [addingToCart, setAddingToCart] = useState<string | null>(null);
 
   useEffect(() => {
     fetchBestSellers();
@@ -47,9 +48,32 @@ const BestSellers = () => {
     }
   };
 
-  const handleAddToCart = (product: any) => {
-    addToCart(product._id, 1);
-    showToast(`${product.title} added to cart!`, "success");
+  const handleAddToCart = async (product: any) => {
+    // Prevent rapid clicks
+    if (addingToCart === product._id) {
+      return;
+    }
+
+    try {
+      setAddingToCart(product._id);
+      
+      // Check if product already exists in cart BEFORE API call
+      const isExistingItem = cart.some((item) => {
+        return item.product?._id === product._id && !item.colorVariant;
+      });
+      
+      await addToCart(product._id, 1);
+      
+      // Only show toast if it was a NEW item
+      if (!isExistingItem) {
+        showToast(`${product.title} added to cart!`, "success");
+      }
+    } catch (error) {
+      console.error("Error adding to cart:", error);
+      showToast("Failed to add to cart", "error");
+    } finally {
+      setAddingToCart(null);
+    }
   };
 
   const getRankBadge = (index: number) => {
@@ -154,12 +178,14 @@ const BestSellers = () => {
 
         {/* Rest of Products */}
         {products.length > 3 && (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-6">
             {products.slice(3).map((product, index) => (
               <SimpleProductCard
                 key={product._id}
                 product={product}
                 onAddToCart={handleAddToCart}
+                showOriginalPrice={true}
+                showColorVariants={true}
                 badge={
                   <span className="px-2 py-0.5 bg-purple-600 text-white text-[10px] font-bold rounded">
                     #{index + 4}

@@ -92,7 +92,7 @@ const Pagination: React.FC<PaginationProps> = ({
                 onClick={() => onPageChange(page as number)}
                 className={`px-4 py-2 rounded-lg font-medium transition-all ${
                   currentPage === page
-                    ? "bg-gradient-to-r from-[var(--root-color)] to-purple-600 text-white shadow-lg"
+                    ? "bg-blue-600 text-white shadow-lg"
                     : "border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
                 }`}
               >

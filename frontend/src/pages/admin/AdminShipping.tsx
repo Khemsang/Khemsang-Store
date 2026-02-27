@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { api } from "../../services/api";
 import { useToast } from "../../context/ToastContext";
+import { Pagination } from "../../components/ui/pagination";
+import { useScrollToTop } from "../../hooks/useScrollToTop";
 import Loading from "../../components/common/Loading";
 import {
   FaTruck,
@@ -44,6 +46,12 @@ const AdminShipping = () => {
   const [trackingNumber, setTrackingNumber] = useState("");
   const [estimatedDelivery, setEstimatedDelivery] = useState("");
   const [newStatus, setNewStatus] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  
+  // Scroll to top when page changes
+  useScrollToTop(currentPage);
+  
+  const [itemsPerPage, setItemsPerPage] = useState(10);
 
   useEffect(() => {
     fetchOrders();
@@ -101,6 +109,17 @@ const AdminShipping = () => {
           .includes(searchTerm.toLowerCase()) ||
         o.trackingNumber?.toLowerCase().includes(searchTerm.toLowerCase())
     );
+
+  // Pagination logic
+  const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentOrders = filteredOrders.slice(startIndex, endIndex);
+
+  // Reset to page 1 when search or filter changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, statusFilter]);
 
   const stats = {
     pending: orders.filter((o) => o.orderStatus === "pending").length,
@@ -232,7 +251,7 @@ const AdminShipping = () => {
       {/* Orders List */}
       <div className="space-y-4">
         <AnimatePresence>
-          {filteredOrders.map((order) => (
+          {currentOrders.map((order) => (
             <motion.div
               key={order._id}
               initial={{ opacity: 0, y: 20 }}
@@ -243,7 +262,7 @@ const AdminShipping = () => {
               <div className="p-6">
                 <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-4">
                   <div className="flex items-center gap-4">
-                    <div className="p-3 bg-gradient-to-r from-[var(--root-color)] to-purple-600 rounded-xl">
+                    <div className="p-3 bg-blue-600 rounded-xl">
                       <FaShippingFast className="text-white text-xl" />
                     </div>
                     <div>
@@ -427,6 +446,18 @@ const AdminShipping = () => {
           </div>
         )}
       </div>
+
+      {/* Pagination */}
+      {filteredOrders.length > 0 && (
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          totalItems={filteredOrders.length}
+          itemsPerPage={itemsPerPage}
+          onPageChange={setCurrentPage}
+          onItemsPerPageChange={setItemsPerPage}
+        />
+      )}
     </div>
   );
 };

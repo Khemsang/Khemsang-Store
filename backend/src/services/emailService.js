@@ -510,6 +510,161 @@ export const sendSellerRejectionEmail = async (email, sellerName, businessName, 
   await transporter.sendMail(mailOptions);
 };
 
+// Send order confirmation email
+export const sendOrderConfirmationEmail = async (order, user) => {
+  const transporter = createTransporter();
+  
+  // Format order items
+  const itemsHtml = order.items.map(item => `
+    <tr>
+      <td style="padding: 15px; border-bottom: 1px solid #e5e7eb;">
+        <div style="display: flex; align-items: center; gap: 15px;">
+          <img src="${item.product?.images?.[0] || ''}" alt="${item.product?.title || 'Product'}" 
+               style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px;">
+          <div>
+            <strong style="color: #1f2937;">${item.product?.title || 'Product'}</strong>
+            ${item.colorVariant ? `<br><span style="color: #6b7280; font-size: 14px;">Color: ${item.colorVariant.colorName}</span>` : ''}
+          </div>
+        </div>
+      </td>
+      <td style="padding: 15px; border-bottom: 1px solid #e5e7eb; text-align: center;">
+        ${item.quantity}
+      </td>
+      <td style="padding: 15px; border-bottom: 1px solid #e5e7eb; text-align: right;">
+        Rs. ${(item.price || 0).toLocaleString()}
+      </td>
+      <td style="padding: 15px; border-bottom: 1px solid #e5e7eb; text-align: right; font-weight: bold;">
+        Rs. ${((item.price || 0) * item.quantity).toLocaleString()}
+      </td>
+    </tr>
+  `).join('');
+
+  const mailOptions = {
+    from: `"${process.env.STORE_NAME || "Khemsang Store"}" <${process.env.EMAIL_FROM || process.env.SMTP_USER}>`,
+    to: user.email,
+    subject: `✅ Order Confirmed #${order._id.toString().slice(-6)} - ${process.env.STORE_NAME || "Khemsang Store"}`,
+    html: `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      </head>
+      <body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; background-color: #f4f4f4;">
+        <div style="max-width: 650px; margin: 20px auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+          
+          <!-- Header -->
+          <div style="background: linear-gradient(135deg, #2563eb 0%, #ea580c 100%); padding: 30px; text-align: center;">
+            <h1 style="color: white; margin: 0; font-size: 28px;">✅ Order Confirmed!</h1>
+            <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0; font-size: 16px;">Thank you for your order</p>
+          </div>
+
+          <!-- Content -->
+          <div style="padding: 30px;">
+            <p style="font-size: 16px; color: #1f2937;">Hi <strong>${user.name}</strong>,</p>
+            
+            <p>Your order has been confirmed and is being processed. We'll notify you when it ships!</p>
+
+            <!-- Order Details -->
+            <div style="background: #f9fafb; border: 2px solid #e5e7eb; border-radius: 8px; padding: 20px; margin: 25px 0;">
+              <h2 style="color: #1f2937; margin: 0 0 15px; font-size: 20px;">📦 Order Details</h2>
+              <table style="width: 100%; border-collapse: collapse;">
+                <tr>
+                  <td style="padding: 8px 0; color: #6b7280;">Order Number:</td>
+                  <td style="padding: 8px 0; text-align: right; font-weight: bold; color: #1f2937;">#${order._id.toString().slice(-6)}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px 0; color: #6b7280;">Order Date:</td>
+                  <td style="padding: 8px 0; text-align: right; font-weight: bold; color: #1f2937;">${new Date(order.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px 0; color: #6b7280;">Payment Method:</td>
+                  <td style="padding: 8px 0; text-align: right; font-weight: bold; color: #1f2937;">${order.paymentMethod === 'esewa' ? 'eSewa' : order.paymentMethod === 'cod' ? 'Cash on Delivery' : order.paymentMethod}</td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px 0; color: #6b7280;">Order Status:</td>
+                  <td style="padding: 8px 0; text-align: right;">
+                    <span style="background: #fef3c7; color: #92400e; padding: 4px 12px; border-radius: 12px; font-size: 14px; font-weight: bold;">
+                      ${order.orderStatus.charAt(0).toUpperCase() + order.orderStatus.slice(1)}
+                    </span>
+                  </td>
+                </tr>
+              </table>
+            </div>
+
+            <!-- Order Items -->
+            <h2 style="color: #1f2937; margin: 30px 0 15px; font-size: 20px;">🛍️ Order Items</h2>
+            <table style="width: 100%; border-collapse: collapse; border: 1px solid #e5e7eb; border-radius: 8px; overflow: hidden;">
+              <thead>
+                <tr style="background: #f9fafb;">
+                  <th style="padding: 12px 15px; text-align: left; color: #6b7280; font-weight: 600;">Product</th>
+                  <th style="padding: 12px 15px; text-align: center; color: #6b7280; font-weight: 600;">Qty</th>
+                  <th style="padding: 12px 15px; text-align: right; color: #6b7280; font-weight: 600;">Price</th>
+                  <th style="padding: 12px 15px; text-align: right; color: #6b7280; font-weight: 600;">Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${itemsHtml}
+              </tbody>
+              <tfoot>
+                <tr style="background: #f9fafb;">
+                  <td colspan="3" style="padding: 15px; text-align: right; font-weight: bold; color: #1f2937; font-size: 18px;">
+                    Total Amount:
+                  </td>
+                  <td style="padding: 15px; text-align: right; font-weight: bold; color: #2563eb; font-size: 20px;">
+                    Rs. ${order.totalAmount.toLocaleString()}
+                  </td>
+                </tr>
+              </tfoot>
+            </table>
+
+            <!-- Shipping Address -->
+            <h2 style="color: #1f2937; margin: 30px 0 15px; font-size: 20px;">🚚 Shipping Address</h2>
+            <div style="background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; padding: 20px;">
+              <p style="margin: 0; color: #1f2937;"><strong>${order.shippingAddress.fullName}</strong></p>
+              <p style="margin: 5px 0; color: #6b7280;">${order.shippingAddress.phone}</p>
+              <p style="margin: 5px 0; color: #6b7280;">${order.shippingAddress.address}</p>
+              <p style="margin: 5px 0; color: #6b7280;">${order.shippingAddress.city}${order.shippingAddress.state ? `, ${order.shippingAddress.state}` : ''}</p>
+              ${order.shippingAddress.zipCode ? `<p style="margin: 5px 0; color: #6b7280;">ZIP: ${order.shippingAddress.zipCode}</p>` : ''}
+            </div>
+
+            <!-- Call to Action -->
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="${process.env.FRONTEND_URL}/orders/${order._id}" 
+                 style="display: inline-block; background: linear-gradient(135deg, #2563eb 0%, #ea580c 100%); color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px;">
+                Track Your Order
+              </a>
+            </div>
+
+            <div style="background: #eff6ff; border-left: 4px solid #2563eb; padding: 15px; margin: 20px 0; border-radius: 4px;">
+              <p style="margin: 0; color: #1e40af; font-size: 14px;">
+                <strong>📧 Need Help?</strong><br>
+                If you have any questions about your order, feel free to contact us at 
+                <a href="mailto:${process.env.SMTP_USER}" style="color: #2563eb;">${process.env.SMTP_USER}</a>
+              </p>
+            </div>
+
+            <p style="color: #6b7280; font-size: 14px; margin-top: 30px;">
+              Thank you for shopping with us!<br>
+              <strong>${process.env.STORE_NAME || "Khemsang Store"}</strong>
+            </p>
+          </div>
+
+          <!-- Footer -->
+          <div style="background: #f9fafb; padding: 20px; text-align: center; border-top: 1px solid #e5e7eb;">
+            <p style="margin: 0; color: #6b7280; font-size: 14px;">
+              © ${new Date().getFullYear()} ${process.env.STORE_NAME || "Khemsang Store"}. All rights reserved.
+            </p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `,
+  };
+
+  await transporter.sendMail(mailOptions);
+};
+
 export default {
   sendVerificationEmail,
   sendOTPEmail,
@@ -517,4 +672,5 @@ export default {
   sendSuperAdminPasswordResetEmail,
   sendSellerApprovalEmail,
   sendSellerRejectionEmail,
+  sendOrderConfirmationEmail,
 };

@@ -114,7 +114,7 @@ const Orders = () => {
             </p>
             <button
               onClick={() => navigate("/products")}
-              className="px-8 py-3 bg-gradient-to-r from-[var(--root-color)] to-purple-600 text-white rounded-xl hover:from-[var(--root-color)] hover:to-purple-700 transition-all font-semibold"
+              className="px-8 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all font-semibold"
             >
               Browse Products
             </button>
@@ -127,7 +127,7 @@ const Orders = () => {
                 className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden border border-gray-200 dark:border-gray-700"
               >
                 {/* Order Header */}
-                <div className="bg-gradient-to-r from-[var(--root-color)] to-purple-600 p-6 text-white">
+                <div className="bg-blue-600 p-6 text-white">
                   <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                     <div>
                       <p className="text-sm opacity-90">Order ID</p>

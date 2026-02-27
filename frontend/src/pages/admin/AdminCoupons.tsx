@@ -1,12 +1,14 @@
 import { useState, useEffect } from "react";
 import { api } from "../../services/api";
 import { useToast } from "../../context/ToastContext";
+import { useScrollToTop } from "../../hooks/useScrollToTop";
 import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import { Badge } from "../../components/ui/badge";
 import { Loading } from "../../components/ui/loading";
+import { Pagination } from "../../components/ui/pagination";
 import { Plus, Edit, Trash2, X, Ticket, Percent } from "lucide-react";
 
 interface Coupon {
@@ -14,9 +16,9 @@ interface Coupon {
   code: string;
   discountType: "percentage" | "fixed";
   discountValue: number;
-  minPurchase?: number;
+  minOrderAmount?: number;
   maxDiscount?: number;
-  expiryDate?: string;
+  endDate?: string;
   isActive: boolean;
   usageLimit?: number;
   usedCount?: number;
@@ -27,13 +29,19 @@ const AdminCoupons = () => {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  
+  // Scroll to top when page changes
+  useScrollToTop(currentPage);
+  
+  const [itemsPerPage, setItemsPerPage] = useState(12);
   const [formData, setFormData] = useState({
     code: "",
     discountType: "percentage" as "percentage" | "fixed",
     discountValue: "",
-    minPurchase: "",
+    minOrderAmount: "",
     maxDiscount: "",
-    expiryDate: "",
+    endDate: "",
     usageLimit: "",
     isActive: true,
   });
@@ -61,7 +69,7 @@ const AdminCoupons = () => {
       const payload = {
         ...formData,
         discountValue: Number(formData.discountValue),
-        minPurchase: formData.minPurchase ? Number(formData.minPurchase) : undefined,
+        minOrderAmount: formData.minOrderAmount ? Number(formData.minOrderAmount) : undefined,
         maxDiscount: formData.maxDiscount ? Number(formData.maxDiscount) : undefined,
         usageLimit: formData.usageLimit ? Number(formData.usageLimit) : undefined,
       };
@@ -86,9 +94,9 @@ const AdminCoupons = () => {
       code: coupon.code,
       discountType: coupon.discountType,
       discountValue: coupon.discountValue.toString(),
-      minPurchase: coupon.minPurchase?.toString() || "",
+      minOrderAmount: coupon.minOrderAmount?.toString() || "",
       maxDiscount: coupon.maxDiscount?.toString() || "",
-      expiryDate: coupon.expiryDate ? coupon.expiryDate.split("T")[0] : "",
+      endDate: coupon.endDate ? coupon.endDate.split("T")[0] : "",
       usageLimit: coupon.usageLimit?.toString() || "",
       isActive: coupon.isActive,
     });
@@ -111,15 +119,21 @@ const AdminCoupons = () => {
       code: "",
       discountType: "percentage",
       discountValue: "",
-      minPurchase: "",
+      minOrderAmount: "",
       maxDiscount: "",
-      expiryDate: "",
+      endDate: "",
       usageLimit: "",
       isActive: true,
     });
     setEditingId(null);
     setShowForm(false);
   };
+
+  // Pagination logic
+  const totalPages = Math.ceil(coupons.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentCoupons = coupons.slice(startIndex, endIndex);
 
   if (loading) return <Loading message="Loading coupons..." fullScreen={true} />;
 
@@ -188,8 +202,8 @@ const AdminCoupons = () => {
                   <Label>Min Purchase</Label>
                   <Input
                     type="number"
-                    value={formData.minPurchase}
-                    onChange={(e) => setFormData({ ...formData, minPurchase: e.target.value })}
+                    value={formData.minOrderAmount}
+                    onChange={(e) => setFormData({ ...formData, minOrderAmount: e.target.value })}
                     placeholder="1000"
                   />
                 </div>
@@ -215,8 +229,8 @@ const AdminCoupons = () => {
                   <Label>Expiry Date</Label>
                   <Input
                     type="date"
-                    value={formData.expiryDate}
-                    onChange={(e) => setFormData({ ...formData, expiryDate: e.target.value })}
+                    value={formData.endDate}
+                    onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
                   />
                 </div>
               </div>
@@ -243,7 +257,7 @@ const AdminCoupons = () => {
 
       {/* Coupons Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {coupons.map((coupon) => (
+        {currentCoupons.map((coupon) => (
           <Card key={coupon._id} className="hover:shadow-lg transition-shadow">
             <CardContent className="p-6">
               <div className="flex items-start justify-between mb-4">
@@ -269,8 +283,8 @@ const AdminCoupons = () => {
                       : `Rs. ${coupon.discountValue} OFF`}
                   </span>
                 </div>
-                {coupon.minPurchase && (
-                  <p className="text-gray-600">Min: Rs. {coupon.minPurchase}</p>
+                {coupon.minOrderAmount && (
+                  <p className="text-gray-600">Min: Rs. {coupon.minOrderAmount}</p>
                 )}
                 {coupon.maxDiscount && (
                   <p className="text-gray-600">Max: Rs. {coupon.maxDiscount}</p>
@@ -280,9 +294,9 @@ const AdminCoupons = () => {
                     Used: {coupon.usedCount || 0}/{coupon.usageLimit}
                   </p>
                 )}
-                {coupon.expiryDate && (
+                {coupon.endDate && (
                   <p className="text-gray-600">
-                    Expires: {new Date(coupon.expiryDate).toLocaleDateString()}
+                    Expires: {new Date(coupon.endDate).toLocaleDateString()}
                   </p>
                 )}
               </div>
@@ -311,6 +325,18 @@ const AdminCoupons = () => {
           <Ticket className="w-16 h-16 mx-auto text-gray-400 mb-4" />
           <p className="text-gray-500">No coupons found</p>
         </div>
+      )}
+
+      {/* Pagination */}
+      {coupons.length > 0 && (
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          totalItems={coupons.length}
+          itemsPerPage={itemsPerPage}
+          onPageChange={setCurrentPage}
+          onItemsPerPageChange={setItemsPerPage}
+        />
       )}
     </div>
   );

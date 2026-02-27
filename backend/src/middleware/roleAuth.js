@@ -146,7 +146,6 @@ export const logAdminAction = (action) => {
   return (req, res, next) => {
     if (req.user && (req.user.role === "admin" || req.user.role === "super-admin")) {
       // Log the action (implement logging service)
-      console.log(`Admin Action: ${action} by ${req.user.email} at ${new Date()}`);
     }
     next();
   };

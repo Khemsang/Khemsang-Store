@@ -83,7 +83,6 @@ const categories = [
 async function seedDatabase() {
   try {
     await mongoose.connect(process.env.MONGO_URI || process.env.MONGODB_URI);
-    console.log("Connected to MongoDB");
 
     // Clear existing data
     await Testimonial.deleteMany({});
@@ -91,29 +90,22 @@ async function seedDatabase() {
     await FeaturedProduct.deleteMany({});
     await Banner.deleteMany({});
     await Stats.deleteMany({});
-    console.log("Cleared existing data");
 
     // Insert testimonials
     await Testimonial.insertMany(testimonials);
-    console.log("Testimonials seeded successfully");
 
     // Insert categories
     await Category.insertMany(categories);
-    console.log("Categories seeded successfully");
 
     // Insert featured products
     await FeaturedProduct.insertMany(featuredProducts);
-    console.log("Featured products seeded successfully");
 
     // Insert banners
     await Banner.insertMany(banners);
-    console.log("Banners seeded successfully");
 
     // Insert stats
     await Stats.insertMany(stats);
-    console.log("Stats seeded successfully");
 
-    console.log("Database seeded successfully!");
     process.exit(0);
   } catch (error) {
     console.error("Error seeding database:", error);

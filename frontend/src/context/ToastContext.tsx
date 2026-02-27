@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, ReactNode } from "react";
+import { createContext, useContext, useState, ReactNode, useRef } from "react";
 import Toast from "../components/common/Toast";
 
 interface ToastContextType {
@@ -18,13 +18,25 @@ export const ToastProvider = ({ children }: { children: ReactNode }) => {
   const [toasts, setToasts] = useState<
     Array<{ id: number; message: string; type: string }>
   >([]);
+  const lastToastRef = useRef<{ message: string; timestamp: number } | null>(null);
 
   const showToast = (
     message: string,
     type: "success" | "error" | "info" | "warning" = "info"
   ) => {
-    const id = Date.now();
-    setToasts((prev) => [...prev, { id, message, type }]);
+    const now = Date.now();
+    
+    // Prevent duplicate toasts with same message within 5 seconds (increased for better UX)
+    if (
+      lastToastRef.current &&
+      lastToastRef.current.message === message &&
+      now - lastToastRef.current.timestamp < 5000
+    ) {
+      return;
+    }
+    
+    lastToastRef.current = { message, timestamp: now };
+    setToasts((prev) => [...prev, { id: now, message, type }]);
   };
 
   const removeToast = (id: number) => {

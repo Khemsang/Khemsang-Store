@@ -28,7 +28,7 @@ const ResponsiveMenu = ({ showMenu, onClose }: ResponsiveMenuProps) => {
   const { cart } = useCart();
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
-  const cartItemCount = cart.reduce((t, i) => t + i.quantity, 0);
+  const cartItemCount = cart.length; // Count unique products, not total quantity
 
   const navLinks = [
     // Only show Dashboard link for admin users
@@ -96,7 +96,7 @@ const ResponsiveMenu = ({ showMenu, onClose }: ResponsiveMenuProps) => {
         {user && (
           <div className="p-4 border-b border-gray-200 dark:border-gray-700">
             <div className="flex items-center gap-3 p-4 bg-gradient-to-r from-[var(--root-color)]/10 to-purple-600/10 rounded-xl">
-              <div className="w-12 h-12 bg-gradient-to-r from-[var(--root-color)] to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-lg">
+              <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-lg">
                 {user.name?.charAt(0)?.toUpperCase() || 'U'}
               </div>
               <div className="flex-1 min-w-0">
@@ -159,7 +159,7 @@ const ResponsiveMenu = ({ showMenu, onClose }: ResponsiveMenuProps) => {
               <li>
                 <button
                   onClick={() => handleNavigation("/login")}
-                  className="w-full flex items-center gap-4 px-4 py-3 rounded-xl bg-gradient-to-r from-[var(--root-color)] to-purple-600 text-white hover:shadow-lg transition-all"
+                  className="w-full flex items-center gap-4 px-4 py-3 rounded-xl bg-blue-600 text-white hover:shadow-lg transition-all"
                 >
                   <FaUser className="text-xl" />
                   <span className="font-medium">Login</span>

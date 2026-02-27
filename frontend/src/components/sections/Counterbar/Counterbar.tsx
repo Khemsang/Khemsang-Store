@@ -52,7 +52,7 @@ const Counterbar: React.FC = () => {
     { _id: "1", value: 0, label: "Products Available", suffix: "+" },
     { _id: "2", value: 0, label: "Categories", suffix: "+" },
     { _id: "3", value: 0, label: "Happy Customers", suffix: "+" },
-    { _id: "4", value: 0, label: "5-Star Reviews", suffix: "%" },
+    { _id: "4", value: 0, label: "Average Rating", suffix: "/5" },
   ]);
   const [loading, setLoading] = useState(true);
 
@@ -63,14 +63,30 @@ const Counterbar: React.FC = () => {
   const fetchRealStats = async () => {
     try {
       setLoading(true);
+      
+      // Fetch products
       const { data: products } = await api.get("/products");
 
       // Get unique categories
       const uniqueCategories = new Set(products.map((p: any) => p.category));
 
-      // Use static values for customers and reviews (no auth required)
-      const happyCustomers = 500;
-      const fiveStarPercentage = 98;
+      // Fetch users count
+      let usersCount = 0;
+      try {
+        const { data } = await api.get("/auth/users/count");
+        usersCount = data.totalUsers || 0;
+      } catch (err) {
+        console.error("Error fetching users count:", err);
+        usersCount = 100; // Fallback
+      }
+
+      // Calculate average rating from all products
+      let averageRating = 0;
+      const productsWithRating = products.filter((p: any) => p.rating && p.rating > 0);
+      if (productsWithRating.length > 0) {
+        const totalRating = productsWithRating.reduce((sum: number, p: any) => sum + (p.rating || 0), 0);
+        averageRating = parseFloat((totalRating / productsWithRating.length).toFixed(1));
+      }
 
       setStats([
         {
@@ -87,15 +103,15 @@ const Counterbar: React.FC = () => {
         },
         {
           _id: "3",
-          value: happyCustomers,
+          value: usersCount,
           label: "Happy Customers",
           suffix: "+",
         },
         {
           _id: "4",
-          value: fiveStarPercentage,
-          label: "5-Star Reviews",
-          suffix: "%",
+          value: averageRating,
+          label: "Average Rating",
+          suffix: "/5",
         },
       ]);
     } catch (error) {
@@ -104,8 +120,8 @@ const Counterbar: React.FC = () => {
       setStats([
         { _id: "1", value: 100, label: "Products Available", suffix: "+" },
         { _id: "2", value: 10, label: "Categories", suffix: "+" },
-        { _id: "3", value: 500, label: "Happy Customers", suffix: "+" },
-        { _id: "4", value: 98, label: "5-Star Reviews", suffix: "%" },
+        { _id: "3", value: 100, label: "Happy Customers", suffix: "+" },
+        { _id: "4", value: 4.5, label: "Average Rating", suffix: "/5" },
       ]);
     } finally {
       setLoading(false);
@@ -114,7 +130,7 @@ const Counterbar: React.FC = () => {
 
   if (loading) {
     return (
-      <section className="py-16 px-4 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
+      <section className="py-16 px-4 bg-gray-100 dark:from-gray-900 dark:to-gray-800">
         <div className="container mx-auto text-center text-gray-500">
           Loading stats...
         </div>
@@ -123,7 +139,7 @@ const Counterbar: React.FC = () => {
   }
 
   return (
-    <section className="py-8 sm:py-12 md:py-16 px-4 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800">
+    <section className="py-8 sm:py-12 md:py-16 px-4 bg-gray-100 dark:from-gray-900 dark:to-gray-800">
       <div className="container mx-auto">
         <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-center mb-3 sm:mb-4 text-gray-800 dark:text-white">
           Our Achievements

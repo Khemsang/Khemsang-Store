@@ -53,9 +53,6 @@ const fileFilter = (req, file, cb) => {
   const mimetype = file.mimetype.toLowerCase();
   const extname = path.extname(file.originalname).toLowerCase();
 
-  console.log(`📁 File upload attempt: ${file.originalname}`);
-  console.log(`   MIME type: ${mimetype}`);
-  console.log(`   Extension: ${extname}`);
 
   // Check if extension is allowed (primary check)
   if (!ALLOWED_EXTENSIONS.includes(extname)) {

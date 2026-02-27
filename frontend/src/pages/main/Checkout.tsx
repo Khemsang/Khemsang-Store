@@ -13,9 +13,11 @@ const Checkout = () => {
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     fullName: "",
+    email: "",
     phone: "",
     address: "",
     city: "",
+    postalCode: "",
   });
   const [paymentMethod, setPaymentMethod] = useState<"esewa" | "cod">("esewa");
   const [couponCode, setCouponCode] = useState("");
@@ -84,6 +86,14 @@ const Checkout = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate minimum order amount
+    const finalTotal = getFinalTotal();
+    if (finalTotal < 5000) {
+      error(`Minimum order amount is Rs. 5000. Your current total is Rs. ${finalTotal}. Please add more items to your cart.`);
+      return;
+    }
+    
     setLoading(true);
 
     try {
@@ -102,6 +112,7 @@ const Checkout = () => {
         product: item.product._id,
         quantity: item.quantity,
         price: item.product.price,
+        colorVariant: item.colorVariant || undefined,
       }));
 
       const { data } = await api.post("/orders", {
@@ -161,8 +172,6 @@ const Checkout = () => {
       });
 
       document.body.appendChild(form);
-      console.log("📝 eSewa v2 Form parameters:", params);
-      console.log("🚀 Submitting to eSewa...");
       form.submit();
     } catch (err: any) {
       console.error("Order creation error:", err);
@@ -269,6 +278,22 @@ const Checkout = () => {
 
                 <div className="group">
                   <label className="flex items-center gap-2 text-sm font-bold text-gray-700 dark:text-gray-300 mb-3">
+                    <span className="text-lg">📧</span>
+                    Email Address
+                  </label>
+                  <input
+                    type="email"
+                    name="email"
+                    required
+                    value={formData.email}
+                    onChange={handleChange}
+                    placeholder="your.email@example.com"
+                    className="w-full px-5 py-4 border-2 border-gray-200 dark:border-gray-700 rounded-2xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-green-300 dark:focus:ring-green-700 focus:border-green-500 transition-all duration-300 text-base font-medium"
+                  />
+                </div>
+
+                <div className="group">
+                  <label className="flex items-center gap-2 text-sm font-bold text-gray-700 dark:text-gray-300 mb-3">
                     <span className="text-lg">📱</span>
                     Phone Number
                   </label>
@@ -299,36 +324,53 @@ const Checkout = () => {
                   />
                 </div>
 
-                <div className="group">
-                  <label className="flex items-center gap-2 text-sm font-bold text-gray-700 dark:text-gray-300 mb-3">
-                    <span className="text-lg">🏙️</span>
-                    City
-                  </label>
-                  <select
-                    name="city"
-                    required
-                    value={formData.city}
-                    onChange={handleChange}
-                    className="w-full px-5 py-4 border-2 border-gray-200 dark:border-gray-700 rounded-2xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-4 focus:ring-green-300 dark:focus:ring-green-700 focus:border-green-500 transition-all duration-300 text-base font-medium"
-                  >
-                    <option value="">Select City</option>
-                    <option value="Kathmandu">Kathmandu</option>
-                    <option value="Pokhara">Pokhara</option>
-                    <option value="Lalitpur">Lalitpur</option>
-                    <option value="Bhaktapur">Bhaktapur</option>
-                    <option value="Biratnagar">Biratnagar</option>
-                    <option value="Birgunj">Birgunj</option>
-                    <option value="Dharan">Dharan</option>
-                    <option value="Bharatpur">Bharatpur</option>
-                    <option value="Hetauda">Hetauda</option>
-                    <option value="Butwal">Butwal</option>
-                    <option value="Janakpur">Janakpur</option>
-                    <option value="Nepalgunj">Nepalgunj</option>
-                    <option value="Dhangadhi">Dhangadhi</option>
-                    <option value="Itahari">Itahari</option>
-                    <option value="Tulsipur">Tulsipur</option>
-                    <option value="Other">Other</option>
-                  </select>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="group">
+                    <label className="flex items-center gap-2 text-sm font-bold text-gray-700 dark:text-gray-300 mb-3">
+                      <span className="text-lg">🏙️</span>
+                      City
+                    </label>
+                    <select
+                      name="city"
+                      required
+                      value={formData.city}
+                      onChange={handleChange}
+                      className="w-full px-5 py-4 border-2 border-gray-200 dark:border-gray-700 rounded-2xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-4 focus:ring-green-300 dark:focus:ring-green-700 focus:border-green-500 transition-all duration-300 text-base font-medium"
+                    >
+                      <option value="">Select City</option>
+                      <option value="Kathmandu">Kathmandu</option>
+                      <option value="Pokhara">Pokhara</option>
+                      <option value="Lalitpur">Lalitpur</option>
+                      <option value="Bhaktapur">Bhaktapur</option>
+                      <option value="Biratnagar">Biratnagar</option>
+                      <option value="Birgunj">Birgunj</option>
+                      <option value="Dharan">Dharan</option>
+                      <option value="Bharatpur">Bharatpur</option>
+                      <option value="Hetauda">Hetauda</option>
+                      <option value="Butwal">Butwal</option>
+                      <option value="Janakpur">Janakpur</option>
+                      <option value="Nepalgunj">Nepalgunj</option>
+                      <option value="Dhangadhi">Dhangadhi</option>
+                      <option value="Itahari">Itahari</option>
+                      <option value="Tulsipur">Tulsipur</option>
+                      <option value="Other">Other</option>
+                    </select>
+                  </div>
+
+                  <div className="group">
+                    <label className="flex items-center gap-2 text-sm font-bold text-gray-700 dark:text-gray-300 mb-3">
+                      <span className="text-lg">📮</span>
+                      Postal Code
+                    </label>
+                    <input
+                      type="text"
+                      name="postalCode"
+                      value={formData.postalCode}
+                      onChange={handleChange}
+                      placeholder="44600 (optional)"
+                      className="w-full px-5 py-4 border-2 border-gray-200 dark:border-gray-700 rounded-2xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-green-300 dark:focus:ring-green-700 focus:border-green-500 transition-all duration-300 text-base font-medium"
+                    />
+                  </div>
                 </div>
 
                 {/* Payment Method Selection */}
@@ -398,7 +440,7 @@ const Checkout = () => {
                 <div className="pt-4">
                   <button
                     type="submit"
-                    disabled={loading}
+                    disabled={loading || getFinalTotal() < 5000}
                     className={`group relative w-full py-5 md:py-6 ${
                       paymentMethod === "esewa"
                         ? "bg-gradient-to-r from-green-600 via-emerald-600 to-green-600 hover:from-green-700 hover:to-emerald-700"
@@ -614,6 +656,23 @@ const Checkout = () => {
                   <span className="text-lg">🎟️</span>
                   Have a Coupon?
                 </label>
+                
+                {/* Minimum requirement message */}
+                {getCartTotal() < 5000 && (
+                  <div className="mb-3 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+                    <div className="flex items-start gap-2">
+                      <svg className="w-5 h-5 text-yellow-600 dark:text-yellow-400 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                      </svg>
+                      <div className="flex-1">
+                        <p className="text-xs font-medium text-yellow-800 dark:text-yellow-300">
+                          Coupons require minimum Rs. 5,000 cart value. Add Rs. {(5000 - getCartTotal()).toLocaleString()} more to use coupons.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                
                 {appliedCoupon ? (
                   <div className="flex items-center justify-between p-3 bg-green-50 dark:bg-green-900/20 rounded-xl border-2 border-green-500">
                     <div className="flex items-center gap-2">
@@ -641,13 +700,14 @@ const Checkout = () => {
                         setCouponCode(e.target.value.toUpperCase())
                       }
                       placeholder="Enter coupon code"
-                      className="flex-1 px-4 py-3 border-2 border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-300 focus:border-green-500 text-sm font-medium"
+                      disabled={getCartTotal() < 5000}
+                      className="flex-1 px-4 py-3 border-2 border-gray-200 dark:border-gray-700 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-300 focus:border-green-500 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                     />
                     <button
                       type="button"
                       onClick={applyCoupon}
-                      disabled={couponLoading}
-                      className="px-4 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-semibold text-sm hover:from-purple-700 hover:to-pink-700 disabled:opacity-50"
+                      disabled={couponLoading || getCartTotal() < 5000}
+                      className="px-4 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl font-semibold text-sm hover:from-purple-700 hover:to-pink-700 disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {couponLoading ? "..." : "Apply"}
                     </button>
@@ -706,6 +766,25 @@ const Checkout = () => {
                     </span>
                   </div>
                 </div>
+
+                {/* Minimum Order Warning */}
+                {getFinalTotal() < 5000 && (
+                  <div className="mt-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+                    <div className="flex items-start gap-2">
+                      <svg className="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                      </svg>
+                      <div className="flex-1">
+                        <p className="text-sm font-semibold text-red-800 dark:text-red-300">
+                          Minimum Order Not Met
+                        </p>
+                        <p className="text-xs text-red-700 dark:text-red-400 mt-1">
+                          Minimum order amount is Rs. 5,000. Add Rs. {(5000 - getFinalTotal()).toLocaleString()} more to proceed.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>

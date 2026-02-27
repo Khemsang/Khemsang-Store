@@ -190,7 +190,7 @@ const BrowseByCategory: React.FC = () => {
                 onClick={() => handleCategoryClick(category.name)}
                 className="group cursor-pointer"
               >
-                <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800 dark:to-gray-700 aspect-square shadow-lg hover:shadow-2xl transition-all duration-500">
+                <div className="relative overflow-hidden rounded-2xl bg-gray-100 dark:from-gray-800 dark:to-gray-700 aspect-square shadow-lg hover:shadow-2xl transition-all duration-500">
                   {category.image ? (
                     <>
                       <img

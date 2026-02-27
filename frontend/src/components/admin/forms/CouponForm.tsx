@@ -187,7 +187,7 @@ export const CouponForm = ({
           </div>
 
           {/* Preview */}
-          <div className="p-4 bg-gradient-to-r from-blue-50 to-orange-50 dark:from-blue-900/20 dark:to-orange-900/20 rounded-lg border-2 border-dashed border-blue-300 dark:border-blue-700">
+          <div className="p-4 bg-blue-50 dark:from-blue-900/20 dark:to-orange-900/20 rounded-lg border-2 border-dashed border-blue-300 dark:border-blue-700">
             <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Coupon Preview:</p>
             <div className="flex items-center justify-between">
               <div>

@@ -1,4 +1,3 @@
-// Status Colors
 export const getStatusColor = (status: string) => {
   const colors: Record<string, string> = {
     delivered:
@@ -16,9 +15,7 @@ export const getStatusColor = (status: string) => {
   );
 };
 
-// Format Currency
 export const formatCurrency = (amount: number) =>
   `Rs. ${amount.toLocaleString()}`;
 
-// Format Date
 export const formatDate = (date: string) => new Date(date).toLocaleDateString();

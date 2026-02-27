@@ -10,6 +10,7 @@ import {
   sendOrderShippedEmail,
   sendOrderDeliveredEmail,
 } from "../services/orderEmailService.js";
+import { sendCouponForLargeOrder } from "../services/couponEmailService.js";
 import {
   generateInvoiceHTML,
   generateInvoiceData,
@@ -27,12 +28,25 @@ import {
  */
 export const createOrder = async (req, res) => {
   try {
-    const { items, totalAmount, shippingAddress, paymentMethod } = req.body;
+    const { items, totalAmount, shippingAddress, paymentMethod, couponCode, discount } = req.body;
 
     if (!items?.length)
       return res.status(400).json({ message: "No items in order" });
     if (!totalAmount || totalAmount <= 0)
       return res.status(400).json({ message: "Invalid total amount" });
+    
+    // Calculate final amount after discount
+    const finalAmount = discount ? totalAmount - discount : totalAmount;
+    
+    // Minimum order validation: Rs. 5000 after discount
+    if (finalAmount < 5000) {
+      return res.status(400).json({ 
+        message: `Minimum order amount is Rs. 5000. Your order total after discount is Rs. ${finalAmount}. Please add more items to your cart.`,
+        finalAmount,
+        minimumRequired: 5000
+      });
+    }
+    
     if (
       !shippingAddress?.fullName ||
       !shippingAddress?.phone ||
@@ -43,6 +57,74 @@ export const createOrder = async (req, res) => {
         .status(400)
         .json({ message: "Complete shipping address required" });
 
+    // Import Product model
+    const Product = (await import("../models/Product.js")).default;
+
+    // Reduce stock for each item
+    for (const item of items) {
+      const product = await Product.findById(item.product);
+      if (!product) {
+        return res.status(404).json({ 
+          message: `Product not found: ${item.product}` 
+        });
+      }
+
+      // Check if this is a variant order
+      if (item.colorVariant && item.colorVariant.colorName) {
+        const variant = product.colorVariants.find(
+          v => v.colorName === item.colorVariant.colorName
+        );
+        
+        if (!variant) {
+          return res.status(404).json({ 
+            message: `Variant ${item.colorVariant.colorName} not found for product ${product.title}` 
+          });
+        }
+
+        // Check variant stock
+        if (variant.stock < item.quantity) {
+          return res.status(400).json({ 
+            message: `Insufficient stock for ${product.title} - ${variant.colorName}. Available: ${variant.stock}` 
+          });
+        }
+
+        // Reduce variant stock
+        variant.stock -= item.quantity;
+
+        // If variant has flash sale, reduce flash stock too
+        if (variant.isFlashSale && variant.flashStock > 0) {
+          variant.flashStock = Math.max(0, variant.flashStock - item.quantity);
+          
+          // Disable flash sale if stock runs out
+          if (variant.flashStock === 0) {
+            variant.isFlashSale = false;
+          }
+        }
+      } else {
+        // Regular product (no variant)
+        if (product.stock < item.quantity) {
+          return res.status(400).json({ 
+            message: `Insufficient stock for ${product.title}. Available: ${product.stock}` 
+          });
+        }
+
+        // Reduce product stock
+        product.stock -= item.quantity;
+
+        // If product has flash sale, reduce flash stock too
+        if (product.isFlashSale && product.flashStock > 0) {
+          product.flashStock = Math.max(0, product.flashStock - item.quantity);
+          
+          // Disable flash sale if stock runs out
+          if (product.flashStock === 0) {
+            product.isFlashSale = false;
+          }
+        }
+      }
+
+      await product.save();
+    }
+
     const order = await Order.create({
       user: req.user._id,
       items,
@@ -51,12 +133,14 @@ export const createOrder = async (req, res) => {
       paymentMethod: paymentMethod || "esewa",
       paymentStatus: "pending",
       orderStatus: "pending",
+      couponCode: couponCode || undefined,
+      discount: discount || 0,
     });
 
-    // Populate order for email
-    const populatedOrder = await Order.findById(order._id).populate(
-      "items.product"
-    );
+    // Populate order for email and notification
+    const populatedOrder = await Order.findById(order._id)
+      .populate("items.product")
+      .populate("user", "name email phone");
 
     // Log activity
     await logActivity(
@@ -81,7 +165,6 @@ export const createOrder = async (req, res) => {
     // Send order confirmation email
     try {
       await sendOrderConfirmationEmail(populatedOrder, req.user);
-      console.log("✅ Order confirmation email sent");
     } catch (emailError) {
       console.error("❌ Failed to send order email:", emailError.message);
     }
@@ -89,9 +172,18 @@ export const createOrder = async (req, res) => {
     // Send notification to admins
     try {
       await notifyNewOrder(populatedOrder);
-      console.log("✅ Order notification sent to admins");
     } catch (notifError) {
       console.error("❌ Failed to send order notification:", notifError.message);
+    }
+
+    // Send coupon for orders above Rs. 5000 (based on final amount after discount)
+    try {
+      const coupon = await sendCouponForLargeOrder(populatedOrder, req.user);
+      if (coupon) {
+      }
+    } catch (couponError) {
+      console.error("❌ Failed to send coupon email:", couponError.message);
+      // Don't fail the order if coupon email fails
     }
 
     res.status(201).json(order);
@@ -214,10 +306,8 @@ export const updateOrderStatus = async (req, res) => {
       try {
         if (orderStatus === "shipped") {
           await sendOrderShippedEmail(updatedOrder, order.user);
-          console.log("✅ Shipped email sent");
         } else if (orderStatus === "delivered") {
           await sendOrderDeliveredEmail(updatedOrder, order.user);
-          console.log("✅ Delivered email sent");
         }
       } catch (emailError) {
         console.error("❌ Failed to send status email:", emailError.message);
@@ -230,7 +320,6 @@ export const updateOrderStatus = async (req, res) => {
         } else {
           await notifyOrderStatusChange(updatedOrder, previousStatus, orderStatus);
         }
-        console.log("✅ Order status notification sent to admins");
       } catch (notifError) {
         console.error("❌ Failed to send status notification:", notifError.message);
       }

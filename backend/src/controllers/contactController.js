@@ -48,7 +48,6 @@ export const submitContactMessage = async (req, res) => {
     // Send notification to admins
     try {
       await notifyNewContactMessage(message);
-      console.log("✅ Contact message notification sent to admins");
     } catch (notifError) {
       console.error("❌ Failed to send contact notification:", notifError.message);
     }

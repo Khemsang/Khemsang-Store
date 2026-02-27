@@ -79,7 +79,7 @@ const ForgotPassword: React.FC = () => {
                   setSent(false);
                   setEmail("");
                 }}
-                className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-[var(--root-color)] to-purple-600 text-white rounded-xl font-semibold hover:from-[var(--root-color)] hover:to-purple-700 transition-all shadow-lg hover:shadow-xl transform hover:scale-105"
+                className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition-all shadow-lg hover:shadow-xl transform hover:scale-105"
               >
                 <FaPaperPlane className="w-4 h-4" />
                 Send Again
@@ -103,7 +103,7 @@ const ForgotPassword: React.FC = () => {
       <div className="w-full max-w-md">
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="mx-auto h-20 w-20 bg-gradient-to-br from-[var(--root-color)] to-purple-600 rounded-2xl flex items-center justify-center shadow-xl transform hover:scale-105 transition-transform duration-300 mb-6">
+          <div className="mx-auto h-20 w-20 bg-blue-600 rounded-2xl flex items-center justify-center shadow-xl transform hover:scale-105 transition-transform duration-300 mb-6">
             <FaEnvelope className="h-10 w-10 text-white" />
           </div>
           <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
@@ -146,7 +146,7 @@ const ForgotPassword: React.FC = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full flex justify-center items-center py-4 px-4 border border-transparent rounded-xl shadow-lg text-base font-semibold text-white bg-gradient-to-r from-[var(--root-color)] to-purple-600 hover:from-[var(--root-color)] hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--root-color)] disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-[1.02] transition-all duration-200"
+              className="w-full flex justify-center items-center py-4 px-4 border border-transparent rounded-xl shadow-lg text-base font-semibold text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--root-color)] disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-[1.02] transition-all duration-200"
             >
               {loading ? (
                 <>

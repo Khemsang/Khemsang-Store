@@ -29,9 +29,7 @@ const SubmitTestimonial: React.FC = () => {
 
     setLoading(true);
     try {
-      console.log("Submitting testimonial:", formData);
       const response = await testimonialsApi.create(formData);
-      console.log("Testimonial submitted successfully:", response);
 
       // Refresh testimonials list
       await dispatch(fetchTestimonials());

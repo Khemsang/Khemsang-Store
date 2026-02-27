@@ -62,45 +62,14 @@ const Loading: React.FC<LoadingProps> = ({
   return (
     <div className={containerClasses}>
       <div className="flex flex-col items-center gap-6">
-        {/* Modern spinner with gradient */}
-        <div className="relative">
-          {/* Outer spinning ring */}
-          <div className={`${currentSize.spinner} rounded-full border-4 border-gray-200 dark:border-gray-700`}></div>
-          
-          {/* Gradient spinning border */}
-          <div 
-            className={`absolute inset-0 ${currentSize.spinner} rounded-full border-4 border-transparent animate-spin`}
-            style={{ 
-              animationDuration: "1.2s",
-              background: "linear-gradient(to right, rgb(147, 51, 234), rgb(219, 39, 119), rgb(249, 115, 22))",
-              WebkitMask: "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
-              WebkitMaskComposite: "xor",
-              maskComposite: "exclude",
-              padding: "4px"
-            }}
-          ></div>
-          
-          {/* Inner pulsing circle */}
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className={`${currentSize.inner} rounded-full bg-gradient-to-br from-purple-500 via-pink-500 to-orange-500 animate-pulse`}></div>
-          </div>
-          
-          {/* Center white dot */}
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className={`${currentSize.dot} rounded-full bg-white dark:bg-gray-800 shadow-lg`}></div>
-          </div>
-        </div>
+        {/* Simple spinner */}
+        <div className={`${currentSize.spinner} border-4 border-gray-200 dark:border-gray-700 border-t-purple-600 rounded-full animate-spin`}></div>
         
         {text && (
           <div className="text-center space-y-3">
             <p className={`text-gray-700 dark:text-gray-300 font-semibold ${currentSize.text}`}>
               {text}
             </p>
-            <div className="flex gap-2 justify-center">
-              <div className="w-2 h-2 bg-purple-600 rounded-full animate-bounce" style={{ animationDelay: "0ms" }}></div>
-              <div className="w-2 h-2 bg-pink-600 rounded-full animate-bounce" style={{ animationDelay: "150ms" }}></div>
-              <div className="w-2 h-2 bg-orange-600 rounded-full animate-bounce" style={{ animationDelay: "300ms" }}></div>
-            </div>
           </div>
         )}
       </div>

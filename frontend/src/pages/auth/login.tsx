@@ -25,13 +25,15 @@ const Login: React.FC = () => {
     }
   }, [location.search, showError, navigate]);
 
-  // Auto-redirect admins to dashboard, but show profile for regular users
+  // Auto-redirect all logged-in users
   React.useEffect(() => {
     if (user && !authLoading) {
       if (user.isAdmin || user.isSuperAdmin) {
         navigate("/admin/dashboard", { replace: true });
+      } else {
+        // Redirect regular users to home page
+        navigate("/", { replace: true });
       }
-      // Regular users stay on this page to see their profile
     }
   }, [user, authLoading, navigate]);
 
@@ -41,7 +43,7 @@ const Login: React.FC = () => {
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
         <div className="text-center">
           <div className="relative w-20 h-20 mx-auto mb-6">
-            <div className="absolute inset-0 rounded-full bg-gradient-to-r from-[var(--root-color)] to-purple-600 animate-spin"></div>
+            <div className="absolute inset-0 rounded-full bg-blue-600 animate-spin"></div>
             <div className="absolute inset-1 rounded-full bg-white dark:bg-gray-900"></div>
             <div className="absolute inset-3 rounded-full border-4 border-transparent border-t-[var(--root-color)] border-r-purple-600 animate-spin" style={{ animationDirection: 'reverse', animationDuration: '1s' }}></div>
           </div>
@@ -114,7 +116,6 @@ const Login: React.FC = () => {
         // OTP required but error occurred
         const otpData = err.response.data;
         if (otpData.otp) {
-          console.log("Development Mode OTP:", otpData.otp);
         }
         // Store redirect path before going to OTP
         const intendedPath = location.state?.from;
@@ -146,7 +147,7 @@ const Login: React.FC = () => {
             <h2 className="text-3xl font-extrabold text-gray-900 dark:text-white mb-2">
               Welcome Back!
             </h2>
-            <p className="text-lg bg-gradient-to-r from-blue-600 to-orange-600 bg-clip-text text-transparent font-semibold mb-6">
+            <p className="text-lg bg-blue-600 bg-clip-text text-transparent font-semibold mb-6">
               You're already logged in
             </p>
 
@@ -230,7 +231,7 @@ const Login: React.FC = () => {
           // Show login form if user is not logged in
           <>
             <div className="text-center">
-              <div className="mx-auto h-16 w-16 bg-gradient-to-br from-[var(--root-color)] to-purple-600 rounded-2xl flex items-center justify-center shadow-lg transform hover:scale-105 transition-transform duration-300">
+              <div className="mx-auto h-16 w-16 bg-blue-600 rounded-2xl flex items-center justify-center shadow-lg transform hover:scale-105 transition-transform duration-300">
                 <svg
                   className="h-8 w-8 text-white"
                   fill="none"
@@ -360,7 +361,7 @@ const Login: React.FC = () => {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-xl shadow-lg text-sm font-semibold text-white bg-gradient-to-r from-[var(--root-color)] to-purple-600 hover:from-[var(--root-color)] hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--root-color)] disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-[1.02] transition-all duration-200"
+                  className="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-xl shadow-lg text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--root-color)] disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-[1.02] transition-all duration-200"
                 >
                   {loading ? (
                     <>

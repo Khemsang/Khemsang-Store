@@ -27,12 +27,15 @@ const ProductFeatureCard: React.FC<ProductFeatureCardProps> = ({
   const navigate = useNavigate();
   const { addToCart } = useCart();
   const { showToast } = useToast();
+  const [imageError, setImageError] = React.useState(false);
 
-  const handleAddToCart = (e: React.MouseEvent) => {
+  const handleAddToCart = async (e: React.MouseEvent) => {
     e.stopPropagation();
     if (productId) {
-      addToCart({ _id: productId, title, price, images: [image] }, 1);
-      showToast(`${title} added to cart!`, "success");
+      const result = await addToCart(productId, 1);
+      if (result?.isNew) {
+        showToast(`${title} added to cart!`, "success");
+      }
     } else {
       navigate(`/featured/${_id}`);
     }
@@ -41,14 +44,24 @@ const ProductFeatureCard: React.FC<ProductFeatureCardProps> = ({
   return (
     <div className="bg-white dark:bg-gray-800 rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-all group h-full flex flex-col">
       <div
-        className="relative aspect-square cursor-pointer overflow-hidden flex-shrink-0"
+        className="relative aspect-square cursor-pointer overflow-hidden flex-shrink-0 bg-gray-100 dark:bg-gray-700"
         onClick={() => navigate(`/featured/${_id}`)}
       >
-        <img
-          src={image}
-          alt={title}
-          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-        />
+        {imageError ? (
+          <div className="w-full h-full flex flex-col items-center justify-center text-gray-400">
+            <FaStar className="w-12 h-12 mb-2" />
+            <span className="text-xs">Image not available</span>
+          </div>
+        ) : (
+          <img
+            src={image || "/placeholder.jpg"}
+            alt={title}
+            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+            onError={(e) => {
+              setImageError(true);
+            }}
+          />
+        )}
         <span className="absolute top-2 left-2 px-2 py-1 bg-gradient-to-r from-yellow-500 to-orange-500 text-white text-xs font-bold rounded-full flex items-center gap-1">
           <FaStar className="w-3 h-3" />
           Featured
