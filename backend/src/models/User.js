@@ -109,12 +109,12 @@ const userSchema = new mongoose.Schema(
     adminRole: {
       type: String,
       enum: ["admin", "manager", "support"],
-      default: "admin",
+      // No default — only set when role is admin/super-admin
     },
     adminStatus: {
       type: String,
       enum: ["active", "suspended", "pending"],
-      default: "active",
+      // No default — only set when role is admin/super-admin
     },
     suspendedAt: {
       type: Date,
@@ -125,34 +125,34 @@ const userSchema = new mongoose.Schema(
     suspendReason: {
       type: String,
     },
-    // Admin Permissions
+    // Admin Permissions — only relevant for admin/super-admin users
     permissions: {
       products: {
-        create: { type: Boolean, default: true },
-        edit: { type: Boolean, default: true },
-        delete: { type: Boolean, default: true },
+        create: { type: Boolean },
+        edit: { type: Boolean },
+        delete: { type: Boolean },
       },
       orders: {
-        view: { type: Boolean, default: true },
-        manage: { type: Boolean, default: true },
+        view: { type: Boolean },
+        manage: { type: Boolean },
       },
       users: {
-        view: { type: Boolean, default: true },
-        block: { type: Boolean, default: false },
+        view: { type: Boolean },
+        block: { type: Boolean },
       },
       categories: {
-        create: { type: Boolean, default: true },
-        edit: { type: Boolean, default: true },
-        delete: { type: Boolean, default: true },
+        create: { type: Boolean },
+        edit: { type: Boolean },
+        delete: { type: Boolean },
       },
       banners: {
-        manage: { type: Boolean, default: true },
+        manage: { type: Boolean },
       },
       coupons: {
-        manage: { type: Boolean, default: true },
+        manage: { type: Boolean },
       },
       reviews: {
-        manage: { type: Boolean, default: true },
+        manage: { type: Boolean },
       },
       payments: {
         view: { type: Boolean, default: false },

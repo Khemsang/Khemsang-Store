@@ -10,32 +10,61 @@ const Login: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [needsVerification, setNeedsVerification] = useState(false);
+  const [resendLoading, setResendLoading] = useState(false);
+  const [resendSent, setResendSent] = useState(false);
+  // Banner shown after signup (check email) or after verification (verified)
+  const [infoBanner, setInfoBanner] = useState<{
+    type: "email-sent" | "verified";
+    email?: string;
+  } | null>(null);
   const { login, user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const { success, error: showError } = useToast();
 
-  // Check for session expired message
+  // Check for session expired OR post-verification success
   React.useEffect(() => {
+    // If arriving from email verification, always show the success banner
+    // and ignore any ?session=expired query param (it's a false alarm from
+    // a 401 on a protected endpoint during the unauthenticated redirect)
+    if (location.state?.verified) {
+      setInfoBanner({ type: "verified" });
+      success("✅ Email verified successfully! You can now sign in.");
+      window.history.replaceState({}, "", "/login");
+      return;
+    }
+
+    // Arriving from signup — show "check your Gmail" banner
+    if (location.state?.emailSent) {
+      setInfoBanner({ type: "email-sent", email: location.state.email });
+      if (location.state.email) setEmail(location.state.email);
+      window.history.replaceState({}, "", "/login");
+      return;
+    }
+
+    // Only show session expired if there's no other state
     const params = new URLSearchParams(location.search);
     if (params.get("session") === "expired") {
-      showError("तपाईंको सत्र समाप्त भयो। कृपया फेरि लगइन गर्नुहोस्। (Your session expired. Please login again.)");
-      // Clear the query parameter
-      navigate("/login", { replace: true });
+      showError("Your session expired. Please login again.");
+      window.history.replaceState({}, "", "/login");
     }
-  }, [location.search, showError, navigate]);
+  }, []);
 
-  // Auto-redirect all logged-in users
-  React.useEffect(() => {
-    if (user && !authLoading) {
-      if (user.isAdmin || user.isSuperAdmin) {
-        navigate("/admin/dashboard", { replace: true });
-      } else {
-        // Redirect regular users to home page
-        navigate("/", { replace: true });
-      }
+  const handleResendVerification = async () => {
+    setResendLoading(true);
+    try {
+      await import("../../services/api").then(({ api }) =>
+        api.post("/auth/resend-verification", { email })
+      );
+      setResendSent(true);
+      success("Verification email sent! Check your inbox.");
+    } catch (err: any) {
+      showError(err.response?.data?.message || "Failed to resend. Try again.");
+    } finally {
+      setResendLoading(false);
     }
-  }, [user, authLoading, navigate]);
+  };
 
   // Show loading while checking auth status
   if (authLoading) {
@@ -73,45 +102,21 @@ const Login: React.FC = () => {
         return;
       }
 
-      // Direct login successful (Super Admin or OTP not required)
+      // Direct login (OTP already verified recently — skipped)
       if (data.user) {
-        // This should not happen anymore as all users need OTP
-        // But keeping for backward compatibility
-        success("Login successful! Redirecting...");
-        
-        await new Promise(resolve => setTimeout(resolve, 1500));
-        
-        const intendedPath = location.state?.from || sessionStorage.getItem('redirectAfterLogin');
-        sessionStorage.removeItem('redirectAfterLogin');
-        
-        if (data.redirectTo) {
-          window.location.href = data.redirectTo;
+        success("Login successful!");
+        const userRole = data.user.role || (data.user.isSuperAdmin ? "super-admin" : data.user.isAdmin ? "admin" : "customer");
+        if (userRole === "admin" || userRole === "super-admin") {
+          window.location.href = "/admin/dashboard";
         } else {
-          const userRole = data.user.role || (data.user.isSuperAdmin ? "super-admin" : data.user.isAdmin ? "admin" : "customer");
-          
-          switch (userRole) {
-            case "super-admin":
-            case "admin":
-              window.location.href = "/admin/dashboard";
-              break;
-            case "seller":
-              window.location.href = data.user.isApproved ? "/seller/dashboard" : "/seller/pending";
-              break;
-            case "customer":
-            default:
-              if (intendedPath && intendedPath !== '/login' && intendedPath !== '/signup' && intendedPath !== '/verify-otp') {
-                navigate(intendedPath, { replace: true });
-              } else {
-                navigate("/", { replace: true });
-              }
-              break;
-          }
+          window.location.href = "/";
         }
       }
     } catch (err: any) {
       if (err.response?.data?.needsVerification) {
-        setError("Please verify your email first");
-        showError("Please verify your email first");
+        setNeedsVerification(true);
+        setResendSent(false);
+        setError("");
       } else if (err.response?.data?.needsOTP) {
         // OTP required but error occurred
         const otpData = err.response.data;
@@ -255,6 +260,74 @@ const Login: React.FC = () => {
             </div>
 
             <div className="bg-white dark:bg-gray-800 shadow-2xl rounded-2xl p-10 space-y-8 border border-gray-100 dark:border-gray-700">
+              {/* Info banner — check email / verified */}
+              {infoBanner && (
+                <div className={`border-l-4 p-4 rounded-lg flex items-start gap-3 ${
+                  infoBanner.type === "verified"
+                    ? "bg-green-50 dark:bg-green-900/20 border-green-500"
+                    : "bg-blue-50 dark:bg-blue-900/20 border-blue-500"
+                }`}>
+                  <svg className={`h-5 w-5 mt-0.5 flex-shrink-0 ${infoBanner.type === "verified" ? "text-green-500" : "text-blue-500"}`} fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                  </svg>
+                  <div>
+                    {infoBanner.type === "email-sent" ? (
+                      <>
+                        <p className="text-sm font-semibold text-blue-800 dark:text-blue-300">
+                          Check your Gmail to verify your account
+                        </p>
+                        <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
+                          We sent a verification link to <strong>{infoBanner.email}</strong>. Click it to activate your account, then come back here to sign in.
+                        </p>
+                      </>
+                    ) : (
+                      <>
+                        <p className="text-sm font-semibold text-green-800 dark:text-green-300">
+                          ✅ Email verified successfully!
+                        </p>
+                        <p className="text-xs text-green-600 dark:text-green-400 mt-1">
+                          Your account is active. Enter your password below to sign in.
+                        </p>
+                      </>
+                    )}
+                  </div>
+                  <button
+                    onClick={() => setInfoBanner(null)}
+                    className={`ml-auto flex-shrink-0 ${infoBanner.type === "verified" ? "text-green-400 hover:text-green-600" : "text-blue-400 hover:text-blue-600"}`}
+                  >
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                    </svg>
+                  </button>
+                </div>
+              )}
+
+              {/* Needs verification banner */}
+              {needsVerification && (
+                <div className="bg-amber-50 dark:bg-amber-900/20 border-l-4 border-amber-500 p-4 rounded-lg">
+                  <p className="text-sm font-semibold text-amber-800 dark:text-amber-300">
+                    ✉️ Email not verified yet
+                  </p>
+                  <p className="text-xs text-amber-700 dark:text-amber-400 mt-1 mb-3">
+                    Please click the link we sent to <strong>{email}</strong> to activate your account.
+                  </p>
+                  {resendSent ? (
+                    <p className="text-xs text-green-700 dark:text-green-400 font-medium">
+                      ✅ New verification link sent — check your inbox.
+                    </p>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={handleResendVerification}
+                      disabled={resendLoading}
+                      className="text-xs font-semibold text-amber-800 dark:text-amber-300 underline hover:no-underline disabled:opacity-50"
+                    >
+                      {resendLoading ? "Sending…" : "Resend verification email"}
+                    </button>
+                  )}
+                </div>
+              )}
+
               {error && (
                 <div className="bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500 p-4 rounded-lg animate-shake">
                   <div className="flex">
@@ -340,7 +413,7 @@ const Login: React.FC = () => {
                       type={showPassword ? "text" : "password"}
                       required
                       value={password}
-                      onChange={(e) => setPassword(e.target.value)}
+                      onChange={(e) => { setPassword(e.target.value); setNeedsVerification(false); setError(""); }}
                       placeholder="••••••••"
                       className="block w-full pl-10 pr-12 py-3 border border-gray-300 dark:border-gray-600 rounded-xl bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[var(--root-color)] focus:border-transparent transition-all duration-200"
                     />

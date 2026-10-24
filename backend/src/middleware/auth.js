@@ -61,7 +61,6 @@ export const isVerified = (req, res, next) => {
   }
 };
 
-// Optional auth - doesn't fail if no token, just sets req.user if available
 export const optionalAuth = async (req, res, next) => {
   try {
     const token = req.cookies.token;
@@ -71,7 +70,6 @@ export const optionalAuth = async (req, res, next) => {
     }
     next();
   } catch {
-    // Token invalid, continue without user
     next();
   }
 };

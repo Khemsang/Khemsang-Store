@@ -76,59 +76,20 @@ const VerifyOTP = () => {
 
     try {
       const data = await verifyOTP(email, otpString);
-      success("OTP verified successfully!");
+      success("Login successful!");
 
-      // Wait a moment for the success message
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // user is already saved in AuthContext by verifyOTP()
+      // Redirect based on role — admin goes to dashboard, everyone else goes home
+      const isAdmin =
+        data.user?.isAdmin ||
+        data.user?.isSuperAdmin ||
+        data.user?.role === "admin" ||
+        data.user?.role === "super-admin";
 
-      // Check if there's a pending cart item to add
-      const pendingItem = sessionStorage.getItem('pendingCartItem');
-      if (pendingItem) {
-        try {
-          const { productId, quantity, returnTo } = JSON.parse(pendingItem);
-          
-          // Import addToCart from context
-          const { addToCart } = await import('../../context/CartContext');
-          // Add the item to cart
-          await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000/api'}/cart`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            credentials: 'include',
-            body: JSON.stringify({ productId, quantity })
-          });
-          
-          sessionStorage.removeItem('pendingCartItem');
-          
-          // Redirect to the return page (product page or cart)
-          window.location.href = returnTo || '/cart';
-          return;
-        } catch (cartError) {
-          // Continue with normal redirect even if cart add fails
-        }
-      }
-
-      // Check if there's a redirect path from login/signup flow
-      const redirectPath = location.state?.from || sessionStorage.getItem('redirectAfterLogin');
-      
-      // Clear the stored redirect path
-      sessionStorage.removeItem('redirectAfterLogin');
-
-      if (data.user?.isAdmin || data.user?.isSuperAdmin) {
-        // Admins always go to dashboard
+      if (isAdmin) {
         window.location.href = "/admin/dashboard";
-      } else if (redirectPath && redirectPath !== '/login' && redirectPath !== '/signup' && redirectPath !== '/verify-otp') {
-        // Redirect to the intended page (cart, checkout, etc.)
-        // Use window.location.href for cart/checkout to ensure cart sync happens
-        if (redirectPath === '/cart' || redirectPath === '/checkout') {
-          window.location.href = redirectPath;
-        } else {
-          navigate(redirectPath, { replace: true });
-        }
       } else {
-        // Default to home page
-        navigate("/", { replace: true });
+        window.location.href = "/";
       }
     } catch (err: any) {
       const errorMsg = err.response?.data?.message || "Invalid OTP";

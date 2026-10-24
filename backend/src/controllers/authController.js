@@ -1,4 +1,5 @@
 import User from "../models/User.js";
+import PendingUser from "../models/PendingUser.js";
 import crypto from "crypto";
 import jwt from "jsonwebtoken";
 import { generateToken, setTokenCookie } from "../utils/generateToken.js";
@@ -12,53 +13,48 @@ import {
 import OTP from "../models/OTP.js";
 import { notifyNewCustomer } from "../services/notificationService.js";
 
-// SIGNUP - With email verification
+// ─── SIGNUP ───────────────────────────────────────────────────────────────────
+// Data is saved to PendingUser only — NOT the User collection.
+// The real User document is created only after email is verified.
 export const signup = async (req, res) => {
   try {
     const { name, email, password } = req.body;
     if (!name || !email || !password)
-      return res
-        .status(400)
-        .json({ message: "Provide name, email, and password" });
+      return res.status(400).json({ message: "Provide name, email, and password" });
 
-    // Check if user already exists
+    // Block if a real (verified) user already owns this email
     const existingUser = await User.findOne({ email });
     if (existingUser)
       return res.status(400).json({ message: "User already exists" });
 
-    // Generate verification token
+    // If there's already a pending signup for this email, replace it
+    // (user might be retrying after not receiving the first email)
+    await PendingUser.deleteOne({ email });
+
     const verificationToken = crypto.randomBytes(32).toString("hex");
 
-    // Create user - always as customer, admins can only be created by super admin
-    const user = await User.create({
+    // Save to PendingUser — expires in 15 minutes
+    await PendingUser.create({
       name,
       email,
       password,
-      role: "customer",
-      isAdmin: false,
-      isVerified: false,
       verificationToken,
-      verificationTokenExpires: new Date(Date.now() + 15 * 60 * 1000), // 15 minutes
+      expiresAt: new Date(Date.now() + 15 * 60 * 1000),
     });
 
-
-    // Send verification email
+    // Send verification email — if this fails we still tell the user to check
+    // their inbox; they can use "resend" if it never arrives
     try {
       await sendVerificationEmail(email, verificationToken);
     } catch (emailError) {
-      console.error(
-        "❌ Failed to send verification email:",
-        emailError.message
-      );
+      console.error("❌ Failed to send verification email:", emailError.message);
     }
 
     return res.status(201).json({
-      message:
-        "Account created! Please check your email to verify your account.",
-      email: user.email,
-      // In development, show the verification URL
+      message: "Almost there! Please check your email and click the verification link to create your account.",
+      email,
       ...(process.env.NODE_ENV === "development" && {
-        verificationUrl: `${process.env.FRONTEND_URL}/verify-email/${verificationToken}`,
+        verificationUrl: `${process.env.FRONTEND_URL}/verify-email?token=${verificationToken}`,
       }),
     });
   } catch (err) {
@@ -67,59 +63,85 @@ export const signup = async (req, res) => {
   }
 };
 
-// VERIFY EMAIL
+// ─── VERIFY EMAIL ─────────────────────────────────────────────────────────────
+// Promotes the PendingUser into a real User, then deletes the pending record.
 export const verifyEmail = async (req, res) => {
   try {
-    // Get token from URL parameter or query parameter
     const token = req.params.token || req.query.token;
 
-    if (!token) {
+    if (!token)
+      return res.status(400).json({ message: "Verification token is required." });
+
+    // Look up the pending signup by token
+    const pending = await PendingUser.findOne({ verificationToken: token });
+
+    if (!pending) {
       return res.status(400).json({
-        message: "Verification token is required.",
+        message: "Verification link has expired or is invalid. Please sign up again or request a new link.",
+        expired: true,
       });
     }
 
-    const user = await User.findOne({
-      verificationToken: token,
-      verificationTokenExpires: { $gt: Date.now() },
-    });
-
-    if (user) {
-    }
-
-    if (!user) {
-      // Check if token exists but expired
-      const expiredUser = await User.findOne({ verificationToken: token });
-      if (expiredUser) {
-        return res.status(400).json({
-          message: "Verification link has expired. Please request a new verification email.",
-        });
-      }
-      
+    // Check expiry using the dedicated expiresAt field
+    if (new Date() > pending.expiresAt) {
+      await PendingUser.deleteOne({ _id: pending._id });
       return res.status(400).json({
-        message: "Invalid or expired verification link.",
+        message: "Verification link has expired. Please request a new one.",
+        expired: true,
       });
     }
 
-    user.isVerified = true;
-    user.verificationToken = undefined;
-    user.verificationTokenExpires = undefined;
-    await user.save();
+    // Guard: if email was somehow already registered as a full user, skip creation
+    const existingUser = await User.findOne({ email: pending.email });
+    if (existingUser) {
+      await PendingUser.deleteOne({ _id: pending._id });
+      return res.json({
+        message: "Email already verified. Please login.",
+        verified: true,
+        redirectTo: "/login",
+      });
+    }
 
-    
-    // Send notification to admins about new customer
+    // Promote to real User — password is already hashed in PendingUser.
+    // Use collection.insertOne to bypass the pre-save hash hook so the
+    // password isn't double-hashed.
+    const now = new Date();
+    const userDoc = {
+      name: pending.name,
+      email: pending.email,
+      password: pending.password,   // already bcrypt-hashed
+      role: "customer",
+      isAdmin: false,
+      isSuperAdmin: false,
+      isVerified: true,
+      isBlocked: false,
+      isApproved: false,
+      wishlist: [],
+      addresses: [],
+      refreshTokens: [],
+      warnings: [],
+      cart: [],
+      createdAt: now,
+      updatedAt: now,
+    };
+    const result = await User.collection.insertOne(userDoc);
+    const userId = result.insertedId;
+
+    // Clean up the pending record
+    await PendingUser.deleteOne({ _id: pending._id });
+
+    // Notify admins
     try {
-      await notifyNewCustomer(user);
+      const createdUser = await User.findById(userId);
+      await notifyNewCustomer(createdUser);
     } catch (notifError) {
       console.error("❌ Failed to send customer notification:", notifError.message);
     }
-    
-    // Don't auto-login on email verification, just verify the email
-    // User should go to login page to complete authentication
-    return res.json({ 
+
+    return res.json({
       message: "Email verified successfully! Please login to continue.",
       verified: true,
-      redirectTo: "/login"
+      redirectTo: "/login",
     });
   } catch (err) {
     console.error("❌ Verify email error:", err);
@@ -127,29 +149,34 @@ export const verifyEmail = async (req, res) => {
   }
 };
 
-// RESEND VERIFICATION
+// ─── RESEND VERIFICATION ──────────────────────────────────────────────────────
+// Issues a new token for an existing PendingUser record.
 export const resendVerification = async (req, res) => {
   try {
     const { email } = req.body;
-    
-    const user = await User.findOne({ email });
-    if (!user) return res.status(404).json({ message: "User not found" });
-    if (user.isVerified)
-      return res.status(400).json({ message: "Email already verified" });
 
+    // Check if already a full verified user
+    const existingUser = await User.findOne({ email });
+    if (existingUser)
+      return res.status(400).json({ message: "Email already verified. Please login." });
+
+    // Must have a pending signup to resend to
+    const pending = await PendingUser.findOne({ email });
+    if (!pending)
+      return res.status(404).json({ message: "No pending signup found for this email. Please sign up first." });
+
+    // Issue a fresh token and reset the 15-minute expiry window
     const verificationToken = crypto.randomBytes(32).toString("hex");
-    user.verificationToken = verificationToken;
-    user.verificationTokenExpires = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
-    await user.save();
-    
-    
+    pending.verificationToken = verificationToken;
+    pending.expiresAt = new Date(Date.now() + 15 * 60 * 1000);
+    await pending.save();
+
     await sendVerificationEmail(email, verificationToken);
 
-    res.json({ 
-      message: "Verification email sent",
-      // In development, show the verification URL
+    res.json({
+      message: "Verification email sent. Please check your inbox.",
       ...(process.env.NODE_ENV === "development" && {
-        verificationUrl: `${process.env.FRONTEND_URL}/verify-email/${verificationToken}`,
+        verificationUrl: `${process.env.FRONTEND_URL}/verify-email?token=${verificationToken}`,
       }),
     });
   } catch (err) {
@@ -158,20 +185,24 @@ export const resendVerification = async (req, res) => {
   }
 };
 
-// LOGIN - Send OTP (All users including Super Admin)
+// ─── LOGIN ────────────────────────────────────────────────────────────────────
+// Send OTP (All users including Super Admin)
 export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
     const user = await User.findOne({ email }).select("+password");
     if (!user) {
+      // Check if there's a pending (unverified) signup for this email
+      const pending = await PendingUser.findOne({ email });
+      if (pending) {
+        return res.status(403).json({
+          message: "Please verify your email first. Check your inbox for the verification link.",
+          needsVerification: true,
+          email,
+        });
+      }
       return res.status(404).json({ message: "User not found" });
-    }
-
-    if (!user.isVerified) {
-      return res
-        .status(403)
-        .json({ message: "Please verify your email first" });
     }
 
     const isMatch = await user.matchPassword(password);

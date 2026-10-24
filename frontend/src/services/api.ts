@@ -12,29 +12,31 @@ export const api = axios.create({
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    // Don't redirect on /auth/me or /auth/* endpoints to avoid infinite loops
-    const isAuthEndpoint = error.config?.url?.includes("/auth/");
+    const url: string = error.config?.url || "";
+    const currentPath = window.location.pathname;
 
-    if (error.response?.status === 401 && !isAuthEndpoint) {
+    // Never redirect for auth endpoints — avoids infinite loops and
+    // false "session expired" toasts on fresh loads (e.g. after email verify)
+    const isAuthEndpoint = url.includes("/auth/");
+
+    // Also never redirect if we're already on the login page
+    const isLoginPage = currentPath === "/login";
+
+    if (error.response?.status === 401 && !isAuthEndpoint && !isLoginPage) {
       const sessionExpired = error.response?.data?.sessionExpired;
-      
+
       if (sessionExpired) {
-        // Clear any stored auth data
         localStorage.removeItem("user");
-        
-        // Show session expired message
-        const currentPath = window.location.pathname;
-        if (currentPath !== "/login") {
-          // Store the intended destination
+        // Only redirect if the user had an actual session (i.e. there was a
+        // token cookie present). A fresh load with no cookie should silently
+        // fail, not show a "session expired" toast.
+        const hadToken = document.cookie.includes("token=");
+        if (hadToken) {
           sessionStorage.setItem("redirectAfterLogin", currentPath);
-          
-          // Redirect to login with session expired message
           window.location.href = "/login?session=expired";
         }
-      } else {
-        // Regular unauthorized - redirect to login
-        window.location.href = "/login";
       }
+      // Don't redirect for regular 401s — let each component handle it
     }
     return Promise.reject(error);
   }

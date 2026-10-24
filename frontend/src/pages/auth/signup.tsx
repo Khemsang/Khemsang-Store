@@ -78,20 +78,10 @@ const Signup: React.FC = () => {
         formData.isAdmin
       );
 
-      // Show success notification
-      success("Account created successfully! Please check your email to verify.");
-
-      // Store redirect path if coming from cart/checkout
-      const intendedPath = location.state?.from;
-      if (intendedPath && intendedPath !== '/login' && intendedPath !== '/signup') {
-        sessionStorage.setItem('redirectAfterLogin', intendedPath);
-      }
-      
-      // Wait for user to see the message
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // Redirect to login page, preserving the intended destination
-      navigate("/login", { state: { from: intendedPath } });
+      // Navigate immediately to login with a flag to show the "check your email" banner
+      navigate("/login", {
+        state: { emailSent: true, email: formData.email },
+      });
     } catch (err: any) {
       setError(err.response?.data?.message || "Signup failed");
     } finally {
