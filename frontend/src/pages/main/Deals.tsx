@@ -46,8 +46,10 @@ const Deals = () => {
         api.get("/coupons").catch(() => ({ data: [] })),
       ]);
 
+      const productsData = Array.isArray(productsRes.data) ? productsRes.data : (productsRes.data.products ?? []);
+
       // Filter products with discounts
-      const discounted = productsRes.data.filter(
+      const discounted = productsData.filter(
         (p: Product) => p.originalPrice && p.originalPrice > p.price
       );
       setDiscountedProducts(discounted);

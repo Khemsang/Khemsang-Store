@@ -54,4 +54,8 @@ const couponSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+// code already has a unique index via schema definition.
+// Composite index for active-coupon lookups (validate endpoint).
+couponSchema.index({ isActive: 1, endDate: 1 });
+
 export default mongoose.model("Coupon", couponSchema);

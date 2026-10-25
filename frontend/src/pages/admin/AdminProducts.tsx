@@ -121,7 +121,7 @@ const AdminProducts = () => {
         api.get("/categories?adminOnly=true"),
         api.get("/brands"),
       ]);
-      setProducts(productsRes.data);
+      setProducts(Array.isArray(productsRes.data) ? productsRes.data : (productsRes.data.products ?? []));
       setCategories(categoriesRes.data.filter((c: any) => c.isActive));
       setBrands(brandsRes.data.filter((b: any) => b.isActive));
     } catch (err) {
@@ -324,9 +324,10 @@ const AdminProducts = () => {
       error(err.response?.data?.message || "Failed to fetch stats");
     }
   };
+  const safeProducts = Array.isArray(products) ? products : [];
 
-  const filteredProducts = products.filter((p) =>
-    p.title.toLowerCase().includes(search.toLowerCase())
+  const filteredProducts = safeProducts.filter((products) =>
+    products.title.toLowerCase().includes(search.toLowerCase())
   );
 
   // Pagination logic
@@ -343,11 +344,11 @@ const AdminProducts = () => {
   if (loading) return <Loading message="Loading products..." fullScreen={true} />;
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-6 space-y-6 bg-gray-50 dark:bg-gray-900 h-full dark:text-white">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Products</h1>
-          <p className="text-gray-500 mt-1">{products.length} total products</p>
+          <p className="text-gray-900 dark:text-gray-200 mt-1">{products.length} total products</p>
         </div>
         <Button onClick={() => setShowForm(!showForm)}>
           {showForm ? <X className="w-4 h-4 mr-2" /> : <Plus className="w-4 h-4 mr-2" />}

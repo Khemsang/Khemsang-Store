@@ -66,10 +66,10 @@ const AdminCustomers = () => {
   if (showLoading) return <Loading message="Loading customers..." fullScreen={true} />;
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-6 space-y-6 dark:bg-gray-900 h-full">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold">Customers</h1>
+        <h1 className="text-3xl font-bold dark:text-white">Customers</h1>
         <p className="text-gray-500 mt-1">{customers.length} total customers</p>
       </div>
 

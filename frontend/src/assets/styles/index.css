@@ -95,3 +95,442 @@ body {
 html {
   scroll-behavior: smooth;
 }
+
+@keyframes float {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50%       { transform: translateY(-10px) scale(1.1); }
+}
+
+.animate-float {
+  animation: float 2s ease-in-out infinite;
+}
+
+/* ============================================================
+   REUSABLE COMPONENT CLASSES
+   Define once here, use everywhere with a single class name.
+   ============================================================ */
+
+@layer components {
+
+  /* ----------------------------------------------------------
+     PAGE LAYOUT
+     ---------------------------------------------------------- */
+
+  /* Full-height page background (light + dark) */
+  .page-wrapper {
+    @apply min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white;
+  }
+
+  /* Centred, padded, max-width content container */
+  .page-container {
+    @apply container px-4 md:px-6 lg:px-8 max-w-7xl mx-auto;
+  }
+
+  /* Section with vertical padding */
+  .page-section {
+    @apply py-12 md:py-16 lg:py-20;
+  }
+
+
+  /* ----------------------------------------------------------
+     SECTION HEADINGS
+     ---------------------------------------------------------- */
+
+  /* Large hero / page title */
+  .section-title {
+    @apply text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4;
+  }
+
+  /* Sub-heading inside a section */
+  .section-subtitle {
+    @apply text-2xl font-bold text-gray-900 dark:text-white mb-6;
+  }
+
+  /* Muted description text below a heading */
+  .section-description {
+    @apply text-gray-600 dark:text-gray-400 text-lg max-w-2xl mx-auto;
+  }
+
+  /* Text-centred header block (title + description pair) */
+  .section-header {
+    @apply text-center mb-12;
+  }
+
+
+  /* ----------------------------------------------------------
+     CARDS & PANELS
+     ---------------------------------------------------------- */
+
+  /* General-purpose white card */
+  .card {
+    @apply bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-100 dark:border-gray-700;
+  }
+
+  /* Card with extra padding for forms / auth screens */
+  .card-lg {
+    @apply bg-white dark:bg-gray-800 shadow-2xl rounded-2xl p-10 border border-gray-100 dark:border-gray-700;
+  }
+
+  /* Subtle item row inside a list / order card */
+  .card-row {
+    @apply flex gap-4 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl;
+  }
+
+  /* Standard card body padding */
+  .card-body {
+    @apply p-6;
+  }
+
+  /* Separator line inside a card */
+  .card-divider {
+    @apply border-t border-gray-200 dark:border-gray-700;
+  }
+
+
+  /* ----------------------------------------------------------
+     FORMS
+     ---------------------------------------------------------- */
+
+  /* Standard form field label */
+  .form-label {
+    @apply block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2;
+  }
+
+  /* Bold variant label (used in auth pages) */
+  .form-label-bold {
+    @apply block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2;
+  }
+
+  /* Standard text/email/password input */
+  .form-input {
+    @apply block w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl
+           bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white
+           placeholder-gray-400 dark:placeholder-gray-500
+           focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent
+           transition-all duration-200;
+  }
+
+  /* Larger input with icon offset (used in auth flows) */
+  .form-input-icon {
+    @apply block w-full pl-10 pr-3 py-4 border border-gray-300 dark:border-gray-600 rounded-xl
+           bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white
+           placeholder-gray-400
+           focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent
+           transition-all duration-200;
+  }
+
+  /* Textarea */
+  .form-textarea {
+    @apply block w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl
+           bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white
+           placeholder-gray-400 dark:placeholder-gray-500
+           focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent
+           transition-all duration-200 resize-none;
+  }
+
+  /* Select / dropdown */
+  .form-select {
+    @apply block w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-xl
+           bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white
+           focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent
+           transition-all duration-200;
+  }
+
+  /* Inline error message below a field */
+  .form-error {
+    @apply mt-1 text-sm text-red-500;
+  }
+
+
+  /* ----------------------------------------------------------
+     ALERT BANNERS
+     ---------------------------------------------------------- */
+
+  /* Red error banner with left border accent */
+  .alert-error {
+    @apply bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500 p-4 rounded-lg;
+  }
+
+  /* Green success banner */
+  .alert-success {
+    @apply bg-green-50 dark:bg-green-900/20 border-l-4 border-green-500 p-4 rounded-lg;
+  }
+
+  /* Blue info banner */
+  .alert-info {
+    @apply bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-500 p-4 rounded-lg;
+  }
+
+  /* Amber warning banner */
+  .alert-warning {
+    @apply bg-amber-50 dark:bg-amber-900/20 border-l-4 border-amber-500 p-4 rounded-lg;
+  }
+
+
+  /* ----------------------------------------------------------
+     BUTTONS
+     ---------------------------------------------------------- */
+
+  /* Base — shared visual reset. Use alone or layer with a variant below. */
+  .btn-color{
+    @apply bg-purple-600 dark:bg-blue-800 text-white
+  }
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 font-semibold rounded-xl
+           transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  /* Primary solid button */
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 font-semibold rounded-xl
+           transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed
+           px-6 py-3 bg-[var(--color-primary)] text-white
+           hover:opacity-90 shadow-md hover:shadow-lg;
+  }
+
+  /* Solid blue button */
+  .btn-blue {
+    @apply inline-flex items-center justify-center gap-2 font-semibold rounded-xl
+           transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed
+           px-6 py-3 bg-blue-600 text-white hover:bg-blue-700 shadow-md;
+  }
+
+  /* Gradient purple-to-pink button (used on hero / CTA sections) */
+  .btn-gradient {
+    @apply inline-flex items-center justify-center gap-2 font-semibold rounded-xl
+           transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed
+           px-8 py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white
+           hover:from-purple-700 hover:to-pink-700 shadow-lg;
+  }
+
+  /* Ghost / outline button */
+  .btn-outline {
+    @apply inline-flex items-center justify-center gap-2 font-semibold rounded-xl
+           transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed
+           px-6 py-3 border-2 border-gray-300 dark:border-gray-600
+           text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700;
+  }
+
+  /* Small utility button (e.g. table actions, icon buttons) */
+  .btn-sm {
+    @apply inline-flex items-center justify-center gap-2 font-semibold rounded-lg
+           transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed
+           px-4 py-2 text-sm;
+  }
+
+  /* Full-width submit button for forms */
+  .btn-submit {
+    @apply inline-flex items-center justify-center gap-2 font-semibold rounded-xl
+           transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed
+           w-full py-4 text-base bg-[var(--color-primary)] text-white
+           hover:opacity-90 shadow-md hover:shadow-xl;
+  }
+
+
+  /* ----------------------------------------------------------
+     BADGES & PILLS
+     ---------------------------------------------------------- */
+
+  /* Generic status badge */
+  .badge {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold;
+  }
+
+  .badge-success {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold
+           bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400;
+  }
+
+  .badge-danger {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold
+           bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400;
+  }
+
+  .badge-warning {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold
+           bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400;
+  }
+
+  .badge-info {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold
+           bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400;
+  }
+
+  .badge-neutral {
+    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold
+           bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300;
+  }
+
+
+  /* ----------------------------------------------------------
+     ICON CONTAINERS (coloured icon "bubbles")
+     ---------------------------------------------------------- */
+
+  /* Base circle icon container */
+  .icon-bubble {
+    @apply w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0;
+  }
+
+  /* Rounded square icon container (used in stat cards, feature lists) */
+  .icon-box {
+    @apply w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0;
+  }
+
+  /* Small icon box (e.g. admin stat mini-cards) */
+  .icon-box-sm {
+    @apply p-3 rounded-lg flex items-center justify-center;
+  }
+
+
+  /* ----------------------------------------------------------
+     GRIDS
+     ---------------------------------------------------------- */
+
+  /* Product grid (1 → 2 → 3 → 4 columns) */
+  .product-grid {
+    @apply grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6;
+  }
+
+  /* Two-column form/info grid */
+  .grid-2 {
+    @apply grid grid-cols-1 md:grid-cols-2 gap-6;
+  }
+
+  /* Three-column grid */
+  .grid-3 {
+    @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6;
+  }
+
+
+  /* ----------------------------------------------------------
+     TABLES (admin panels)
+     ---------------------------------------------------------- */
+
+  .table-wrapper {
+    @apply overflow-x-auto rounded-xl border border-gray-200 dark:border-gray-700;
+  }
+
+  .table {
+    @apply w-full text-sm text-left;
+  }
+
+  .table-head {
+    @apply bg-gray-50 dark:bg-gray-700/50 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider;
+  }
+
+  .table-th {
+    @apply px-6 py-3;
+  }
+
+  .table-td {
+    @apply px-6 py-4 text-gray-900 dark:text-white;
+  }
+
+  .table-row {
+    @apply border-t border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors;
+  }
+
+
+  /* ----------------------------------------------------------
+     MODAL OVERLAY
+     ---------------------------------------------------------- */
+
+  /* Full-screen dimmed backdrop */
+  .modal-overlay {
+    @apply fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm;
+    animation: fadeIn 0.2s ease-out;
+  }
+
+  /* Modal panel */
+  .modal-panel {
+    @apply bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full;
+    animation: scaleIn 0.3s ease-out;
+  }
+
+  /* Modal header row */
+  .modal-header {
+    @apply flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700;
+  }
+
+  /* Modal footer row */
+  .modal-footer {
+    @apply flex gap-3 p-6 border-t border-gray-200 dark:border-gray-700;
+  }
+
+
+  /* ----------------------------------------------------------
+     LOADING / SPINNER
+     ---------------------------------------------------------- */
+
+  /* Spinning ring */
+  .spinner {
+    @apply animate-spin rounded-full border-4 border-gray-200 dark:border-gray-700 border-t-purple-600;
+  }
+
+  .spinner-sm  { @apply animate-spin rounded-full border-4 border-gray-200 dark:border-gray-700 border-t-purple-600 w-8  h-8;  }
+  .spinner-md  { @apply animate-spin rounded-full border-4 border-gray-200 dark:border-gray-700 border-t-purple-600 w-16 h-16; }
+  .spinner-lg  { @apply animate-spin rounded-full border-4 border-gray-200 dark:border-gray-700 border-t-purple-600 w-24 h-24; }
+
+  /* Centered loading wrapper */
+  .loading-center {
+    @apply flex flex-col items-center justify-center gap-4 py-16;
+  }
+
+
+  /* ----------------------------------------------------------
+     PAGINATION
+     ---------------------------------------------------------- */
+
+  /* Nav / number button (inactive state) */
+  .page-btn {
+    @apply px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600
+           bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300
+           hover:bg-gray-50 dark:hover:bg-gray-700
+           disabled:opacity-50 disabled:cursor-not-allowed transition-all;
+  }
+
+  /* Number button — active state */
+  .page-btn-active {
+    @apply px-4 py-2 rounded-lg font-medium bg-blue-600 text-white shadow-lg transition-all;
+  }
+
+
+  /* ----------------------------------------------------------
+     EMPTY STATES
+     ---------------------------------------------------------- */
+
+  .empty-state {
+    @apply text-center py-20 text-gray-500 dark:text-gray-400;
+  }
+
+
+  /* ----------------------------------------------------------
+     MISC UTILITIES
+     ---------------------------------------------------------- */
+
+  /* Gradient text (e.g. hero titles) */
+  .text-gradient {
+    @apply bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent;
+  }
+
+  /* Muted secondary text */
+  .text-muted {
+    @apply text-gray-600 dark:text-gray-400;
+  }
+
+  /* Close / dismiss icon button */
+  .icon-btn-close {
+    @apply text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors cursor-pointer;
+  }
+
+  /* Flex row with centred items and a gap */
+  .flex-center {
+    @apply flex items-center justify-center;
+  }
+
+  /* Social media round icon link */
+  .social-link {
+    @apply w-10 h-10 rounded-full flex items-center justify-center text-white transition-all;
+  }
+
+}

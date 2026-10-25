@@ -94,21 +94,25 @@ const AdminShipping = () => {
       error("Failed to update shipping");
     }
   };
+  
+  
 
-  const filteredOrders = orders
-    .filter((o) => {
-      if (statusFilter === "all") return true;
-      return o.orderStatus === statusFilter;
-    })
-    .filter(
-      (o) =>
-        o._id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        o.user?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        o.shippingAddress?.fullName
-          ?.toLowerCase()
-          .includes(searchTerm.toLowerCase()) ||
-        o.trackingNumber?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+
+const safeOrders = Array.isArray(orders) ? orders : [];
+const search = searchTerm.toLowerCase();
+
+const filteredOrders = safeOrders
+  .filter((o) => {
+    if (statusFilter === "all") return true;
+    return o.orderStatus === statusFilter;
+  })
+  .filter(
+    (o) =>
+      o._id?.toLowerCase().includes(search) ||
+      o.user?.name?.toLowerCase().includes(search) ||
+      o.shippingAddress?.fullName?.toLowerCase().includes(search) ||
+      o.trackingNumber?.toLowerCase().includes(search)
+  );
 
   // Pagination logic
   const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
@@ -121,12 +125,25 @@ const AdminShipping = () => {
     setCurrentPage(1);
   }, [searchTerm, statusFilter]);
 
-  const stats = {
-    pending: orders.filter((o) => o.orderStatus === "pending").length,
-    processing: orders.filter((o) => o.orderStatus === "processing").length,
-    shipped: orders.filter((o) => o.orderStatus === "shipped").length,
-    delivered: orders.filter((o) => o.orderStatus === "delivered").length,
-  };
+
+const stats = (Array.isArray(orders) ? orders : []).reduce(
+  (acc, order) => {
+    const status = order.orderStatus;
+
+    if (status in acc) {
+      acc[status as keyof typeof acc]++;
+    }
+
+    return acc;
+  },
+  {
+    pending: 0,
+    processing: 0,
+    shipped: 0,
+    delivered: 0,
+  }
+);
+
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -150,7 +167,7 @@ const AdminShipping = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 dark:bg-gray-900 h-full p-7">
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">

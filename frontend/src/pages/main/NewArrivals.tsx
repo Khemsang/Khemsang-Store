@@ -27,7 +27,8 @@ const NewArrivals = () => {
 
   const fetchNewArrivals = async () => {
     try {
-      const { data } = await api.get("/products");
+      const { data: productsRes } = await api.get("/products");
+      const data = Array.isArray(productsRes) ? productsRes : (productsRes.products ?? []);
       // Sort by createdAt and get latest 20
       const sorted = data
         .sort(

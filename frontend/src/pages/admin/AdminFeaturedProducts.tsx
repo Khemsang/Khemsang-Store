@@ -69,11 +69,12 @@ const AdminFeaturedProducts = () => {
       const [productsRes, categoriesRes, allProductsRes] = await Promise.all([
         api.get("/featured-products"),
         api.get("/categories?adminOnly=true"),
-        api.get("/products"), // Fetch all regular products
+        api.get("/products"),
       ]);
       setProducts(productsRes.data);
       setCategories(categoriesRes.data.filter((c: any) => c.isActive));
-      setAllProducts(allProductsRes.data); // Store all products
+      const rawProducts = allProductsRes.data;
+      setAllProducts(Array.isArray(rawProducts) ? rawProducts : (rawProducts.products ?? []));
     } catch (err) {
       error("Failed to fetch data");
     } finally {
@@ -189,11 +190,11 @@ const AdminFeaturedProducts = () => {
   if (loading) return <Loading message="Loading featured products..." fullScreen={true} />;
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-6 space-y-6 dark:bg-gray-900 h-full">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Featured Products</h1>
+          <h1 className="text-3xl font-bold dark:text-white">Featured Products</h1>
           <p className="text-gray-500 mt-1">{products.length} featured products</p>
         </div>
         <Button onClick={() => setShowForm(!showForm)}>

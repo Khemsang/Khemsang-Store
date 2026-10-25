@@ -173,13 +173,13 @@ const AdminBanners = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50 dark:from-gray-900 dark:via-purple-900/20 dark:to-pink-900/20 py-6 md:py-8">
+    <div className="min-h-screen dark:bg-gray-900 dark:from-gray-900 dark:via-purple-900/20 dark:to-pink-900/20 py-6 md:py-8">
       <div className="container">
         {/* Header Section */}
         <div className="mb-8">
           <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
             <div>
-              <div className="inline-flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full mb-3 shadow-lg">
+              <div className="inline-flex items-center gap-3 px-6 py-3 btn-color rounded-full mb-3 shadow-lg">
                 <svg
                   className="w-6 h-6 text-white"
                   fill="none"
@@ -193,20 +193,20 @@ const AdminBanners = () => {
                     d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
                   />
                 </svg>
-                <span className="text-white font-bold text-lg">
+                <span className="text-white font-bold text-lg ">
                   Banner Manager
                 </span>
               </div>
-              <h1 className="text-4xl md:text-5xl font-extrabold bg-gradient-to-r from-purple-600 via-pink-600 to-orange-600 bg-clip-text text-transparent mb-2">
+              <h1 className="text-4xl md:text-5xl font-extrabold dark:text-white bg-clip-text  mb-2">
                 Manage Banners
               </h1>
-              <p className="text-gray-600 dark:text-gray-400 text-lg">
+              <p className="text-gray-600 dark:text-gray-400 text-lg ">
                 Create and manage beautiful banners for your website
               </p>
             </div>
             <button
               onClick={() => setShowModal(true)}
-              className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl hover:from-purple-700 hover:to-pink-700 transition-all shadow-lg hover:shadow-xl font-semibold"
+              className="flex items-center gap-2 px-6 py-3 btn-color rounded-xl hover:from-purple-700 hover:to-pink-700 transition-all shadow-lg hover:shadow-xl font-semibold"
             >
               <svg
                 className="w-5 h-5"
@@ -334,7 +334,7 @@ const AdminBanners = () => {
             </p>
             <button
               onClick={() => setShowModal(true)}
-              className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl hover:from-purple-700 hover:to-pink-700 transition-all shadow-lg font-semibold"
+              className="inline-flex items-center gap-2 px-6 py-3 btn-color rounded-xl hover:from-purple-700 hover:to-pink-700 transition-all shadow-lg font-semibold"
             >
               <svg
                 className="w-5 h-5"

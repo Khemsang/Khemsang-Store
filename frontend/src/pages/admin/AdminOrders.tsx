@@ -226,7 +226,7 @@ const AdminOrders = () => {
   if (showLoading) return <Loading message="Loading orders..." variant="delivery" fullScreen={true} />;
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-6 space-y-6 bg-gray-900 h-full">
       {/* Header with Revenue Stats */}
       <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
         <Card className="md:col-span-1">

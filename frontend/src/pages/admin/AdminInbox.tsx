@@ -699,7 +699,7 @@ const AdminInbox = () => {
             <span className="font-medium">Compose</span>
           </button>
 
-          <div className="space-y-1">
+          <div className="space-y-1 dark:text-gray-300">
             <button
               onClick={() => {
                 setCurrentView("inbox");
@@ -712,7 +712,7 @@ const AdminInbox = () => {
               }`}
             >
               <InboxIcon className="w-5 h-5" />
-              <span className="font-medium flex-1 text-left">Inbox</span>
+              <span className="font-medium flex-1 text-left ">Inbox</span>
               {unreadCounts.inbox > 0 && (
                 <span className="text-sm font-bold text-red-600 dark:text-red-400">{unreadCounts.inbox}</span>
               )}

@@ -31,7 +31,8 @@ const BestSellers = () => {
 
   const fetchBestSellers = async () => {
     try {
-      const { data } = await api.get("/products");
+      const { data: productsRes } = await api.get("/products");
+      const data = Array.isArray(productsRes) ? productsRes : (productsRes.products ?? []);
       // Sort by rating/reviews (simulating best sellers)
       const sorted = data
         .sort(

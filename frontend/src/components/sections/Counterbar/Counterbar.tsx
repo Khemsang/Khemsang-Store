@@ -65,7 +65,8 @@ const Counterbar: React.FC = () => {
       setLoading(true);
       
       // Fetch products
-      const { data: products } = await api.get("/products");
+      const { data: productsRes } = await api.get("/products");
+      const products = Array.isArray(productsRes) ? productsRes : (productsRes.products ?? []);
 
       // Get unique categories
       const uniqueCategories = new Set(products.map((p: any) => p.category));

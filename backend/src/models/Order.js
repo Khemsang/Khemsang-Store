@@ -102,4 +102,11 @@ const orderSchema = new mongoose.Schema(
   }
 );
 
+// Indexes for common query patterns
+orderSchema.index({ user: 1, createdAt: -1 });         // user's order history
+orderSchema.index({ orderStatus: 1, createdAt: -1 });  // admin status filter
+orderSchema.index({ paymentStatus: 1 });               // payment reconciliation
+orderSchema.index({ createdAt: -1 });                  // latest orders
+orderSchema.index({ "items.product": 1 });             // per-product order lookup
+
 export default mongoose.model("Order", orderSchema);

@@ -138,11 +138,11 @@ const AdminCoupons = () => {
   if (loading) return <Loading message="Loading coupons..." fullScreen={true} />;
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-6 space-y-6 dark:bg-gray-900 h-full">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Coupons</h1>
+          <h1 className="text-3xl font-bold dark:text-white">Coupons</h1>
           <p className="text-gray-500 mt-1">{coupons.length} total coupons</p>
         </div>
         <Button onClick={() => setShowForm(!showForm)}>

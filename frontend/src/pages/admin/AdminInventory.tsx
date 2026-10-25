@@ -43,7 +43,7 @@ const AdminInventory = () => {
   const fetchProducts = async () => {
     try {
       const { data } = await api.get("/products");
-      setProducts(data);
+      setProducts(Array.isArray(data) ? data : (data.products ?? []));
     } catch (err) {
       error("Failed to fetch products");
     } finally {
@@ -66,37 +66,53 @@ const AdminInventory = () => {
     }
   };
 
-  const filteredProducts = products
-    .filter((p) => {
-      if (filter === "low") return p.stock > 0 && p.stock <= lowStockThreshold;
-      if (filter === "out") return p.stock === 0;
-      return true;
-    })
-    .filter(
-      (p) =>
-        p.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        p.category.toLowerCase().includes(searchTerm.toLowerCase())
-    )
-    .sort((a, b) => {
-      if (sortBy === "stock") return a.stock - b.stock;
-      return a.title.localeCompare(b.title);
-    });
+ 
+const safeProducts = Array.isArray(products) ? products : [];
 
-  const stats = {
-    total: products.length,
-    inStock: products.filter((p) => p.stock > lowStockThreshold).length,
-    lowStock: products.filter(
-      (p) => p.stock > 0 && p.stock <= lowStockThreshold
-    ).length,
-    outOfStock: products.filter((p) => p.stock === 0).length,
-  };
+const search = searchTerm.toLowerCase();
+
+const filteredProducts = safeProducts
+  .filter((p) => {
+    if (filter === "low") {
+      return p.stock > 0 && p.stock <= lowStockThreshold;
+    }
+
+    if (filter === "out") {
+      return p.stock === 0;
+    }
+
+    return true;
+  })
+  .filter(
+    (p) =>
+      p.title.toLowerCase().includes(search) ||
+      p.category.toLowerCase().includes(search)
+  )
+  .sort((a, b) => {
+    if (sortBy === "stock") return a.stock - b.stock;
+    return a.title.localeCompare(b.title);
+  });
+
+const stats = {
+  total: safeProducts.length,
+  inStock: safeProducts.filter(
+    (p) => p.stock > lowStockThreshold
+  ).length,
+  lowStock: safeProducts.filter(
+    (p) => p.stock > 0 && p.stock <= lowStockThreshold
+  ).length,
+  outOfStock: safeProducts.filter(
+    (p) => p.stock === 0
+  ).length,
+};
+
 
   if (showLoading) {
     return <Loading text="Loading inventory..." fullScreen={true} />;
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-6 bg-gray-900 h-full ">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>

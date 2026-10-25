@@ -414,7 +414,7 @@ const StoreHighlights: React.FC = () => {
                 >
                   <div className="absolute -inset-4 bg-white/20 rounded-3xl blur-xl" />
                   <img
-                    src={aboutData.heroImage}
+                    src={aboutData.heroImage || undefined}
                     alt="Store"
                     className="relative w-full h-[300px] md:h-[400px] object-cover rounded-3xl shadow-2xl"
                   />

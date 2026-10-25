@@ -28,8 +28,9 @@ const RecentlyViewed = () => {
 
       if (ids.length > 0) {
         const { data } = await api.get("/products");
+        const catalogue = Array.isArray(data) ? data : (data.products ?? []);
         const recentProducts = ids
-          .map((id) => data.find((p: Product) => p._id === id))
+          .map((id) => catalogue.find((p: Product) => p._id === id))
           .filter(Boolean)
           .slice(0, 6);
         setProducts(recentProducts);

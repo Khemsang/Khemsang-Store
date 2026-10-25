@@ -1,9 +1,11 @@
 import {
   createContext,
+  useCallback,
   useContext,
-  useState,
   useEffect,
+  useMemo,
   useRef,
+  useState,
   ReactNode,
 } from "react";
 import { api } from "../services/api";
@@ -13,261 +15,246 @@ interface CartItem {
   _id?: string;
   product: any;
   quantity: number;
-  colorVariant?: {
-    colorName: string;
-    colorCode: string;
-  };
+  colorVariant?: { colorName: string; colorCode: string };
+}
+
+interface ColorVariant {
+  colorName: string;
+  colorCode: string;
 }
 
 interface CartContextType {
   cart: CartItem[];
-  addToCart: (productId: string, quantity?: number, colorVariant?: { colorName: string; colorCode: string }) => Promise<{ isNew: boolean }>;
+  addToCart: (productId: string, quantity?: number, colorVariant?: ColorVariant) => Promise<{ isNew: boolean }>;
   updateQuantity: (cartItemId: string, quantity: number) => Promise<void>;
   removeFromCart: (cartItemId: string) => Promise<void>;
   clearCart: () => Promise<void>;
   syncCart: () => Promise<void>;
   getCartTotal: () => number;
-  resetToastTracking: () => void; // New function to reset toast tracking
+  cartTotal: number;
+  resetToastTracking: () => void;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
+const LS_KEY = "cart";
+const loadLocal = (): CartItem[] => {
+  try {
+    return JSON.parse(localStorage.getItem(LS_KEY) ?? "[]");
+  } catch {
+    return [];
+  }
+};
+const saveLocal = (items: CartItem[]) =>
+  localStorage.setItem(LS_KEY, JSON.stringify(items));
+
 export const CartProvider = ({ children }: { children: ReactNode }) => {
   const [cart, setCart] = useState<CartItem[]>([]);
   const { user } = useAuth();
-  const toastShownRef = useRef<Set<string>>(new Set()); // Track products that already showed toast
+  const toastShownRef = useRef<Set<string>>(new Set());
 
+  // ── Fetch / sync on user change ───────────────────────────────────────────
   useEffect(() => {
-    if (user) {
-      // First sync local cart to backend, then fetch
-      syncCartAndFetch();
-    } else {
-      loadLocalCart();
+    if (!user) {
+      setCart(loadLocal());
+      return;
     }
+
+    const mergeAndFetch = async () => {
+      try {
+        const local = loadLocal();
+        if (local.length > 0) {
+          await api.post("/cart/merge", { items: local });
+          localStorage.removeItem(LS_KEY);
+        }
+      } catch {
+        // merge failure is non-fatal
+      }
+      try {
+        const { data } = await api.get("/cart");
+        setCart(data);
+      } catch {
+        // keep current cart on fetch failure
+      }
+    };
+    mergeAndFetch();
   }, [user]);
 
-  const syncCartAndFetch = async () => {
-    try {
-      const localCart = localStorage.getItem("cart");
-      if (localCart) {
-        const items = JSON.parse(localCart);
-        if (items.length > 0) {
-          await api.post("/cart/merge", { items });
-          localStorage.removeItem("cart");
-        }
-      }
-      // Always fetch cart after sync attempt
-      await fetchCart();
-    } catch (error) {
-      // Still try to fetch cart even if sync fails
-      await fetchCart();
-    }
+  // ── Cart total (memoized so getCartTotal() is free) ────────────────────────
+  const cartTotal = useMemo(
+    () => cart.reduce((sum, item) => sum + (item.product?.price ?? 0) * item.quantity, 0),
+    [cart]
+  );
+
+  // Stable function reference for callers that still call getCartTotal()
+  const getCartTotal = useCallback(() => cartTotal, [cartTotal]);
+
+  // ── Helpers ───────────────────────────────────────────────────────────────
+  const toastKey = (productId: string, colorVariant?: ColorVariant) =>
+    `${productId}-${colorVariant?.colorName ?? "default"}`;
+
+  const shouldShowToast = (key: string): boolean => {
+    if (toastShownRef.current.has(key)) return false;
+    toastShownRef.current.add(key);
+    return true;
   };
 
-  const loadLocalCart = () => {
-    const localCart = localStorage.getItem("cart");
-    if (localCart) {
-      setCart(JSON.parse(localCart));
-    }
-  };
+  // ── addToCart ─────────────────────────────────────────────────────────────
+  const addToCart = useCallback(
+    async (productId: string, quantity = 1, colorVariant?: ColorVariant) => {
+      const key = toastKey(productId, colorVariant);
 
-  const saveLocalCart = (cartData: CartItem[]) => {
-    localStorage.setItem("cart", JSON.stringify(cartData));
-  };
+      if (user) {
+        try {
+          const { data } = await api.post("/cart", { productId, quantity, colorVariant });
 
-  const fetchCart = async () => {
-    try {
-      const { data } = await api.get("/cart");
-      setCart(data);
-    } catch (error) {
-      console.error("Error fetching cart:", error);
-    }
-  };
-
-  const syncCart = async () => {
-    try {
-      const localCart = localStorage.getItem("cart");
-      if (localCart) {
-        const items = JSON.parse(localCart);
-        if (items.length > 0) {
-          await api.post("/cart/merge", { items });
-          localStorage.removeItem("cart");
-          fetchCart();
-        }
-      }
-    } catch (error) {
-      console.error("Error syncing cart:", error);
-    }
-  };
-
-  const addToCart = async (productId: string, quantity = 1, colorVariant?: { colorName: string; colorCode: string }) => {
-    if (user) {
-      try {
-        const { data } = await api.post("/cart", { productId, quantity, colorVariant });
-        
-        // Create unique key for product + variant combination
-        const cartKey = `${productId}-${colorVariant?.colorName || 'default'}`;
-        
-        // Check if toast was already shown for this product in this session
-        const toastAlreadyShown = toastShownRef.current.has(cartKey);
-        
-        // Handle response format
-        if (data.cart && data.isNewItem !== undefined) {
-          // New format: { cart: [...], isNewItem: boolean }
-          setCart(data.cart);
-          
-          // Only return isNew=true if it's truly new AND toast hasn't been shown yet
-          const shouldShowToast = data.isNewItem && !toastAlreadyShown;
-          
-          if (shouldShowToast) {
-            toastShownRef.current.add(cartKey);
-          } else if (data.isNewItem && toastAlreadyShown) {
-          } else {
+          if (data.cart && data.isNewItem !== undefined) {
+            setCart(data.cart);
+            const isNew = data.isNewItem && shouldShowToast(key);
+            return { isNew };
           }
-          
-          return { isNew: shouldShowToast };
-        } else if (Array.isArray(data)) {
-          // Old format: just array (assume new item for backward compatibility)
-          setCart(data);
-          
-          const shouldShowToast = !toastAlreadyShown;
-          if (shouldShowToast) {
-            toastShownRef.current.add(cartKey);
+
+          if (Array.isArray(data)) {
+            setCart(data);
+            return { isNew: shouldShowToast(key) };
           }
-          
-          return { isNew: shouldShowToast };
-        } else {
+
           setCart(data);
           return { isNew: false };
+        } catch {
+          return { isNew: false };
         }
-      } catch (error) {
-        console.error("Error adding to cart:", error);
-        return { isNew: false };
       }
-    } else {
-      // Find existing item with same product AND same color variant
-      const existingItem = cart.find((item) => {
+
+      // Guest cart
+      const isSame = (item: CartItem) => {
         const sameProduct = item.product._id === productId;
-        const sameVariant = colorVariant 
-          ? (item.colorVariant?.colorName === colorVariant.colorName)
+        const sameVariant = colorVariant
+          ? item.colorVariant?.colorName === colorVariant.colorName
           : !item.colorVariant;
         return sameProduct && sameVariant;
-      });
+      };
 
-      // Create unique key for product + variant combination
-      const cartKey = `${productId}-${colorVariant?.colorName || 'default'}`;
-      const toastAlreadyShown = toastShownRef.current.has(cartKey);
-      
-      const isNew = !existingItem && !toastAlreadyShown;
-      
-      if (!existingItem && !toastAlreadyShown) {
-        toastShownRef.current.add(cartKey);
-      }
-      
-      let newCart;
-      
-      if (existingItem) {
-        // Update existing item quantity
-        newCart = cart.map((item) => {
-          const sameProduct = item.product._id === productId;
-          const sameVariant = colorVariant 
-            ? (item.colorVariant?.colorName === colorVariant.colorName)
-            : !item.colorVariant;
-          return sameProduct && sameVariant
-            ? { ...item, quantity: item.quantity + quantity, colorVariant }
-            : item;
-        });
-      } else {
-        // Create new cart item for different variant
-        newCart = [...cart, { product: { _id: productId }, quantity, colorVariant }];
-      }
+      const existing = cart.find(isSame);
+      const isNew = !existing && shouldShowToast(key);
+
+      const newCart = existing
+        ? cart.map((item) =>
+            isSame(item) ? { ...item, quantity: item.quantity + quantity } : item
+          )
+        : [...cart, { product: { _id: productId }, quantity, colorVariant }];
+
       setCart(newCart);
-      saveLocalCart(newCart);
+      saveLocal(newCart);
       return { isNew };
-    }
-  };
+    },
+    [user, cart]
+  );
 
-  const updateQuantity = async (cartItemId: string, quantity: number) => {
-    if (user) {
-      try {
-        const { data } = await api.put(`/cart/item/${cartItemId}`, { quantity });
-        setCart(data);
-      } catch (error) {
-        console.error("Error updating cart:", error);
+  // ── updateQuantity ────────────────────────────────────────────────────────
+  const updateQuantity = useCallback(
+    async (cartItemId: string, quantity: number) => {
+      if (user) {
+        try {
+          const { data } = await api.put(`/cart/item/${cartItemId}`, { quantity });
+          setCart(data);
+        } catch {
+          // ignore — optimistic update not needed here
+        }
+        return;
       }
-    } else {
-      const newCart = cart.map((item, index) =>
-        index.toString() === cartItemId ? { ...item, quantity } : item
+      const newCart = cart.map((item, i) =>
+        i.toString() === cartItemId ? { ...item, quantity } : item
       );
       setCart(newCart);
-      saveLocalCart(newCart);
-    }
-  };
+      saveLocal(newCart);
+    },
+    [user, cart]
+  );
 
-  const removeFromCart = async (cartItemId: string) => {
-    if (user) {
-      try {
-        const { data } = await api.delete(`/cart/item/${cartItemId}`);
-        setCart(data);
-      } catch (error) {
-        console.error("Error removing from cart:", error);
+  // ── removeFromCart ────────────────────────────────────────────────────────
+  const removeFromCart = useCallback(
+    async (cartItemId: string) => {
+      if (user) {
+        try {
+          const { data } = await api.delete(`/cart/item/${cartItemId}`);
+          setCart(data);
+        } catch {
+          // ignore
+        }
+        return;
       }
-    } else {
-      const newCart = cart.filter((_, index) => index.toString() !== cartItemId);
+      const newCart = cart.filter((_, i) => i.toString() !== cartItemId);
       setCart(newCart);
-      saveLocalCart(newCart);
-    }
-  };
+      saveLocal(newCart);
+    },
+    [user, cart]
+  );
 
-  const clearCart = async () => {
+  // ── clearCart ─────────────────────────────────────────────────────────────
+  const clearCart = useCallback(async () => {
+    toastShownRef.current.clear();
     if (user) {
       try {
         await api.delete("/cart");
-        setCart([]);
-        toastShownRef.current.clear(); // Clear toast tracking when cart is cleared
-      } catch (error) {
-        console.error("Error clearing cart:", error);
+      } catch {
+        // ignore
       }
     } else {
-      setCart([]);
-      localStorage.removeItem("cart");
-      toastShownRef.current.clear(); // Clear toast tracking when cart is cleared
+      localStorage.removeItem(LS_KEY);
     }
-  };
+    setCart([]);
+  }, [user]);
 
-  const resetToastTracking = () => {
+  // ── syncCart ──────────────────────────────────────────────────────────────
+  const syncCart = useCallback(async () => {
+    const local = loadLocal();
+    if (!user || local.length === 0) return;
+    try {
+      await api.post("/cart/merge", { items: local });
+      localStorage.removeItem(LS_KEY);
+      const { data } = await api.get("/cart");
+      setCart(data);
+    } catch {
+      // ignore
+    }
+  }, [user]);
+
+  const resetToastTracking = useCallback(() => {
     toastShownRef.current.clear();
-  };
+  }, []);
 
-  const getCartTotal = () => {
-    return cart.reduce(
-      (total, item) => total + (item.product?.price || 0) * item.quantity,
-      0
-    );
-  };
-
-  return (
-    <CartContext.Provider
-      value={{
-        cart,
-        addToCart,
-        updateQuantity,
-        removeFromCart,
-        clearCart,
-        syncCart,
-        getCartTotal,
-        resetToastTracking,
-      }}
-    >
-      {children}
-    </CartContext.Provider>
+  // ── Stable context value ──────────────────────────────────────────────────
+  const value = useMemo(
+    () => ({
+      cart,
+      addToCart,
+      updateQuantity,
+      removeFromCart,
+      clearCart,
+      syncCart,
+      getCartTotal,
+      cartTotal,
+      resetToastTracking,
+    }),
+    [
+      cart,
+      addToCart,
+      updateQuantity,
+      removeFromCart,
+      clearCart,
+      syncCart,
+      getCartTotal,
+      cartTotal,
+      resetToastTracking,
+    ]
   );
+
+  return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 };
 
 export const useCart = () => {
   const context = useContext(CartContext);
-  if (!context) {
-    throw new Error("useCart must be used within CartProvider");
-  }
+  if (!context) throw new Error("useCart must be used within CartProvider");
   return context;
 };

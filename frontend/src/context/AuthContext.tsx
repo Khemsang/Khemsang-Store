@@ -1,8 +1,10 @@
 import {
   createContext,
+  useCallback,
   useContext,
-  useState,
   useEffect,
+  useMemo,
+  useState,
   ReactNode,
 } from "react";
 import { api } from "../services/api";
@@ -25,16 +27,11 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<any>;
-  signup: (
-    name: string,
-    email: string,
-    password: string,
-    isAdmin?: boolean
-  ) => Promise<any>;
+  signup: (name: string, email: string, password: string, isAdmin?: boolean) => Promise<any>;
   logout: () => Promise<void>;
   verifyOTP: (email: string, otp: string) => Promise<any>;
   resendOTP: (email: string) => Promise<any>;
-  updateUser: (userData: Partial<User>) => void;
+  updateUser: (userData: Partial<User> | User) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -44,99 +41,64 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    checkAuth();
+    api
+      .get("/auth/me")
+      .then(({ data }) => setUser(data))
+      .catch(() => setUser(null))
+      .finally(() => setLoading(false));
   }, []);
 
-  const checkAuth = async () => {
-    try {
-      const { data } = await api.get("/auth/me");
-      setUser(data);
-    } catch (error: any) {
-      setUser(null);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const signup = useCallback(
+    (name: string, email: string, password: string, isAdmin?: boolean) =>
+      api
+        .post("/auth/signup", { name, email, password, isAdmin })
+        .then(({ data }) => data),
+    []
+  );
 
-  const signup = async (
-    name: string,
-    email: string,
-    password: string,
-    isAdmin?: boolean
-  ) => {
-    const { data } = await api.post("/auth/signup", {
-      name,
-      email,
-      password,
-      isAdmin,
-    });
+  const login = useCallback(async (email: string, password: string) => {
+    const { data } = await api.post("/auth/login", { email, password });
+    if (!data.needsOTP && data.user) setUser(data.user);
     return data;
-  };
+  }, []);
 
-  const login = async (email: string, password: string) => {
-    try {
-      const response = await api.post("/auth/login", { email, password });
-      // Set user immediately if OTP is not required (Super Admin case)
-      if (!response.data.needsOTP && response.data.user) {
-        setUser(response.data.user);
-      }
-      return response.data;
-    } catch (error: any) {
-      throw error;
-    }
-  };
-
-  const logout = async () => {
+  const logout = useCallback(async () => {
     await api.post("/auth/logout");
     setUser(null);
-  };
+  }, []);
 
-  const verifyOTP = async (email: string, otp: string) => {
+  const verifyOTP = useCallback(async (email: string, otp: string) => {
     const { data } = await api.post("/auth/verify-otp", { email, otp });
-    // Set user after successful OTP verification
-    if (data.user) {
-      setUser(data.user);
-    }
+    if (data.user) setUser(data.user);
     return data;
-  };
+  }, []);
 
-  const resendOTP = async (email: string) => {
-    const { data } = await api.post("/auth/resend-otp", { email });
-    return data;
-  };
-
-  const updateUser = (userData: Partial<User> | User) => {
-    if (userData && "_id" in userData) {
-      // Full user object - replace entirely
-      setUser(userData as User);
-    } else {
-      // Partial update
-      setUser((prevUser) => (prevUser ? { ...prevUser, ...userData } : null));
-    }
-  };
-
-  return (
-    <AuthContext.Provider
-      value={{
-        user,
-        loading,
-        login,
-        signup,
-        logout,
-        verifyOTP,
-        resendOTP,
-        updateUser,
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
+  const resendOTP = useCallback(
+    (email: string) =>
+      api.post("/auth/resend-otp", { email }).then(({ data }) => data),
+    []
   );
+
+  const updateUser = useCallback((userData: Partial<User> | User) => {
+    setUser((prev) =>
+      "_id" in userData
+        ? (userData as User)
+        : prev
+        ? { ...prev, ...userData }
+        : null
+    );
+  }, []);
+
+  const value = useMemo(
+    () => ({ user, loading, login, signup, logout, verifyOTP, resendOTP, updateUser }),
+    [user, loading, login, signup, logout, verifyOTP, resendOTP, updateUser]
+  );
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error("useAuth must be used within AuthProvider");
-  }
+  if (!context) throw new Error("useAuth must be used within AuthProvider");
   return context;
 };

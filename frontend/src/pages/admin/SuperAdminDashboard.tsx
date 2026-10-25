@@ -378,7 +378,7 @@ const SuperAdminDashboard = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-6 dark:bg-gray-900 h-full">
       {/* Header */}
       <div className="bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl p-6 md:p-8 text-white shadow-xl">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">

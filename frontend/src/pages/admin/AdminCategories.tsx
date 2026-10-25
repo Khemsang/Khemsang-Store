@@ -227,11 +227,11 @@ const AdminCategories = () => {
   if (showLoading) return <Loading message="Loading categories..." fullScreen={true} />;
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-6 space-y-6 dark:bg-gray-900 h-full">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Categories</h1>
+          <h1 className="text-3xl font-bold dark:text-white">Categories</h1>
           <p className="text-gray-500 mt-1">
             {categories.length} total categories
             {!isSuperAdmin && <span className="ml-2 text-amber-600">(View Only - Super Admin can manage)</span>}

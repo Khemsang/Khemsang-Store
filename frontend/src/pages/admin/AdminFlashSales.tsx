@@ -77,7 +77,7 @@ const AdminFlashSales = () => {
   const fetchProducts = async () => {
     try {
       const { data } = await api.get("/products?adminOnly=true");
-      setProducts(data);
+      setProducts(Array.isArray(data) ? data : (data.products ?? []));
     } catch (err) {
       console.error("Error fetching products:", err);
     }

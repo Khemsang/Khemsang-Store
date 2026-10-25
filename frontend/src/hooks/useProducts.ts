@@ -27,7 +27,8 @@ export const useProducts = (adminOnly: boolean = false) => {
     queryKey: productKeys.list(adminOnly ? 'admin' : 'public'),
     queryFn: async () => {
       const { data } = await api.get(`/products${adminOnly ? '?adminOnly=true' : ''}`);
-      return data as Product[];
+      // Backend returns { products, pagination } — unwrap to keep callers unchanged
+      return (Array.isArray(data) ? data : (data.products ?? [])) as Product[];
     },
   });
 };

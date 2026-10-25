@@ -47,7 +47,8 @@ const AdminReviews = () => {
   const fetchReviews = async () => {
     try {
       // Fetch all products and their reviews
-      const { data: products } = await api.get("/products");
+      const { data: productsRes } = await api.get("/products");
+      const products = Array.isArray(productsRes) ? productsRes : (productsRes.products ?? []);
       const allReviews: Review[] = [];
 
       for (const product of products.slice(0, 20)) {

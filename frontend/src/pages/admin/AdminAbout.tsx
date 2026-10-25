@@ -85,7 +85,7 @@ const AdminAbout = () => {
   const fetchProducts = async () => {
     try {
       const { data } = await api.get("/products");
-      setAllProducts(data);
+      setAllProducts(Array.isArray(data) ? data : (data.products ?? []));
     } catch (error) {
       console.error("Failed to fetch products");
     }

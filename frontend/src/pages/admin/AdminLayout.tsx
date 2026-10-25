@@ -299,7 +299,7 @@ const AdminLayout = () => {
         </header>
 
         {/* Main Content */}
-        <main className={`flex-1 ${location.pathname === '/admin/inbox' || location.pathname === '/admin/flash-sales' ? '' : 'p-4 sm:p-6 lg:p-8'}`}>
+        <main className={`flex-1 ${location.pathname === '/admin/inbox' || location.pathname === '/admin/flash-sales' }`}>
           <Outlet />
         </main>
       </div>

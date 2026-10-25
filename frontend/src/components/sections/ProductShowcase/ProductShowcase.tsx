@@ -28,6 +28,7 @@ const ProductShowcase = () => {
 
       // Fetch all real products
       const { data: allProducts } = await api.get("/products");
+      const productList = Array.isArray(allProducts) ? allProducts : (allProducts.products ?? []);
 
       // Map featured products to real products
       const mappedProducts = featuredData
@@ -39,8 +40,7 @@ const ProductShowcase = () => {
         })
         .slice(0, 4)
         .map((featured: any) => {
-          // Find the real product
-          const realProduct = allProducts.find((p: any) => p._id === featured.productId);
+          const realProduct = productList.find((p: any) => p._id === featured.productId);
           
           if (realProduct) {
             // Return real product with featured badge info

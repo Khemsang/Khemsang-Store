@@ -82,7 +82,9 @@ const productsSlice = createSlice({
       })
       .addCase(fetchProducts.fulfilled, (state, action) => {
         state.loading = false;
-        state.items = action.payload;
+        // Backend returns { products, pagination } — unwrap to keep state as an array
+        const payload = action.payload;
+        state.items = Array.isArray(payload) ? payload : (payload.products ?? []);
         state.lastFetch = Date.now();
       })
       .addCase(fetchProducts.rejected, (state, action) => {
