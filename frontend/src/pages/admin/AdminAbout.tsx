@@ -118,7 +118,7 @@ const AdminAbout = () => {
           data.bestProductsDescription ||
           "Handpicked favorites loved by our customers",
       });
-      // Set selected products for display
+
       if (data.bestProducts) {
         setSelectedProducts(data.bestProducts);
       }
@@ -168,7 +168,7 @@ const AdminAbout = () => {
     setFormData({ ...formData, galleryImages: newGalleryImages });
   };
 
-  // Best Products functions
+
   const filteredProducts = allProducts.filter(
     (p) =>
       p?.name?.toLowerCase()?.includes(productSearch.toLowerCase()) &&
@@ -235,7 +235,7 @@ const AdminAbout = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50 dark:from-gray-900 dark:via-purple-900/20 dark:to-pink-900/20 py-6 md:py-8">
       <div className="container">
-        {/* Header Section */}
+        
         <div className="mb-8 text-center">
           <div className="inline-flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full mb-4 shadow-lg">
             <FaInfoCircle className="text-white text-2xl" />
@@ -253,7 +253,7 @@ const AdminAbout = () => {
         </div>
 
         <form onSubmit={handleSubmit} className="max-w-6xl mx-auto space-y-6">
-          {/* Hero Section */}
+          
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 md:p-8 border border-purple-100 dark:border-purple-900/30 hover:shadow-2xl transition-shadow duration-300">
             <div className="flex items-center gap-3 mb-6">
               <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center">
@@ -318,7 +318,7 @@ const AdminAbout = () => {
                 />
               </div>
 
-              {/* Image Inputs with Preview */}
+              
               <div className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-xl p-5">
                 <div className="flex items-center gap-2 mb-4">
                   <FaImage className="text-purple-600 text-lg" />
@@ -452,7 +452,7 @@ const AdminAbout = () => {
                 </div>
               </div>
 
-              {/* Stats Section */}
+              
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-xl p-5">
                   <div className="flex items-center gap-3 mb-3">
@@ -496,7 +496,7 @@ const AdminAbout = () => {
             </div>
           </div>
 
-          {/* Why Choose Us Section */}
+          
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 md:p-8 border border-blue-100 dark:border-blue-900/30 hover:shadow-2xl transition-shadow duration-300">
             <div className="flex items-center gap-3 mb-6">
               <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-xl flex items-center justify-center">
@@ -547,7 +547,7 @@ const AdminAbout = () => {
             </div>
           </div>
 
-          {/* Gallery Images */}
+          
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 md:p-8 border border-green-100 dark:border-green-900/30 hover:shadow-2xl transition-shadow duration-300">
             <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-6">
               <div className="flex items-center gap-3">
@@ -639,7 +639,7 @@ const AdminAbout = () => {
             </div>
           </div>
 
-          {/* Best Products Section */}
+          
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 md:p-8 border border-amber-100 dark:border-amber-900/30 hover:shadow-2xl transition-shadow duration-300">
             <div className="flex items-center gap-3 mb-6">
               <div className="w-12 h-12 bg-gradient-to-br from-amber-500 to-orange-500 rounded-xl flex items-center justify-center">
@@ -693,7 +693,7 @@ const AdminAbout = () => {
                 </div>
               </div>
 
-              {/* Product Search */}
+              
               <div className="relative">
                 <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                   Add Products
@@ -745,7 +745,7 @@ const AdminAbout = () => {
                   )}
               </div>
 
-              {/* Selected Products */}
+              
               {selectedProducts.length > 0 && (
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
@@ -794,7 +794,7 @@ const AdminAbout = () => {
             </div>
           </div>
 
-          {/* CTA Section */}
+          
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 md:p-8 border border-orange-100 dark:border-orange-900/30 hover:shadow-2xl transition-shadow duration-300">
             <div className="flex items-center gap-3 mb-6">
               <div className="w-12 h-12 bg-gradient-to-br from-orange-500 to-red-500 rounded-xl flex items-center justify-center">
@@ -842,7 +842,7 @@ const AdminAbout = () => {
             </div>
           </div>
 
-          {/* Submit Button */}
+          
           <div className="sticky bottom-4 z-10 flex justify-center">
             <button
               type="submit"

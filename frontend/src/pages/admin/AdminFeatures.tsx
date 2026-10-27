@@ -153,7 +153,7 @@ const AdminFeatures = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50 dark:from-gray-900 dark:via-purple-900/20 dark:to-pink-900/20 py-6 md:py-8">
       <div className="container">
-        {/* Header */}
+        
         <div className="mb-8">
           <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
             <div>
@@ -180,7 +180,7 @@ const AdminFeatures = () => {
           </div>
         </div>
 
-        {/* Features Grid */}
+        
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto">
           {features.map((feature) => (
             <div
@@ -251,7 +251,7 @@ const AdminFeatures = () => {
           </div>
         )}
 
-        {/* Modal */}
+        
         {showModal && (
           <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
             <div className="bg-white dark:bg-gray-800 rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">

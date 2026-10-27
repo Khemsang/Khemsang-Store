@@ -44,7 +44,7 @@ const AdminLayout = () => {
     pendingTestimonials: 0,
   });
 
-  // Fetch notification counts (excluding unread messages - now from context)
+
   useEffect(() => {
     const fetchNotifications = async () => {
       try {
@@ -56,7 +56,7 @@ const AdminLayout = () => {
     };
 
     fetchNotifications();
-    // Refresh every 30 seconds
+
     const interval = setInterval(fetchNotifications, 30000);
     
     return () => {
@@ -75,7 +75,7 @@ const AdminLayout = () => {
     navigate("/login");
   };
 
-  // Links visible to all admins
+
   const commonLinks = [
     { name: "Dashboard", path: "/admin/dashboard", icon: FaTachometerAlt },
     { name: "Products", path: "/admin/products", icon: FaBox },
@@ -99,7 +99,7 @@ const AdminLayout = () => {
     { name: "View Site", path: "/", icon: FaEye },
   ];
 
-  // Links only for Super Admin
+
   const superAdminOnlyLinks = [
     { name: "Categories", path: "/admin/categories", icon: FaTh },
     { name: "Banners", path: "/admin/banners", icon: FaImage },
@@ -119,13 +119,13 @@ const AdminLayout = () => {
 
   return (
     <div className="min-h-screen bg-gray-100 dark:from-gray-900 dark:to-gray-800 flex">
-      {/* Sidebar - Desktop */}
+      
       <aside
         className={`hidden lg:flex flex-col fixed left-0 top-0 h-screen bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 shadow-xl transition-all duration-300 z-50 ${
           sidebarOpen ? "w-64" : "w-20"
         }`}
       >
-        {/* Sidebar Header */}
+        
         <div className="p-3 md:p-4 border-b border-gray-200 dark:border-gray-700">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 md:gap-3">
@@ -151,7 +151,7 @@ const AdminLayout = () => {
           </div>
         </div>
 
-        {/* Sidebar Navigation */}
+        
         <nav className="flex-1 overflow-y-auto p-3 md:p-4">
           <div className="space-y-1.5 md:space-y-2">
             {adminLinks.map((link) => (
@@ -185,7 +185,7 @@ const AdminLayout = () => {
           </div>
         </nav>
 
-        {/* Sidebar Footer */}
+        
         <div className="p-3 md:p-4 border-t border-gray-200 dark:border-gray-700 space-y-2">
           {sidebarOpen && (
             <div className="flex items-center gap-2 md:gap-3 px-3 md:px-4 py-2.5 md:py-3 bg-gray-100 dark:bg-gray-700 rounded-lg md:rounded-xl mb-2">
@@ -217,13 +217,13 @@ const AdminLayout = () => {
         </div>
       </aside>
 
-      {/* Main Content Area */}
+      
       <div
         className={`flex-1 flex flex-col ${
           sidebarOpen ? "lg:ml-64" : "lg:ml-20"
         } transition-all duration-300`}
       >
-        {/* Top Bar - Mobile */}
+        
         <header className="lg:hidden sticky top-0 z-40 bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl shadow-lg border-b border-gray-200 dark:border-gray-700">
           <div className="px-4 py-4">
             <div className="flex justify-between items-center">
@@ -243,7 +243,7 @@ const AdminLayout = () => {
               </button>
             </div>
 
-            {/* Mobile Menu */}
+            
             {showMobileMenu && (
               <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
                 <div className="flex items-center gap-3 p-4 mb-4 bg-gradient-to-r from-[var(--root-color)]/10 to-purple-600/10 rounded-xl">
@@ -298,13 +298,13 @@ const AdminLayout = () => {
           </div>
         </header>
 
-        {/* Main Content */}
+        
         <main className={`flex-1 ${location.pathname === '/admin/inbox' || location.pathname === '/admin/flash-sales' }`}>
           <Outlet />
         </main>
       </div>
 
-      {/* Logout Confirmation Dialog */}
+      
       <ConfirmDialog
         isOpen={showLogoutConfirm}
         title="Confirm Logout"

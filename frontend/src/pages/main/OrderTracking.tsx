@@ -119,7 +119,7 @@ const OrderTracking = () => {
   return (
     <section className="min-h-screen bg-gray-50 dark:bg-gray-900 py-16 md:py-20">
       <div className="container px-4 md:px-6 lg:px-8 max-w-4xl mx-auto">
-        {/* Back Button */}
+        
         <button
           onClick={() => navigate("/orders")}
           className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-[var(--root-color)] mb-6"
@@ -127,7 +127,7 @@ const OrderTracking = () => {
           <FaArrowLeft /> Back to Orders
         </button>
 
-        {/* Header */}
+        
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 mb-6">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
@@ -171,7 +171,7 @@ const OrderTracking = () => {
           </div>
         </div>
 
-        {/* Progress Tracker */}
+        
         {order.orderStatus !== "cancelled" && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -183,7 +183,7 @@ const OrderTracking = () => {
             </h2>
 
             <div className="relative">
-              {/* Progress Line */}
+              
               <div className="absolute top-6 left-0 right-0 h-1 bg-gray-200 dark:bg-gray-700 mx-8">
                 <div
                   className="h-full bg-[var(--root-color)] transition-all duration-500"
@@ -193,7 +193,7 @@ const OrderTracking = () => {
                 />
               </div>
 
-              {/* Steps */}
+              
               <div className="relative flex justify-between">
                 {statusSteps.map((step, idx) => {
                   const isCompleted = idx <= currentStep;
@@ -228,7 +228,7 @@ const OrderTracking = () => {
               </div>
             </div>
 
-            {/* Estimated Delivery */}
+            
             {order.estimatedDelivery && order.orderStatus !== "delivered" && (
               <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl flex items-center gap-3">
                 <FaClock className="text-blue-500 text-xl" />
@@ -252,7 +252,7 @@ const OrderTracking = () => {
           </motion.div>
         )}
 
-        {/* Cancelled Notice */}
+        
         {order.orderStatus === "cancelled" && (
           <div className="bg-red-50 dark:bg-red-900/20 rounded-2xl p-6 mb-6 border border-red-200 dark:border-red-800">
             <h3 className="text-lg font-bold text-red-600 mb-2">
@@ -262,7 +262,7 @@ const OrderTracking = () => {
           </div>
         )}
 
-        {/* Tracking History */}
+        
         {order.trackingHistory && order.trackingHistory.length > 0 && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -302,7 +302,7 @@ const OrderTracking = () => {
         )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Order Items */}
+          
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -350,7 +350,7 @@ const OrderTracking = () => {
             </div>
           </motion.div>
 
-          {/* Shipping Address */}
+          
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}

@@ -256,11 +256,27 @@ export const login = async (req, res) => {
       expiresAt: new Date(Date.now() + 15 * 60 * 1000),
     });
 
-    sendOTPEmail(email, otpCode).catch((err) => {
-      logger.warn("Failed to send OTP email", { email, message: err.message });
-    });
+    let emailSent = false;
+    try {
+      await sendOTPEmail(email, otpCode);
+      emailSent = true;
+    } catch (emailErr) {
+      logger.error("Failed to send OTP email", { email, message: emailErr.message });
+    }
 
-    res.json({ message: "OTP sent to your email", needsOTP: true });
+    // In development expose the OTP in the response when email fails so you
+    // can still test without a working SMTP connection.
+    const devOtp = !emailSent && process.env.NODE_ENV !== "production"
+      ? { devOtp: otpCode }
+      : {};
+
+    return res.json({
+      message: emailSent
+        ? "OTP sent to your email"
+        : "OTP generated (email delivery failed — check server logs)",
+      needsOTP: true,
+      ...devOtp,
+    });
   } catch (err) {
     logger.error("login error", { message: err.message });
     res.status(500).json({ message: "Login failed. Please try again." });

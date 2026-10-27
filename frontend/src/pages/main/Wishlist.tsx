@@ -19,7 +19,7 @@ import {
   FaBoxOpen,
 } from "react-icons/fa";
 
-// ─── Skeleton ─────────────────────────────────────────────────────────────────
+
 
 const WishlistSkeleton = () => (
   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -37,7 +37,7 @@ const WishlistSkeleton = () => (
   </div>
 );
 
-// ─── Error state ──────────────────────────────────────────────────────────────
+
 
 const WishlistError = ({ onRetry }: { onRetry: () => void }) => (
   <div className="text-center py-20 bg-white dark:bg-gray-800 rounded-2xl shadow-lg">
@@ -62,7 +62,7 @@ const WishlistError = ({ onRetry }: { onRetry: () => void }) => (
   </div>
 );
 
-// ─── Page ─────────────────────────────────────────────────────────────────────
+
 
 const Wishlist = () => {
   const navigate = useNavigate();
@@ -116,7 +116,7 @@ const Wishlist = () => {
   return (
     <section className="min-h-screen bg-gray-50 dark:bg-gray-900 py-16 md:py-20">
       <div className="container px-4 md:px-6 lg:px-8">
-        {/* Header */}
+        
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-10">
           <div>
             <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
@@ -138,13 +138,13 @@ const Wishlist = () => {
           )}
         </div>
 
-        {/* Loading */}
+        
         {isLoading && <WishlistSkeleton />}
 
-        {/* Error */}
+        
         {isError && <WishlistError onRetry={refetch} />}
 
-        {/* Empty */}
+        
         {!isLoading && !isError && products.length === 0 && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -167,7 +167,7 @@ const Wishlist = () => {
           </motion.div>
         )}
 
-        {/* Grid */}
+        
         {!isLoading && !isError && products.length > 0 && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {products.map((product, idx) => (
@@ -178,7 +178,7 @@ const Wishlist = () => {
                 transition={{ delay: Math.min(idx * 0.05, 0.3) }}
                 className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden group"
               >
-                {/* Image */}
+                
                 <div
                   className="relative cursor-pointer"
                   onClick={() => navigate(`/product/${product._id}`)}
@@ -204,7 +204,7 @@ const Wishlist = () => {
                   </button>
                 </div>
 
-                {/* Info */}
+                
                 <div className="p-4">
                   <div className="flex items-center justify-between mb-1">
                     <p className="text-xs font-semibold text-[var(--root-color)] uppercase truncate">

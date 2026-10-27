@@ -42,7 +42,7 @@ const Brands = () => {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-12">
       <div className="container mx-auto px-4">
-        {/* Header */}
+        
         <div className="text-center mb-12">
           <div className="inline-flex items-center gap-3 mb-4">
             <FaTrademark className="w-8 h-8 text-purple-600" />
@@ -55,7 +55,7 @@ const Brands = () => {
           </p>
         </div>
 
-        {/* Brands Grid */}
+        
         {brands.length === 0 ? (
           <div className="text-center py-20">
             <FaTrademark className="w-20 h-20 text-gray-300 mx-auto mb-6" />

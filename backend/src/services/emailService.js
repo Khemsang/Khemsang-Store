@@ -186,7 +186,7 @@ export const sendOTPEmail = async (email, otp) => {
   const transporter = createTransporter();
   const mailOptions = {
     from: `"${process.env.STORE_NAME || "Khemsang Store"}" <${
-      process.env.GMAIL_USER
+      process.env.EMAIL_FROM || process.env.SMTP_USER
     }>`,
     to: email,
     subject: "Your Login OTP Code",
@@ -233,7 +233,7 @@ export const sendPasswordResetEmail = async (email, token) => {
 
   const mailOptions = {
     from: `"${process.env.STORE_NAME || "Khemsang Store"}" <${
-      process.env.GMAIL_USER
+      process.env.EMAIL_FROM || process.env.SMTP_USER
     }>`,
     to: email,
     subject: "Reset Your Password",
@@ -282,7 +282,7 @@ export const sendSuperAdminPasswordResetEmail = async (email, token) => {
 
   const mailOptions = {
     from: `"${process.env.STORE_NAME || "Khemsang Store"}" <${
-      process.env.GMAIL_USER
+      process.env.EMAIL_FROM || process.env.SMTP_USER
     }>`,
     to: email,
     subject: "🔐 Super Admin Password Reset - High Priority",
@@ -356,7 +356,7 @@ export const sendSellerApprovalEmail = async (email, sellerName, businessName, a
   const loginUrl = `${process.env.FRONTEND_URL}/login`;
 
   const mailOptions = {
-    from: `"${process.env.STORE_NAME || "Khemsang Store"}" <${process.env.GMAIL_USER}>`,
+    from: `"${process.env.STORE_NAME || "Khemsang Store"}" <${process.env.EMAIL_FROM || process.env.SMTP_USER}>`,
     to: email,
     subject: "🎉 Seller Account Approved - Welcome to Our Platform!",
     html: `
@@ -441,7 +441,7 @@ export const sendSellerRejectionEmail = async (email, sellerName, businessName, 
   const supportUrl = `${process.env.FRONTEND_URL}/contact`;
 
   const mailOptions = {
-    from: `"${process.env.STORE_NAME || "Khemsang Store"}" <${process.env.GMAIL_USER}>`,
+    from: `"${process.env.STORE_NAME || "Khemsang Store"}" <${process.env.EMAIL_FROM || process.env.SMTP_USER}>`,
     to: email,
     subject: "Seller Application Update - Action Required",
     html: `

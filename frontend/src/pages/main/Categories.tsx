@@ -50,7 +50,7 @@ const Categories = () => {
   return (
     <div className="min-h-screen bg-gray-50 dark:from-gray-900 dark:via-blue-900/10 dark:to-gray-900 py-16">
       <div className="container mx-auto px-4 md:px-6 lg:px-8 max-w-7xl">
-        {/* Header */}
+        
         <div className="text-center mb-12">
           <Badge className="mb-4 bg-blue-600 text-white">
             <Grid3x3 className="w-4 h-4 mr-1" />
@@ -64,7 +64,7 @@ const Categories = () => {
           </p>
         </div>
 
-        {/* Categories Grid */}
+        
         {categories.length === 0 ? (
           <Card className="text-center py-20">
             <Package className="w-20 h-20 text-gray-300 mx-auto mb-6" />

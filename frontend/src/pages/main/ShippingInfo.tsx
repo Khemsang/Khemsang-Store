@@ -58,7 +58,7 @@ const ShippingInfo = () => {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-12">
       <div className="container mx-auto px-4 max-w-4xl">
-        {/* Header */}
+        
         <div className="text-center mb-12">
           <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
             <FaTruck className="w-8 h-8 text-blue-600" />
@@ -71,7 +71,7 @@ const ShippingInfo = () => {
           </p>
         </div>
 
-        {/* Features */}
+        
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
           {features.map((feature) => (
             <div
@@ -91,7 +91,7 @@ const ShippingInfo = () => {
           ))}
         </div>
 
-        {/* Shipping Zones */}
+        
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden mb-8">
           <div className="p-6 border-b dark:border-gray-700">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
@@ -154,7 +154,7 @@ const ShippingInfo = () => {
           </div>
         </div>
 
-        {/* Additional Info */}
+        
         <div className="grid md:grid-cols-2 gap-6 mb-8">
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6">
             <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
@@ -201,7 +201,7 @@ const ShippingInfo = () => {
           </div>
         </div>
 
-        {/* Track Order CTA */}
+        
         <div className="bg-gradient-to-r from-blue-600 to-cyan-600 rounded-2xl p-8 text-white text-center">
           <h2 className="text-2xl font-bold mb-3">Track Your Order</h2>
           <p className="text-white/80 mb-6">

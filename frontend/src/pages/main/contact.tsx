@@ -82,7 +82,7 @@ const ContactPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-16">
       <div className="container mx-auto px-4">
-        {/* Header */}
+        
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -97,7 +97,7 @@ const ContactPage: React.FC = () => {
         </motion.div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-          {/* Contact Info */}
+          
           <motion.div
             initial={{ opacity: 0, x: -50 }}
             animate={{ opacity: 1, x: 0 }}
@@ -183,7 +183,7 @@ const ContactPage: React.FC = () => {
               ) : null}
             </div>
 
-            {/* Social Media */}
+            
             {settings?.socialMedia && (
               <div className="mt-8 p-6 bg-white dark:bg-gray-800 rounded-xl shadow-lg">
                 <h3 className="font-bold text-gray-900 dark:text-white mb-4">
@@ -235,7 +235,7 @@ const ContactPage: React.FC = () => {
             )}
           </motion.div>
 
-          {/* Contact Form */}
+          
           <motion.div
             initial={{ opacity: 0, x: 50 }}
             animate={{ opacity: 1, x: 0 }}

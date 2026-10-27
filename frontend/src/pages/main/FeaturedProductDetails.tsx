@@ -64,7 +64,7 @@ const FeaturedProductDetails = () => {
       const { data } = await api.get(`/featured-products/${id}`);
       setProduct(data);
       
-      // Track product view
+
       analytics.trackProductView({
         productId: data._id,
         productName: data.title,
@@ -73,14 +73,14 @@ const FeaturedProductDetails = () => {
         isFeatured: true
       });
       
-      // If product has productId, fetch the regular product for variants
+
       if (data.productId) {
         try {
           const { data: regularData } = await api.get(`/products/${data.productId}`);
           setRegularProduct(regularData);
           setProductExists(true);
           
-          // Auto-select first active variant if available
+
           if (regularData.colorVariants && regularData.colorVariants.length > 0) {
             const firstActive = regularData.colorVariants.find((v: ColorVariant) => v.isActive);
             if (firstActive) {
@@ -99,7 +99,7 @@ const FeaturedProductDetails = () => {
         ? "Featured product not found" 
         : err.response?.data?.message || "Failed to fetch product";
       error(errorMessage);
-      // Navigate back to home after showing error
+
       setTimeout(() => navigate("/"), 2000);
     } finally {
       setLoading(false);
@@ -108,7 +108,7 @@ const FeaturedProductDetails = () => {
 
   const handleVariantChange = (variant: ColorVariant) => {
     setSelectedVariant(variant);
-    setQuantity(0); // Reset quantity to 0 when changing variant - user must select quantity
+    setQuantity(0);
   };
 
   const handleAddToCart = async () => {
@@ -131,7 +131,7 @@ const FeaturedProductDetails = () => {
     try {
       setAddingToCart(true);
       
-      // Use productId if available, otherwise use featured product's own _id
+
       const targetProductId = product?.productId || product?._id;
       
       if (!targetProductId) {
@@ -139,19 +139,19 @@ const FeaturedProductDetails = () => {
         return;
       }
       
-      // Check if product still exists (only if productId is set)
+
       if (product?.productId && !productExists) {
         error("Product no longer available");
         return;
       }
       
-      // Prepare variant info if variant is selected
+
       const variantInfo = selectedVariant ? {
         colorName: selectedVariant.colorName,
         colorCode: selectedVariant.colorCode
       } : undefined;
       
-      // Check if product already exists in cart BEFORE API call
+
       const isExistingItem = cart.some((item) => {
         if (!item.product) {
           return false;
@@ -163,10 +163,10 @@ const FeaturedProductDetails = () => {
         return sameProduct && sameVariant;
       });
       
-      // Make API call - featured products can be bought just like normal products
+
       await addToCart(targetProductId, quantity, variantInfo);
       
-      // Track analytics
+
       analytics.trackAddToCart({
         productId: targetProductId,
         productName: product.title,
@@ -179,7 +179,7 @@ const FeaturedProductDetails = () => {
         toastShown: !isExistingItem
       });
       
-      // Only show toast if it was a NEW item (checked BEFORE API call)
+
       if (!isExistingItem) {
         success("Added to cart!");
       } else {
@@ -187,7 +187,7 @@ const FeaturedProductDetails = () => {
     } catch (err: any) {
       error(err.response?.data?.message || "Failed to add to cart");
       
-      // Track error
+
       analytics.trackError({
         action: 'add_to_cart',
         errorMessage: err.response?.data?.message || "Failed to add to cart",
@@ -219,7 +219,7 @@ const FeaturedProductDetails = () => {
     try {
       setAddingToCart(true);
       
-      // Use productId if available, otherwise use featured product's own _id
+
       const targetProductId = product?.productId || product?._id;
       
       if (!targetProductId) {
@@ -227,20 +227,20 @@ const FeaturedProductDetails = () => {
         return;
       }
       
-      // Check if product still exists (only if productId is set)
+
       if (product?.productId && !productExists) {
         error("Product no longer available");
         return;
       }
       
-      // Prepare variant info if variant is selected
+
       const variantInfo = selectedVariant ? {
         colorName: selectedVariant.colorName,
         colorCode: selectedVariant.colorCode
       } : undefined;
       
       
-      // Check if product already exists in cart BEFORE API call
+
       const isExistingItem = cart.some((item) => {
         if (!item.product) {
           return false;
@@ -253,10 +253,10 @@ const FeaturedProductDetails = () => {
       });
       
       
-      // Make API call - featured products can be bought just like normal products
+
       await addToCart(targetProductId, quantity, variantInfo);
       
-      // Track analytics
+
       analytics.trackAddToCart({
         productId: targetProductId,
         productName: product.title,
@@ -269,7 +269,7 @@ const FeaturedProductDetails = () => {
         toastShown: !isExistingItem
       });
       
-      // Only show toast if it was a NEW item (checked BEFORE API call)
+
       if (!isExistingItem) {
         success("Product added to cart!");
       } else {
@@ -279,7 +279,7 @@ const FeaturedProductDetails = () => {
     } catch (err: any) {
       error(err.response?.data?.message || "Failed to add to cart");
       
-      // Track error
+
       analytics.trackError({
         action: 'buy_now',
         errorMessage: err.response?.data?.message || "Failed to add to cart",
@@ -320,7 +320,7 @@ const FeaturedProductDetails = () => {
   return (
     <div className="min-h-screen bg-gray-50 dark:from-gray-900 dark:via-blue-900/10 dark:to-gray-900 py-8 md:py-12">
       <div className="container mx-auto px-4 md:px-6 lg:px-8 max-w-7xl">
-        {/* Breadcrumb */}
+        
         <nav className="flex items-center gap-2 text-sm mb-6 bg-white dark:bg-gray-800 px-4 py-3 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
           <button
             onClick={() => navigate("/")}
@@ -360,7 +360,7 @@ const FeaturedProductDetails = () => {
         </nav>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8">
-          {/* Image */}
+          
           <div className="lg:col-span-5 space-y-4">
             <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-xl border border-gray-200 dark:border-gray-700">
               <div className="relative">
@@ -409,7 +409,7 @@ const FeaturedProductDetails = () => {
             </div>
           </div>
 
-          {/* Product Info */}
+          
           <div className="lg:col-span-7 space-y-6">
             <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 md:p-8 shadow-xl border border-gray-200 dark:border-gray-700">
               <div className="flex items-start justify-between mb-4">
@@ -439,7 +439,7 @@ const FeaturedProductDetails = () => {
                 {product.description}
               </p>
 
-              {/* Color Variants Selector */}
+              
               {regularProduct?.colorVariants && regularProduct.colorVariants.length > 0 && (
                 <div className="mb-6">
                   <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
@@ -515,7 +515,7 @@ const FeaturedProductDetails = () => {
                 )}
               </div>
 
-              {/* Quantity Selector */}
+              
               <div className="flex items-center gap-4 mb-6">
                 <span className="text-gray-700 dark:text-gray-300 font-semibold text-lg">
                   Quantity:
@@ -573,7 +573,7 @@ const FeaturedProductDetails = () => {
                 )}
               </div>
 
-              {/* Action Buttons */}
+              
               <div className="flex flex-col sm:flex-row gap-3">
                 <button
                   onClick={handleAddToCart}
@@ -604,7 +604,7 @@ const FeaturedProductDetails = () => {
                 </button>
               </div>
 
-              {/* Product Link Status - Only show if productId exists but product is deleted */}
+              
               {product.productId && !productExists && (
                 <div className="mt-4 p-3 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">
                   <div className="flex items-center gap-2 text-sm text-red-800 dark:text-red-200">
@@ -619,7 +619,7 @@ const FeaturedProductDetails = () => {
                 </div>
               )}
 
-              {/* Featured Badge Info */}
+              
               {(!product.productId || productExists) && (
                 <div 
                   className="mt-4 p-3 bg-yellow-50 dark:from-yellow-900/20 dark:to-orange-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800 cursor-help"

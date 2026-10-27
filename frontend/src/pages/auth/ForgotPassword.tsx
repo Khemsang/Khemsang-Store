@@ -101,7 +101,7 @@ const ForgotPassword: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-purple-900/20 flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-md">
-        {/* Header */}
+        
         <div className="text-center mb-8">
           <div className="mx-auto h-20 w-20 bg-blue-600 rounded-2xl flex items-center justify-center shadow-xl transform hover:scale-105 transition-transform duration-300 mb-6">
             <FaEnvelope className="h-10 w-10 text-white" />
@@ -114,7 +114,7 @@ const ForgotPassword: React.FC = () => {
           </p>
         </div>
 
-        {/* Form Card */}
+        
         <div className="bg-white dark:bg-gray-800 shadow-2xl rounded-3xl p-8 sm:p-10 border border-gray-100 dark:border-gray-700">
           {error && (
             <div className="bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500 p-4 rounded-lg mb-6 flex items-center gap-3">

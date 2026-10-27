@@ -5,7 +5,7 @@ import InvoiceDownload from "../../components/orders/InvoiceDownload";
 import LazyImage from "../../components/common/LazyImage";
 import { FaEye, FaBoxOpen } from "react-icons/fa";
 
-// ─── Status helpers ───────────────────────────────────────────────────────────
+
 
 const STATUS_CLASSES: Record<string, string> = {
   pending:    "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400",
@@ -18,7 +18,7 @@ const STATUS_CLASSES: Record<string, string> = {
 const statusClass = (s: string) =>
   STATUS_CLASSES[s.toLowerCase()] ?? "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300";
 
-// ─── Skeleton ─────────────────────────────────────────────────────────────────
+
 
 const OrderSkeleton = () => (
   <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden border border-gray-200 dark:border-gray-700 animate-pulse">
@@ -36,7 +36,7 @@ const OrderSkeleton = () => (
   </div>
 );
 
-// ─── Error state ──────────────────────────────────────────────────────────────
+
 
 const OrdersError = ({ onRetry }: { onRetry: () => void }) => (
   <div className="text-center py-20">
@@ -61,7 +61,7 @@ const OrdersError = ({ onRetry }: { onRetry: () => void }) => (
   </div>
 );
 
-// ─── Empty state ──────────────────────────────────────────────────────────────
+
 
 const OrdersEmpty = ({ onShop }: { onShop: () => void }) => (
   <div className="text-center py-20">
@@ -81,7 +81,7 @@ const OrdersEmpty = ({ onShop }: { onShop: () => void }) => (
   </div>
 );
 
-// ─── Page ─────────────────────────────────────────────────────────────────────
+
 
 const Orders = () => {
   const navigate = useNavigate();
@@ -89,7 +89,7 @@ const Orders = () => {
 
   const { data: orders = [], isLoading, isError, refetch } = useOrdersQuery(!!user);
 
-  // Redirect handled by ProtectedRoute; this is a belt-and-suspenders guard
+
   if (!user) {
     navigate("/login");
     return null;
@@ -107,7 +107,7 @@ const Orders = () => {
           </p>
         </div>
 
-        {/* Loading */}
+        
         {isLoading && (
           <div className="space-y-6">
             {Array.from({ length: 3 }).map((_, i) => (
@@ -116,15 +116,15 @@ const Orders = () => {
           </div>
         )}
 
-        {/* Error */}
+        
         {isError && <OrdersError onRetry={refetch} />}
 
-        {/* Empty */}
+        
         {!isLoading && !isError && orders.length === 0 && (
           <OrdersEmpty onShop={() => navigate("/products")} />
         )}
 
-        {/* Orders list */}
+        
         {!isLoading && !isError && orders.length > 0 && (
           <div className="space-y-6">
             {orders.map((order) => (
@@ -132,7 +132,7 @@ const Orders = () => {
                 key={order._id}
                 className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden border border-gray-200 dark:border-gray-700"
               >
-                {/* Header */}
+                
                 <div className="bg-blue-600 p-6 text-white">
                   <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                     <div>
@@ -152,7 +152,7 @@ const Orders = () => {
                   </div>
                 </div>
 
-                {/* Items */}
+                
                 <div className="p-6">
                   <div className="space-y-4 mb-6">
                     {order.items.map((item, idx) => {
@@ -187,7 +187,7 @@ const Orders = () => {
                     })}
                   </div>
 
-                  {/* Details */}
+                  
                   <div className="grid md:grid-cols-2 gap-6 pt-6 border-t border-gray-200 dark:border-gray-700">
                     <div>
                       <h4 className="font-semibold text-gray-900 dark:text-white mb-3">
@@ -227,7 +227,7 @@ const Orders = () => {
                     </div>
                   </div>
 
-                  {/* Actions */}
+                  
                   <div className="flex flex-wrap gap-3 pt-4 mt-4 border-t border-gray-200 dark:border-gray-700">
                     <button
                       onClick={() => navigate(`/order/${order._id}`)}

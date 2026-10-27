@@ -29,7 +29,7 @@ const AdminTestimonials = () => {
 
   const fetchTestimonials = async () => {
     try {
-      // Fetch all testimonials for admin (including hidden ones)
+
       const { data } = await api.get("/testimonials?all=true");
       setTestimonials(data);
     } catch (error) {

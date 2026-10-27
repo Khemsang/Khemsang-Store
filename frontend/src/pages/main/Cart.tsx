@@ -51,7 +51,7 @@ const Cart = () => {
   return (
     <div className="min-h-screen bg-white dark:from-gray-900 dark:via-blue-900/10 dark:to-gray-900 py-8 sm:py-12">
       <div className="container px-4 md:px-6 lg:px-8 max-w-7xl mx-auto">
-        {/* Header */}
+        
         <div className="flex items-center justify-between mb-6 sm:mb-8">
           <div className="flex items-center gap-3">
             <div className="h-10 w-10 bg-blue-600 rounded-lg flex items-center justify-center">
@@ -72,7 +72,7 @@ const Cart = () => {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
-          {/* Cart Items */}
+          
           <div className="lg:col-span-2 space-y-4">
             {cart.map((item, index) => {
               if (!item.product || !item.product.title) {
@@ -80,7 +80,7 @@ const Cart = () => {
               }
 
               const itemTotal = (item.product.price || 0) * item.quantity;
-              // Use cart item _id if available (logged in), otherwise use index (guest)
+
               const itemKey = item._id || index.toString();
 
               return (
@@ -90,7 +90,7 @@ const Cart = () => {
                 >
                   <CardContent className="p-4 sm:p-6">
                     <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
-                      {/* Product Image */}
+                      
                       <div className="flex-shrink-0 mx-auto sm:mx-0">
                         <div className="relative w-full sm:w-24 md:w-32 h-48 sm:h-24 md:h-32 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800">
                           <img
@@ -101,7 +101,7 @@ const Cart = () => {
                         </div>
                       </div>
 
-                      {/* Product Details */}
+                      
                       <div className="flex-1 min-w-0">
                         <div className="flex justify-between items-start mb-2">
                           <div className="flex-1">
@@ -120,19 +120,19 @@ const Cart = () => {
                                 </span>
                               </div>
                             )}
-                            {/* Product Description */}
+                            
                             {item.product.description && (
                               <p className="text-sm text-gray-600 dark:text-gray-400 mt-2 line-clamp-2">
                                 {item.product.description}
                               </p>
                             )}
-                            {/* Product Brand */}
+                            
                             {item.product.brand && (
                               <p className="text-sm text-gray-500 dark:text-gray-500 mt-1">
                                 Brand: <span className="font-medium">{item.product.brand}</span>
                               </p>
                             )}
-                            {/* Stock Status */}
+                            
                             {item.product.stock !== undefined && (
                               <div className="flex items-center gap-2 mt-1">
                                 {item.product.stock > 0 ? (
@@ -170,7 +170,7 @@ const Cart = () => {
                         )}
 
                         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                          {/* Quantity Controls */}
+                          
                           <div className="flex items-center gap-2">
                             <span className="text-sm text-gray-600 dark:text-gray-400 mr-2">
                               Quantity:
@@ -208,7 +208,7 @@ const Cart = () => {
                             </div>
                           </div>
 
-                          {/* Price */}
+                          
                           <div className="flex items-center justify-between sm:flex-col sm:items-end gap-1">
                             <span className="text-sm text-gray-600 dark:text-gray-400">
                               Rs. {item.product.price?.toLocaleString()} each
@@ -226,7 +226,7 @@ const Cart = () => {
             })}
           </div>
 
-          {/* Order Summary */}
+          
           <div className="lg:col-span-1">
             <Card className="border-gray-200 dark:border-gray-700 lg:sticky lg:top-4">
               <CardHeader>
@@ -236,7 +236,7 @@ const Cart = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                {/* Price Breakdown */}
+                
                 <div className="space-y-3">
                   <div className="flex justify-between text-gray-600 dark:text-gray-400">
                     <span>Subtotal ({cart.length} {cart.length === 1 ? "variant" : "variants"}, {cart.reduce((sum, item) => sum + item.quantity, 0)} units)</span>
@@ -262,7 +262,7 @@ const Cart = () => {
                   </div>
                 </div>
 
-                {/* Action Buttons */}
+                
                 <div className="space-y-3 pt-2">
                   <Button
                     onClick={handleCheckout}
@@ -282,7 +282,7 @@ const Cart = () => {
                   </Button>
                 </div>
 
-                {/* Trust Badges */}
+                
                 <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
                   <div className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
                     <div className="flex items-center gap-2">

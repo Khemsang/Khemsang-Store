@@ -105,7 +105,7 @@ const HelpCenter = () => {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-12">
       <div className="container mx-auto px-4 max-w-5xl">
-        {/* Header */}
+        
         <div className="text-center mb-12">
           <div className="w-16 h-16 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
             <FaQuestionCircle className="w-8 h-8 text-purple-600" />
@@ -118,7 +118,7 @@ const HelpCenter = () => {
           </p>
         </div>
 
-        {/* Search */}
+        
         <div className="max-w-2xl mx-auto mb-12">
           <div className="relative">
             <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
@@ -132,7 +132,7 @@ const HelpCenter = () => {
           </div>
         </div>
 
-        {/* Help Categories */}
+        
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 mb-12">
           {helpCategories.map((category) => (
             <Link
@@ -155,7 +155,7 @@ const HelpCenter = () => {
           ))}
         </div>
 
-        {/* FAQs */}
+        
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 md:p-8 mb-12">
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
             Frequently Asked Questions
@@ -189,7 +189,7 @@ const HelpCenter = () => {
           </div>
         </div>
 
-        {/* Contact Support */}
+        
         <div className="bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl p-8 text-white text-center">
           <h2 className="text-2xl font-bold mb-3">Still need help?</h2>
           <p className="text-white/80 mb-6">

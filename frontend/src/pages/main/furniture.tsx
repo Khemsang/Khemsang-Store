@@ -17,7 +17,7 @@ const FurniturePage: React.FC = () => {
   
   const { products, loading, error } = useProducts();
   
-  // Filter products by category if specified
+
   const filteredProducts = products.filter(product => {
     if (!category) return true;
     return product.category?.toLowerCase().includes(category.toLowerCase());
@@ -41,7 +41,7 @@ const FurniturePage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      {/* Header */}
+      
       <div className="bg-white dark:bg-gray-800 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
@@ -54,7 +54,7 @@ const FurniturePage: React.FC = () => {
               </p>
             </div>
             
-            {/* View Controls */}
+            
             <div className="flex items-center space-x-4 mt-4 sm:mt-0">
               <div className="flex items-center space-x-2">
                 <button
@@ -93,7 +93,7 @@ const FurniturePage: React.FC = () => {
         </div>
       </div>
 
-      {/* Products Grid */}
+      
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {sortedProducts.length === 0 ? (
           <div className="text-center py-12">

@@ -52,10 +52,10 @@ const ProductDetailsPage: React.FC = () => {
   const { user } = useAuth();
   const { success, error } = useToast();
   
-  // Use React Query for product data
+
   const { data: product, isLoading: loading, isError, refetch } = useProduct(id);
   
-  // Refetch product data when component mounts to get latest variants
+
   useEffect(() => {
     if (id) {
       refetch();
@@ -76,16 +76,16 @@ const ProductDetailsPage: React.FC = () => {
   const [selectedVariant, setSelectedVariant] = useState<ColorVariant | null>(null);
   const [addingToCart, setAddingToCart] = useState(false);
   
-  // Get all images from all variants
+
   const getAllImages = () => {
     const allImages: string[] = [];
     
-    // Add main product images first
+
     if (product?.images && product.images.length > 0) {
       allImages.push(...product.images);
     }
     
-    // Add all variant images
+
     if (product?.colorVariants && product.colorVariants.length > 0) {
       product.colorVariants.forEach((variant: ColorVariant) => {
         if (variant.images && variant.images.length > 0) {
@@ -103,7 +103,7 @@ const ProductDetailsPage: React.FC = () => {
 
   useEffect(() => {
     if (product) {
-      // Auto-select first active variant if available
+
       if (product.colorVariants && product.colorVariants.length > 0) {
         const firstActive = product.colorVariants.find((v: ColorVariant) => v.isActive);
         if (firstActive) {
@@ -122,7 +122,7 @@ const ProductDetailsPage: React.FC = () => {
   }, [id, user]);
   
   const handleVariantChange = (variant: ColorVariant) => {
-    // Save current variant's quantity before switching
+
     if (selectedVariant) {
       setVariantQuantities(prev => ({
         ...prev,
@@ -130,22 +130,22 @@ const ProductDetailsPage: React.FC = () => {
       }));
     }
     
-    // Switch to new variant
+
     setSelectedVariant(variant);
     
-    // Calculate the index of the first image of this variant
+
     let imageIndex = 0;
     
-    // Add main product images count
+
     if (product?.images && product.images.length > 0) {
       imageIndex += product.images.length;
     }
     
-    // Add images from previous variants
+
     if (product?.colorVariants && product.colorVariants.length > 0) {
       for (const v of product.colorVariants) {
         if (v._id === variant._id) {
-          // Found the variant, stop here
+
           break;
         }
         if (v.images && v.images.length > 0) {
@@ -154,10 +154,10 @@ const ProductDetailsPage: React.FC = () => {
       }
     }
     
-    // Set to the first image of the selected variant
+
     setSelectedImage(imageIndex);
     
-    // Load saved quantity for this variant, or default to 0 (user must select quantity)
+
     const savedQuantity = variantQuantities[variant._id] || 0;
     setQuantity(savedQuantity);
   };
@@ -265,7 +265,7 @@ const ProductDetailsPage: React.FC = () => {
     try {
       setAddingToCart(true);
       
-      // Check if product already exists in cart BEFORE API call
+
       const variantInfo = selectedVariant ? {
         colorName: selectedVariant.colorName,
         colorCode: selectedVariant.colorCode
@@ -282,10 +282,10 @@ const ProductDetailsPage: React.FC = () => {
         return sameProduct && sameVariant;
       });
       
-      // Make API call
+
       await addToCart(product!._id, quantity, variantInfo);
       
-      // Only show toast if it was a NEW item (checked BEFORE API call)
+
       if (!isExistingItem) {
         success("Added to cart!");
       } else {
@@ -357,7 +357,7 @@ const ProductDetailsPage: React.FC = () => {
       } : undefined;
       
       
-      // Check if product already exists in cart BEFORE API call
+
       const isExistingItem = cart.some((item) => {
         if (!item.product) {
           return false;
@@ -370,10 +370,10 @@ const ProductDetailsPage: React.FC = () => {
       });
       
       
-      // Make API call
+
       await addToCart(product!._id, quantity, variantInfo);
       
-      // Only show toast if it was a NEW item (checked BEFORE API call)
+
       if (!isExistingItem) {
         success("Product added to cart!");
       } else {
@@ -412,7 +412,7 @@ const ProductDetailsPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-purple-50/20 to-pink-50/20 dark:from-gray-900 dark:via-purple-900/10 dark:to-pink-900/10 py-8">
       <div className="container mx-auto px-4 max-w-7xl">
-        {/* Breadcrumb */}
+        
         <nav className="flex items-center gap-2 text-sm mb-6">
           <Button
             variant="ghost"
@@ -438,12 +438,12 @@ const ProductDetailsPage: React.FC = () => {
         </nav>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Left Column - Image Gallery and Tabs */}
+          
           <div className="space-y-4">
-            {/* Image Gallery */}
+            
             <Card>
               <CardContent className="p-5">
-                {/* Main Image - Medium size */}
+                
                 <div className="relative overflow-hidden rounded-lg bg-gray-100 dark:bg-gray-800 w-full h-[500px] mb-4">
                   <img
                     src={currentImages[selectedImage] || "/placeholder.jpg"}
@@ -452,7 +452,7 @@ const ProductDetailsPage: React.FC = () => {
                     onClick={() => setShowImageModal(true)}
                   />
                   
-                  {/* Zoom Button */}
+                  
                   <Button
                     variant="secondary"
                     size="icon"
@@ -471,14 +471,14 @@ const ProductDetailsPage: React.FC = () => {
                   )}
                 </div>
 
-                {/* Thumbnail Grid - Show ALL images from ALL variants with horizontal scroll */}
+                
                 <div className="relative">
                   <div className="flex gap-2 overflow-x-auto pb-2 scroll-smooth snap-x snap-mandatory scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200 dark:scrollbar-thumb-gray-600 dark:scrollbar-track-gray-800">
                     {(() => {
-                      // Collect all images from all variants
+
                       const allImages: Array<{ img: string; variantName: string; variantColor: string; idx: number }> = [];
                       
-                      // Add main product images first
+
                       if (product.images && product.images.length > 0) {
                         product.images.forEach((img, idx) => {
                           allImages.push({
@@ -490,7 +490,7 @@ const ProductDetailsPage: React.FC = () => {
                         });
                       }
                       
-                      // Add all variant images
+
                       if (product.colorVariants && product.colorVariants.length > 0) {
                         product.colorVariants.forEach((variant: ColorVariant) => {
                           if (variant.images && variant.images.length > 0) {
@@ -511,7 +511,7 @@ const ProductDetailsPage: React.FC = () => {
                           key={idx}
                           onClick={() => {
                             setSelectedImage(idx);
-                            // Find and select the variant if clicking on a variant image
+
                             const mainImagesCount = product.images?.length || 0;
                             if (idx >= mainImagesCount && product.colorVariants) {
                               let imageCount = mainImagesCount;
@@ -537,7 +537,7 @@ const ProductDetailsPage: React.FC = () => {
                             alt={`${item.variantName} ${idx + 1}`}
                             className="w-full h-full object-cover"
                           />
-                          {/* Color indicator badge */}
+                          
                           <div 
                             className="absolute bottom-0.5 right-0.5 w-3 h-3 rounded-full border border-white shadow-sm"
                             style={{ backgroundColor: item.variantColor }}
@@ -550,7 +550,7 @@ const ProductDetailsPage: React.FC = () => {
               </CardContent>
             </Card>
 
-            {/* Product Details Tabs - Moved here below image */}
+            
             <Card>
               <CardContent className="p-6">
                 <Tabs>
@@ -673,7 +673,7 @@ const ProductDetailsPage: React.FC = () => {
             </Card>
           </div>
 
-          {/* Right Column - Product Info */}
+          
           <div className="space-y-6">
             <Card>
               <CardContent className="p-6">
@@ -702,9 +702,9 @@ const ProductDetailsPage: React.FC = () => {
                   </div>
                 )}
 
-                {/* Price Section - Enhanced */}
+                
                 <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-2xl p-6 mb-6 border-2 border-blue-100 dark:border-blue-800">
-                  {/* Current Price */}
+                  
                   <div className="mb-4">
                     <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">Current Price</p>
                     <div className="flex items-baseline gap-3">
@@ -719,7 +719,7 @@ const ProductDetailsPage: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Original Price & Discount */}
+                  
                   {product.originalPrice && product.originalPrice > currentPrice && (
                     <div className="flex items-center gap-4 mb-3">
                       <div>
@@ -737,14 +737,14 @@ const ProductDetailsPage: React.FC = () => {
                     </div>
                   )}
 
-                  {/* Additional Info */}
+                  
                   <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400 pt-3 border-t border-blue-200 dark:border-blue-800">
                     <Shield className="w-4 h-4" />
                     <span>Inclusive of all taxes</span>
                   </div>
                 </div>
 
-                {/* Stock Status */}
+                
                 <div className="mb-6 p-4 bg-gray-50 dark:bg-gray-800 rounded-xl">
                   <div className="flex items-center justify-between">
                     <div>
@@ -761,7 +761,7 @@ const ProductDetailsPage: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Color Selector */}
+                
                 {product.colorVariants && product.colorVariants.length > 0 ? (
                   <div className="mb-6">
                     <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
@@ -781,7 +781,7 @@ const ProductDetailsPage: React.FC = () => {
                   </div>
                 )}
 
-                {/* Quantity Selector */}
+                
                 <div className="flex items-center gap-4 mb-6">
                   <span className="text-gray-700 dark:text-gray-300 font-semibold">
                     Quantity:
@@ -833,7 +833,7 @@ const ProductDetailsPage: React.FC = () => {
                   <SizeGuide />
                 </div>
 
-                {/* Action Buttons */}
+                
                 {currentStock > 0 ? (
                   <div className="space-y-3 mb-4">
                     <div className="flex gap-3">
@@ -865,7 +865,7 @@ const ProductDetailsPage: React.FC = () => {
                       <ShareProduct productTitle={product.title} />
                     </div>
                     
-                    {/* Variant Selection Summary */}
+                    
                     {product.colorVariants && product.colorVariants.length > 0 && Object.keys(variantQuantities).length > 0 && (
                       <Card className="border-2 border-blue-200 dark:border-blue-800 bg-blue-50/50 dark:bg-blue-900/10">
                         <CardContent className="p-4">
@@ -928,7 +928,7 @@ const ProductDetailsPage: React.FC = () => {
               </CardContent>
             </Card>
 
-            {/* Features */}
+            
             <Card>
               <CardContent className="p-6">
                 <div className="grid grid-cols-3 gap-4">
@@ -956,7 +956,7 @@ const ProductDetailsPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Product Details Tabs */}
+        
         <Card className="mt-8">
           <CardContent className="p-6">
             <Tabs>
@@ -1131,18 +1131,18 @@ const ProductDetailsPage: React.FC = () => {
           </CardContent>
         </Card>
 
-        {/* Reviews Section */}
+        
         <div className="mt-8">
           <ProductReviews productId={product._id} />
         </div>
 
-        {/* Recently Viewed */}
+        
         <div className="mt-8">
           <RecentlyViewed />
         </div>
       </div>
 
-      {/* Image Modal */}
+      
       {showImageModal && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm p-4"

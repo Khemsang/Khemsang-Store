@@ -13,7 +13,7 @@ const Login: React.FC = () => {
   const [needsVerification, setNeedsVerification] = useState(false);
   const [resendLoading, setResendLoading] = useState(false);
   const [resendSent, setResendSent] = useState(false);
-  // Banner shown after signup (check email) or after verification (verified)
+
   const [infoBanner, setInfoBanner] = useState<{
     type: "email-sent" | "verified";
     email?: string;
@@ -23,11 +23,11 @@ const Login: React.FC = () => {
   const location = useLocation();
   const { success, error: showError } = useToast();
 
-  // Check for session expired OR post-verification success
+
   React.useEffect(() => {
-    // If arriving from email verification, always show the success banner
-    // and ignore any ?session=expired query param (it's a false alarm from
-    // a 401 on a protected endpoint during the unauthenticated redirect)
+
+
+
     if (location.state?.verified) {
       setInfoBanner({ type: "verified" });
       success("✅ Email verified successfully! You can now sign in.");
@@ -35,7 +35,7 @@ const Login: React.FC = () => {
       return;
     }
 
-    // Arriving from signup — show "check your Gmail" banner
+
     if (location.state?.emailSent) {
       setInfoBanner({ type: "email-sent", email: location.state.email });
       if (location.state.email) setEmail(location.state.email);
@@ -43,7 +43,7 @@ const Login: React.FC = () => {
       return;
     }
 
-    // Only show session expired if there's no other state
+
     const params = new URLSearchParams(location.search);
     if (params.get("session") === "expired") {
       showError("Your session expired. Please login again.");
@@ -66,7 +66,7 @@ const Login: React.FC = () => {
     }
   };
 
-  // Show loading while checking auth status
+
   if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
@@ -90,19 +90,19 @@ const Login: React.FC = () => {
     try {
       const data = await login(email, password);
 
-      // Check if OTP is required
+
       if (data.needsOTP) {
-        // Store the intended redirect path before going to OTP
+
         const intendedPath = location.state?.from;
         if (intendedPath && intendedPath !== '/login' && intendedPath !== '/signup') {
           sessionStorage.setItem('redirectAfterLogin', intendedPath);
         }
-        // Navigate to OTP page with redirect info
+
         navigate("/verify-otp", { state: { email, from: intendedPath } });
         return;
       }
 
-      // Direct login (OTP already verified recently — skipped)
+
       if (data.user) {
         success("Login successful!");
         const userRole = data.user.role || (data.user.isSuperAdmin ? "super-admin" : data.user.isAdmin ? "admin" : "customer");
@@ -118,11 +118,11 @@ const Login: React.FC = () => {
         setResendSent(false);
         setError("");
       } else if (err.response?.data?.needsOTP) {
-        // OTP required but error occurred
+
         const otpData = err.response.data;
         if (otpData.otp) {
         }
-        // Store redirect path before going to OTP
+
         const intendedPath = location.state?.from;
         if (intendedPath && intendedPath !== '/login' && intendedPath !== '/signup') {
           sessionStorage.setItem('redirectAfterLogin', intendedPath);
@@ -142,7 +142,7 @@ const Login: React.FC = () => {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 py-16 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-10">
         {user ? (
-          // Show profile if user is already logged in
+
           <div className="text-center">
             <div className="mx-auto h-20 w-20 bg-gradient-to-br from-blue-500 to-orange-600 rounded-2xl flex items-center justify-center shadow-lg mb-6">
               <span className="text-2xl font-bold text-white">
@@ -157,7 +157,7 @@ const Login: React.FC = () => {
             </p>
 
             <div className="bg-white dark:bg-gray-800 shadow-2xl rounded-2xl p-8 space-y-6 border border-gray-200 dark:border-gray-700">
-              {/* Profile Info */}
+              
               <div className="text-center space-y-4">
                 <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-orange-600 rounded-full flex items-center justify-center text-white font-bold text-2xl mx-auto shadow-lg">
                   {user?.name ? user.name.charAt(0).toUpperCase() : 'U'}
@@ -180,7 +180,7 @@ const Login: React.FC = () => {
                 </div>
               </div>
 
-              {/* Quick Actions */}
+              
               <div className="grid grid-cols-2 gap-4">
                 <button
                   onClick={() => navigate("/")}
@@ -233,7 +233,7 @@ const Login: React.FC = () => {
             </div>
           </div>
         ) : (
-          // Show login form if user is not logged in
+
           <>
             <div className="text-center">
               <div className="mx-auto h-16 w-16 bg-blue-600 rounded-2xl flex items-center justify-center shadow-lg transform hover:scale-105 transition-transform duration-300">
@@ -260,7 +260,7 @@ const Login: React.FC = () => {
             </div>
 
             <div className="bg-white dark:bg-gray-800 shadow-2xl rounded-2xl p-10 space-y-8 border border-gray-100 dark:border-gray-700">
-              {/* Info banner — check email / verified */}
+              
               {infoBanner && (
                 <div className={`border-l-4 p-4 rounded-lg flex items-start gap-3 ${
                   infoBanner.type === "verified"
@@ -302,7 +302,7 @@ const Login: React.FC = () => {
                 </div>
               )}
 
-              {/* Needs verification banner */}
+              
               {needsVerification && (
                 <div className="bg-amber-50 dark:bg-amber-900/20 border-l-4 border-amber-500 p-4 rounded-lg">
                   <p className="text-sm font-semibold text-amber-800 dark:text-amber-300">
@@ -465,7 +465,7 @@ const Login: React.FC = () => {
                 </button>
               </form>
 
-              {/* Divider */}
+              
               <div className="relative my-6">
                 <div className="absolute inset-0 flex items-center">
                   <div className="w-full border-t border-gray-300 dark:border-gray-600"></div>
@@ -477,11 +477,11 @@ const Login: React.FC = () => {
                 </div>
               </div>
 
-              {/* Google OAuth Button */}
+              
               <button
                 type="button"
                 onClick={() => {
-                  // TODO: Implement Google OAuth
+
                   alert("Google OAuth coming soon! Backend configuration needed.");
                 }}
                 className="w-full flex justify-center items-center gap-3 py-4 px-4 border-2 border-gray-300 dark:border-gray-600 rounded-xl shadow-sm text-sm font-semibold text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transform hover:scale-[1.02] transition-all duration-200"

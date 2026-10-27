@@ -28,7 +28,7 @@ const Checkout = () => {
     discountType: string;
   } | null>(null);
 
-  // Check if user is logged in
+
   useEffect(() => {
     if (!user) {
       warning("Please login to continue with checkout");
@@ -87,7 +87,7 @@ const Checkout = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validate minimum order amount
+
     const finalTotal = getFinalTotal();
     if (finalTotal < 5000) {
       error(`Minimum order amount is Rs. 5000. Your current total is Rs. ${finalTotal}. Please add more items to your cart.`);
@@ -97,7 +97,7 @@ const Checkout = () => {
     setLoading(true);
 
     try {
-      // Filter out items with incomplete product data
+
       const validItems = cart.filter(
         (item) => item.product && item.product._id && item.product.price
       );
@@ -124,27 +124,27 @@ const Checkout = () => {
         discount: appliedCoupon?.discount || 0,
       });
 
-      // If Cash on Delivery, redirect to success page
+
       if (paymentMethod === "cod") {
         navigate(`/payment/success?orderId=${data._id}`);
         return;
       }
 
-      // eSewa Payment Integration v2 - Using Form Submit with Signature
+
       const esewaUrl = "https://rc-epay.esewa.com.np/api/epay/main/v2/form";
       const apiUrl =
         import.meta.env.VITE_API_URL || "http://localhost:5000/api";
       const merchantId = import.meta.env.VITE_ESEWA_MERCHANT_ID || "EPAYTEST";
       const totalAmount = getCartTotal() + 100;
 
-      // Get signature from backend
+
       const signatureRes = await api.post("/orders/esewa/signature", {
         totalAmount: totalAmount.toString(),
         transactionUuid: data._id,
         productCode: merchantId,
       });
 
-      // Create form for eSewa v2 payment
+
       const form = document.createElement("form");
       form.method = "POST";
       form.action = esewaUrl;
@@ -191,7 +191,7 @@ const Checkout = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-green-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-800 py-12 md:py-16 lg:py-20">
       <div className="container px-4 md:px-6 lg:px-8 max-w-7xl mx-auto">
-        {/* Header */}
+        
         <div className="text-center mb-8 md:mb-12">
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-full mb-4 shadow-lg">
             <svg
@@ -221,7 +221,7 @@ const Checkout = () => {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8 lg:gap-10">
-          {/* Shipping Form - Takes 2 columns on large screens */}
+          
           <div className="lg:col-span-2">
             <form
               onSubmit={handleSubmit}
@@ -373,7 +373,7 @@ const Checkout = () => {
                   </div>
                 </div>
 
-                {/* Payment Method Selection */}
+                
                 <div className="pt-4 mb-6">
                   <label className="flex items-center gap-2 text-sm font-bold text-gray-700 dark:text-gray-300 mb-3">
                     <span className="text-lg">💳</span>
@@ -436,7 +436,7 @@ const Checkout = () => {
                   </div>
                 </div>
 
-                {/* Payment Button */}
+                
                 <div className="pt-4">
                   <button
                     type="submit"
@@ -523,7 +523,7 @@ const Checkout = () => {
                     </span>
                   </button>
 
-                  {/* Payment Info */}
+                  
                   <div
                     className={`mt-4 p-4 rounded-2xl border-2 ${
                       paymentMethod === "esewa"
@@ -581,7 +581,7 @@ const Checkout = () => {
             </form>
           </div>
 
-          {/* Order Summary - Takes 1 column on large screens */}
+          
           <div className="lg:col-span-1">
             <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl rounded-3xl p-6 md:p-8 shadow-2xl border border-gray-200 dark:border-gray-700 lg:sticky lg:top-4">
               <div className="flex items-center gap-3 mb-6">
@@ -611,7 +611,7 @@ const Checkout = () => {
               </div>
               <div className="space-y-3 mb-6 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
                 {cart.map((item) => {
-                  // Skip items with incomplete product data
+
                   if (!item.product || !item.product.title) {
                     return null;
                   }
@@ -650,14 +650,14 @@ const Checkout = () => {
                   );
                 })}
               </div>
-              {/* Coupon Code Section */}
+              
               <div className="pt-4 border-t-2 border-gray-200 dark:border-gray-700 mb-4">
                 <label className="flex items-center gap-2 text-sm font-bold text-gray-700 dark:text-gray-300 mb-3">
                   <span className="text-lg">🎟️</span>
                   Have a Coupon?
                 </label>
                 
-                {/* Minimum requirement message */}
+                
                 {getCartTotal() < 5000 && (
                   <div className="mb-3 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
                     <div className="flex items-start gap-2">
@@ -767,7 +767,7 @@ const Checkout = () => {
                   </div>
                 </div>
 
-                {/* Minimum Order Warning */}
+                
                 {getFinalTotal() < 5000 && (
                   <div className="mt-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
                     <div className="flex items-start gap-2">
@@ -791,7 +791,7 @@ const Checkout = () => {
         </div>
       </div>
 
-      {/* Custom Scrollbar Styles */}
+      
       <style>{`
         .custom-scrollbar::-webkit-scrollbar {
           width: 6px;

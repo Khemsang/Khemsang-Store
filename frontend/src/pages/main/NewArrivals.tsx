@@ -29,7 +29,7 @@ const NewArrivals = () => {
     try {
       const { data: productsRes } = await api.get("/products");
       const data = Array.isArray(productsRes) ? productsRes : (productsRes.products ?? []);
-      // Sort by createdAt and get latest 20
+
       const sorted = data
         .sort(
           (a: Product, b: Product) =>
@@ -45,7 +45,7 @@ const NewArrivals = () => {
   };
 
   const handleAddToCart = async (product: any) => {
-    // Prevent rapid clicks
+
     if (addingToCart === product._id) {
       return;
     }
@@ -53,14 +53,14 @@ const NewArrivals = () => {
     try {
       setAddingToCart(product._id);
       
-      // Check if product already exists in cart BEFORE API call
+
       const isExistingItem = cart.some((item) => {
         return item.product?._id === product._id && !item.colorVariant;
       });
       
       await addToCart(product._id, 1);
       
-      // Only show toast if it was a NEW item
+
       if (!isExistingItem) {
         showToast(`${product.title} added to cart!`, "success");
       }
@@ -83,7 +83,7 @@ const NewArrivals = () => {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-12">
       <div className="container mx-auto px-4">
-        {/* Header */}
+        
         <div className="text-center mb-12">
           <div className="inline-flex items-center gap-3 mb-4">
             <FaStar className="w-8 h-8 text-yellow-500" />
@@ -96,7 +96,7 @@ const NewArrivals = () => {
           </p>
         </div>
 
-        {/* Products Grid */}
+        
         {products.length === 0 ? (
           <div className="text-center py-20">
             <FaStar className="w-20 h-20 text-gray-300 mx-auto mb-6" />

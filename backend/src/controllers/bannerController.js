@@ -30,11 +30,22 @@ export const getBannerById = async (req, res) => {
 // Create new banner (admin)
 export const createBanner = async (req, res) => {
   try {
+    const { title, image } = req.body;
+    if (!title) return res.status(400).json({ message: "title is required" });
+    if (!image) return res.status(400).json({ message: "image is required" });
+
     const banner = new Banner(req.body);
     await banner.save();
     res.status(201).json(banner);
   } catch (err) {
-    res.status(400).json({ message: "Error creating banner", error: err.message });
+    // Surface Mongoose validation messages clearly
+    const message =
+      err.name === "ValidationError"
+        ? Object.values(err.errors)
+            .map((e) => e.message)
+            .join(", ")
+        : err.message;
+    res.status(400).json({ message });
   }
 };
 

@@ -50,19 +50,19 @@ interface Order {
 }
 
 const AdminOrders = () => {
-  const [allOrders, setAllOrders] = useState<Order[]>([]); // Store all orders
-  const [orders, setOrders] = useState<Order[]>([]); // Filtered orders
+  const [allOrders, setAllOrders] = useState<Order[]>([]);
+  const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const showLoading = useMinimumLoading(loading, 1000);
   const [tabLoading, setTabLoading] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
-  const [activeTab, setActiveTab] = useState("pending"); // Default to pending
+  const [activeTab, setActiveTab] = useState("pending");
   const [updatingStatus, setUpdatingStatus] = useState(false);
   const [showStatusConfirm, setShowStatusConfirm] = useState(false);
   const [pendingStatus, setPendingStatus] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   
-  // Scroll to top when page changes
+
   useScrollToTop(currentPage);
   
   const [itemsPerPage] = useState(10);
@@ -74,7 +74,7 @@ const AdminOrders = () => {
 
   useEffect(() => {
     filterOrders(activeTab);
-    setCurrentPage(1); // Reset to page 1 when tab changes
+    setCurrentPage(1);
   }, [activeTab, allOrders]);
 
   const fetchAllOrders = async () => {
@@ -82,7 +82,7 @@ const AdminOrders = () => {
       setLoading(true);
       const { data } = await api.get("/orders");
       
-      // Remove any potential duplicates by order ID
+
       const uniqueOrders = data.filter((order: Order, index: number, self: Order[]) =>
         index === self.findIndex((o) => o._id === order._id)
       );
@@ -106,7 +106,7 @@ const AdminOrders = () => {
   const markAsRead = async (orderId: string) => {
     try {
       await api.put(`/orders/${orderId}/mark-read`);
-      // Update local state in both allOrders and orders
+
       setAllOrders((prev) =>
         prev.map((order) =>
           order._id === orderId ? { ...order, isRead: true } : order
@@ -136,12 +136,12 @@ const AdminOrders = () => {
       await api.put(`/orders/${orderId}/status`, { orderStatus: status });
       success("Order status updated successfully");
       
-      // Close dialogs first
+
       setShowStatusConfirm(false);
       setPendingStatus("");
       setSelectedOrder(null);
       
-      // Refresh all orders to get clean updated list
+
       await fetchAllOrders();
     } catch (err) {
       error("Failed to update status");
@@ -161,7 +161,7 @@ const AdminOrders = () => {
     }
   };
 
-  // Calculate revenue statistics
+
   const calculateRevenue = () => {
     const paidOrders = allOrders.filter((o) => o.paymentStatus === "paid");
     const totalRevenue = paidOrders.reduce((sum, o) => sum + o.totalAmount, 0);
@@ -187,7 +187,7 @@ const AdminOrders = () => {
 
   const revenue = calculateRevenue();
 
-  // Pagination logic
+
   const totalPages = Math.ceil(orders.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
@@ -227,7 +227,7 @@ const AdminOrders = () => {
 
   return (
     <div className="p-6 space-y-6 bg-gray-900 h-full">
-      {/* Header with Revenue Stats */}
+      
       <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
         <Card className="md:col-span-1">
           <CardContent className="p-6">
@@ -306,7 +306,7 @@ const AdminOrders = () => {
         </Card>
       </div>
 
-      {/* Status Filter Tabs */}
+      
       <Card>
         <CardContent className="p-6">
           <Tabs>
@@ -355,7 +355,7 @@ const AdminOrders = () => {
             </TabsList>
 
             <TabsContent>
-              {/* Orders List */}
+              
               <div className="space-y-4 mt-6">
                 {currentOrders.map((order) => (
                   <Card
@@ -438,7 +438,7 @@ const AdminOrders = () => {
                 )}
               </div>
 
-              {/* Pagination */}
+              
               {totalPages > 1 && (
                 <div className="flex items-center justify-center gap-2 mt-6">
                   <Button
@@ -495,7 +495,7 @@ const AdminOrders = () => {
         </CardContent>
       </Card>
 
-      {/* Order Details Dialog */}
+      
       <Dialog open={!!selectedOrder} onOpenChange={() => setSelectedOrder(null)}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
@@ -510,7 +510,7 @@ const AdminOrders = () => {
 
           {selectedOrder && (
             <div className="p-6 space-y-6">
-              {/* Order Status and Payment - More Prominent */}
+              
               <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 p-4 rounded-lg border-2 border-blue-200 dark:border-blue-700">
                 <div className="flex items-center justify-between flex-wrap gap-3">
                   <div className="flex items-center gap-3">
@@ -533,7 +533,7 @@ const AdminOrders = () => {
                 </div>
               </div>
 
-              {/* Customer Info - Enhanced */}
+              
               <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 p-5 rounded-lg border-2 border-green-200 dark:border-green-700">
                 <h3 className="font-bold text-lg mb-4 flex items-center gap-2 text-green-700 dark:text-green-400">
                   <Mail className="w-6 h-6" />
@@ -551,7 +551,7 @@ const AdminOrders = () => {
                 </div>
               </div>
 
-              {/* Shipping Address - Enhanced */}
+              
               <div className="bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-900/20 dark:to-amber-900/20 p-5 rounded-lg border-2 border-orange-200 dark:border-orange-700">
                 <h3 className="font-bold text-lg mb-4 flex items-center gap-2 text-orange-700 dark:text-orange-400">
                   <MapPin className="w-6 h-6" />
@@ -589,7 +589,7 @@ const AdminOrders = () => {
                 </div>
               </div>
 
-              {/* Order Items - Enhanced */}
+              
               <div className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 p-5 rounded-lg border-2 border-purple-200 dark:border-purple-700">
                 <h3 className="font-bold text-lg mb-4 flex items-center gap-2 text-purple-700 dark:text-purple-400">
                   <ShoppingBag className="w-6 h-6" />
@@ -637,7 +637,7 @@ const AdminOrders = () => {
                 </div>
               </div>
 
-              {/* Order Summary - Enhanced */}
+              
               <div className="bg-gray-100 dark:from-gray-800 dark:to-gray-900 p-5 rounded-lg border-2 border-gray-300 dark:border-gray-700">
                 <h3 className="font-bold text-lg mb-4">Order Summary</h3>
                 <div className="space-y-3">
@@ -670,7 +670,7 @@ const AdminOrders = () => {
                 </div>
               </div>
 
-              {/* Status Update */}
+              
               <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 p-6 rounded-lg border-2 border-blue-200 dark:border-blue-700">
                 <h3 className="font-bold mb-4 text-lg flex items-center gap-2">
                   <Package className="w-5 h-5" />
@@ -703,7 +703,7 @@ const AdminOrders = () => {
                 )}
               </div>
 
-              {/* Tracking Number */}
+              
               {selectedOrder.trackingNumber && (
                 <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border-2 border-blue-200 dark:border-blue-700">
                   <p className="text-sm font-medium mb-2">Tracking Number:</p>
@@ -715,7 +715,7 @@ const AdminOrders = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Status Update Confirmation Dialog */}
+      
       <Dialog open={showStatusConfirm} onOpenChange={setShowStatusConfirm}>
         <DialogContent className="max-w-md">
           <DialogHeader>

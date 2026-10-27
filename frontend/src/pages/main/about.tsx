@@ -71,12 +71,12 @@ const AboutUs: React.FC = () => {
   const fetchHeroBanner = async () => {
     try {
       const { data } = await bannersApi.getAll();
-      // Filter active hero banners and get the first one
+
       const activeBanners = data.filter(
         (banner: Banner) => banner.isActive && banner.position === "hero"
       );
       if (activeBanners.length > 0) {
-        // Get the first active hero banner
+
         setHeroBanner(activeBanners[0]);
       }
     } catch (error: any) {
@@ -182,9 +182,9 @@ const AboutUs: React.FC = () => {
 
   return (
     <section className="w-full bg-gradient-to-br from-gray-50 via-purple-50 to-pink-50 dark:from-gray-900 dark:via-purple-900/20 dark:to-pink-900/20 overflow-hidden">
-      {/* Hero Section with Banner Background */}
+      
       <div className="relative py-20 md:py-28 lg:py-32">
-        {/* Banner Background Image */}
+        
         {heroBanner && (
           <div className="absolute inset-0 z-0">
             <img
@@ -196,13 +196,13 @@ const AboutUs: React.FC = () => {
           </div>
         )}
 
-        {/* Decorative Elements */}
+        
         <div className="absolute top-20 left-10 w-40 h-40 bg-gradient-to-br from-purple-400/20 to-pink-400/20 rounded-full blur-3xl animate-pulse z-[1]"></div>
         <div className="absolute bottom-20 right-10 w-48 h-48 bg-gradient-to-br from-blue-400/20 to-purple-400/20 rounded-full blur-3xl animate-pulse animation-delay-2000 z-[1]"></div>
 
         <div className="container px-4 md:px-6 lg:px-8 relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
-            {/* Left - Images */}
+            
             <motion.div
               initial={{ opacity: 0, x: -50 }}
               whileInView={{ opacity: 1, x: 0 }}
@@ -210,7 +210,7 @@ const AboutUs: React.FC = () => {
               viewport={{ once: true }}
               className="relative"
             >
-              {/* Main Image */}
+              
               <div className="relative">
                 <div className="absolute -inset-4 bg-gradient-to-r from-purple-600 via-pink-600 to-orange-600 rounded-3xl blur-2xl opacity-30 animate-pulse"></div>
                 <img
@@ -220,7 +220,7 @@ const AboutUs: React.FC = () => {
                 />
               </div>
 
-              {/* Small Images Grid */}
+              
               <div className="grid grid-cols-2 gap-4 mt-6">
                 {aboutData.heroSmallImage1 && (
                   <img
@@ -239,7 +239,7 @@ const AboutUs: React.FC = () => {
               </div>
             </motion.div>
 
-            {/* Right - Content */}
+            
             <motion.div
               initial={{ opacity: 0, x: 50 }}
               whileInView={{ opacity: 1, x: 0 }}
@@ -332,7 +332,7 @@ const AboutUs: React.FC = () => {
         </div>
       </div>
 
-      {/* Features Section */}
+      
       <div className="py-20 md:py-28 bg-white dark:bg-gray-800">
         <div className="container px-4 md:px-6 lg:px-8">
           <motion.div
@@ -368,7 +368,7 @@ const AboutUs: React.FC = () => {
                 viewport={{ once: true }}
                 className="group relative bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 rounded-3xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-gray-100 dark:border-gray-700 overflow-hidden"
               >
-                {/* Gradient Background on Hover */}
+                
                 <div
                   className={`absolute inset-0 bg-gradient-to-br ${feature.color} opacity-0 group-hover:opacity-10 transition-opacity duration-300`}
                 ></div>
@@ -392,7 +392,7 @@ const AboutUs: React.FC = () => {
         </div>
       </div>
 
-      {/* Gallery Section */}
+      
       <div className="py-20 md:py-28 bg-gradient-to-br from-gray-50 via-purple-50 to-pink-50 dark:from-gray-900 dark:via-purple-900/20 dark:to-pink-900/20">
         <div className="container px-4 md:px-6 lg:px-8">
           <motion.div
@@ -441,7 +441,7 @@ const AboutUs: React.FC = () => {
         </div>
       </div>
 
-      {/* CTA Section */}
+      
       <div className="py-20 md:py-28">
         <div className="container px-4 md:px-6 lg:px-8">
           <motion.div
@@ -451,7 +451,7 @@ const AboutUs: React.FC = () => {
             viewport={{ once: true }}
             className="relative bg-gradient-to-r from-purple-600 via-pink-600 to-orange-600 rounded-3xl p-12 md:p-16 lg:p-20 text-center text-white shadow-2xl overflow-hidden"
           >
-            {/* Decorative Elements */}
+            
             <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
             <div className="absolute bottom-0 left-0 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
 

@@ -6,7 +6,7 @@ import { useCart } from "../../context/CartContext";
 import { useToast } from "../../context/ToastContext";
 import SimpleProductCard from "../../components/products/SimpleProductCard";
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+
 
 interface Product {
   _id: string;
@@ -48,13 +48,13 @@ const Deals = () => {
 
       const productsData = Array.isArray(productsRes.data) ? productsRes.data : (productsRes.data.products ?? []);
 
-      // Filter products with discounts
+
       const discounted = productsData.filter(
         (p: Product) => p.originalPrice && p.originalPrice > p.price
       );
       setDiscountedProducts(discounted);
 
-      // Filter active coupons
+
       const activeCoupons = couponsRes.data.filter(
         (c: Coupon) => new Date(c.expiresAt) > new Date()
       );
@@ -79,7 +79,7 @@ const Deals = () => {
   };
 
   const handleAddToCart = async (product: any) => {
-    // Prevent rapid clicks
+
     if (addingToCart === product._id) {
       return;
     }
@@ -87,14 +87,14 @@ const Deals = () => {
     try {
       setAddingToCart(product._id);
       
-      // Check if product already exists in cart BEFORE API call
+
       const isExistingItem = cart.some((item) => {
         return item.product?._id === product._id && !item.colorVariant;
       });
       
       await addToCart(product._id, 1);
       
-      // Only show toast if it was a NEW item
+
       if (!isExistingItem) {
         showToast(`${product.title} added to cart!`, "success");
       }
@@ -117,7 +117,7 @@ const Deals = () => {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-12">
       <div className="container mx-auto px-4">
-        {/* Header */}
+        
         <div className="text-center mb-12">
           <div className="inline-flex items-center gap-3 mb-4">
             <FaFire className="w-8 h-8 text-orange-500" />
@@ -130,7 +130,7 @@ const Deals = () => {
           </p>
         </div>
 
-        {/* Active Coupons */}
+        
         {coupons.length > 0 && (
           <div className="mb-12">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
@@ -186,7 +186,7 @@ const Deals = () => {
           </div>
         )}
 
-        {/* Discounted Products */}
+        
         <div>
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
             <FaTag className="text-red-500" />

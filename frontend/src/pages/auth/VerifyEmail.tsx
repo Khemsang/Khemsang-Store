@@ -14,22 +14,22 @@ const VerifyEmail: React.FC = () => {
   const [status, setStatus] = useState<Status>("verifying");
   const [message, setMessage] = useState("");
 
-  // Resend form state
+
   const [resendEmail, setResendEmail] = useState(
-    // Pre-fill email if redirected from login page
+
     (location.state as any)?.email || ""
   );
   const [resendLoading, setResendLoading] = useState(false);
   const [resendSent, setResendSent] = useState(false);
   const [resendError, setResendError] = useState("");
 
-  // 15-minute countdown state
+
   const [secondsLeft, setSecondsLeft] = useState(15 * 60);
 
   const verifiedRef = useRef(false);
   const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // Start countdown once the page loads (token was just sent)
+
   useEffect(() => {
     countdownRef.current = setInterval(() => {
       setSecondsLeft((s) => {
@@ -44,7 +44,7 @@ const VerifyEmail: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    // Redirected from login because email isn't verified yet
+
     if ((location.state as any)?.needsVerification) {
       setStatus("needs-verification");
       setMessage("Your email address is not verified yet.");
@@ -75,7 +75,7 @@ const VerifyEmail: React.FC = () => {
     } catch (error: any) {
       const msg: string =
         error.response?.data?.message || "Verification failed";
-      // Distinguish between expired and invalid token errors
+
       if (msg.toLowerCase().includes("expired")) {
         setStatus("error-expired");
       } else {
@@ -97,7 +97,7 @@ const VerifyEmail: React.FC = () => {
     try {
       await api.post("/auth/resend-verification", { email: resendEmail });
       setResendSent(true);
-      // Reset the countdown to 15 minutes
+
       setSecondsLeft(15 * 60);
       clearInterval(countdownRef.current!);
       countdownRef.current = setInterval(() => {
@@ -131,7 +131,7 @@ const VerifyEmail: React.FC = () => {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-400 via-green-500 to-teal-600 px-4">
       <div className="w-full max-w-md">
 
-        {/* ── VERIFYING ── */}
+        
         {status === "verifying" && (
           <div className="text-center text-white">
             <div className="relative w-20 h-20 mx-auto mb-6">
@@ -146,7 +146,7 @@ const VerifyEmail: React.FC = () => {
             </div>
             <h1 className="text-2xl font-bold mb-2">Verifying your email…</h1>
             <p className="text-white/80">Please wait a moment.</p>
-            {/* Countdown pill */}
+            
             <div className="mt-4 inline-flex items-center gap-2 bg-white/20 rounded-full px-4 py-2 text-sm font-mono">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
@@ -157,7 +157,7 @@ const VerifyEmail: React.FC = () => {
           </div>
         )}
 
-        {/* ── SUCCESS ── */}
+        
         {status === "success" && (
           <div className="text-center text-white">
             <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-6">
@@ -175,10 +175,10 @@ const VerifyEmail: React.FC = () => {
           </div>
         )}
 
-        {/* ── EXPIRED ── */}
+        
         {status === "error-expired" && (
           <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
-            {/* Top banner */}
+            
             <div className="bg-amber-500 px-6 py-5 text-white text-center">
               <div className="w-14 h-14 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-3">
                 <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -192,7 +192,7 @@ const VerifyEmail: React.FC = () => {
               </p>
             </div>
 
-            {/* Body */}
+            
             <div className="px-6 py-6">
               {resendSent ? (
                 <div className="text-center">
@@ -255,7 +255,7 @@ const VerifyEmail: React.FC = () => {
           </div>
         )}
 
-        {/* ── INVALID / OTHER ERROR ── */}
+        
         {status === "error-invalid" && (
           <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
             <div className="bg-red-500 px-6 py-5 text-white text-center">
@@ -328,7 +328,7 @@ const VerifyEmail: React.FC = () => {
           </div>
         )}
 
-        {/* ── NEEDS VERIFICATION (redirected from login) ── */}
+        
         {status === "needs-verification" && (
           <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
             <div className="bg-blue-500 px-6 py-5 text-white text-center">

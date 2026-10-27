@@ -13,7 +13,7 @@ const Sitemap: React.FC = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {/* Main Pages */}
+          
           <div className="bg-white rounded-lg shadow-md p-6">
             <h2 className="text-xl font-semibold text-gray-900 mb-4">Main Pages</h2>
             <ul className="space-y-2">
@@ -25,7 +25,7 @@ const Sitemap: React.FC = () => {
             </ul>
           </div>
 
-          {/* User Pages */}
+          
           <div className="bg-white rounded-lg shadow-md p-6">
             <h2 className="text-xl font-semibold text-gray-900 mb-4">User Pages</h2>
             <ul className="space-y-2">
@@ -37,7 +37,7 @@ const Sitemap: React.FC = () => {
             </ul>
           </div>
 
-          {/* Legal Pages */}
+          
           <div className="bg-white rounded-lg shadow-md p-6">
             <h2 className="text-xl font-semibold text-gray-900 mb-4">Legal</h2>
             <ul className="space-y-2">

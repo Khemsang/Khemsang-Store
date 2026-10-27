@@ -52,13 +52,13 @@ const AdminCustomers = () => {
       c.email?.toLowerCase().includes(search.toLowerCase())
   );
 
-  // Pagination logic
+
   const totalPages = Math.ceil(filteredCustomers.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const currentCustomers = filteredCustomers.slice(startIndex, endIndex);
 
-  // Reset to page 1 when search changes
+
   useEffect(() => {
     setCurrentPage(1);
   }, [search]);
@@ -67,13 +67,13 @@ const AdminCustomers = () => {
 
   return (
     <div className="p-6 space-y-6 dark:bg-gray-900 h-full">
-      {/* Header */}
+      
       <div>
         <h1 className="text-3xl font-bold dark:text-white">Customers</h1>
         <p className="text-gray-500 mt-1">{customers.length} total customers</p>
       </div>
 
-      {/* Search */}
+      
       <div className="relative max-w-md">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
         <Input
@@ -84,7 +84,7 @@ const AdminCustomers = () => {
         />
       </div>
 
-      {/* Customers Grid */}
+      
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {currentCustomers.map((customer) => (
           <Card key={customer._id} className="hover:shadow-lg transition-shadow">
@@ -139,7 +139,7 @@ const AdminCustomers = () => {
         </div>
       )}
 
-      {/* Pagination */}
+      
       {totalPages > 1 && (
         <div className="flex items-center justify-center gap-2 mt-6">
           <Button

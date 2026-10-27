@@ -120,7 +120,7 @@ const Profile = () => {
     fetchAddresses();
   }, [user]);
 
-  // Refresh data when tab changes
+
   useEffect(() => {
     if (activeTab === "orders") {
       fetchOrders();
@@ -262,7 +262,7 @@ const Profile = () => {
           </h1>
         </div>
 
-        {/* Stats Cards */}
+        
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
           {[
             {
@@ -307,7 +307,7 @@ const Profile = () => {
           ))}
         </div>
 
-        {/* Profile Card */}
+        
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden mb-6">
           <div className="h-32 bg-gradient-to-r from-purple-600 via-pink-600 to-orange-600 relative">
             <div className="absolute inset-0 bg-black/20"></div>
@@ -315,7 +315,7 @@ const Profile = () => {
           </div>
           <div className="px-8 pb-8">
             <div className="flex flex-col md:flex-row items-center md:items-end gap-6 -mt-16 mb-6">
-              {/* Avatar */}
+              
               <div className="relative group">
                 <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-white dark:border-gray-800 shadow-2xl ring-4 ring-purple-500">
                   {formData.avatar ? (
@@ -347,7 +347,7 @@ const Profile = () => {
                 )}
               </div>
 
-              {/* User Info */}
+              
               <div className="text-center md:text-left flex-1">
                 <h2 className="text-3xl font-bold text-gray-800 dark:text-white mb-2">
                   {formData.name}
@@ -390,7 +390,7 @@ const Profile = () => {
               </div>
             </div>
 
-            {/* Tabs */}
+            
             <div className="px-8">
               <div className="flex gap-2 mb-6 border-b border-gray-200 dark:border-gray-700 overflow-x-auto">
                 {tabs.map((tab) => (
@@ -408,7 +408,7 @@ const Profile = () => {
                 ))}
               </div>
 
-              {/* Tab Contents */}
+              
               {activeTab === "profile" && (
                 <form onSubmit={handleProfileUpdate} className="space-y-5">
                   {["name", "email", "phone", "address"].map((key, i) => (

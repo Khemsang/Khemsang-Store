@@ -33,7 +33,7 @@ const AdminReviews = () => {
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   
-  // Scroll to top when page changes
+
   useScrollToTop(currentPage);
   
   const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -46,7 +46,7 @@ const AdminReviews = () => {
 
   const fetchReviews = async () => {
     try {
-      // Fetch all products and their reviews
+
       const { data: productsRes } = await api.get("/products");
       const products = Array.isArray(productsRes) ? productsRes : (productsRes.products ?? []);
       const allReviews: Review[] = [];
@@ -67,7 +67,7 @@ const AdminReviews = () => {
             });
           });
         } catch (e) {
-          // Skip if no reviews
+
         }
       }
 
@@ -108,13 +108,13 @@ const AdminReviews = () => {
     return matchesSearch;
   });
 
-  // Pagination logic
+
   const totalPages = Math.ceil(filteredReviews.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const currentReviews = filteredReviews.slice(startIndex, endIndex);
 
-  // Reset to page 1 when search or filter changes
+
   useEffect(() => {
     setCurrentPage(1);
   }, [search, filter]);
@@ -139,7 +139,7 @@ const AdminReviews = () => {
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900 py-6 md:py-8">
       <div className="container">
-        {/* Header */}
+        
         <div className="mb-8">
           <h1 className="text-3xl md:text-4xl font-extrabold text-purple-600 dark:text-purple-400 flex items-center gap-3">
             <FaStar className="text-yellow-500" /> Review Management
@@ -149,7 +149,7 @@ const AdminReviews = () => {
           </p>
         </div>
 
-        {/* Filters */}
+        
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-4 mb-6">
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1 relative">
@@ -174,7 +174,7 @@ const AdminReviews = () => {
           </div>
         </div>
 
-        {/* Reviews List */}
+        
         <div className="space-y-4">
           {filteredReviews.length === 0 ? (
             <div className="bg-white dark:bg-gray-800 rounded-2xl p-12 text-center">
@@ -193,7 +193,7 @@ const AdminReviews = () => {
                 className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 hover:shadow-xl transition-shadow"
               >
                 <div className="flex flex-col md:flex-row gap-4">
-                  {/* Product Image */}
+                  
                   <div 
                     className="flex-shrink-0 cursor-pointer"
                     onClick={() => navigate(`/product/${review.product?._id}`)}
@@ -205,7 +205,7 @@ const AdminReviews = () => {
                     />
                   </div>
 
-                  {/* Review Content */}
+                  
                   <div className="flex-1">
                     <div className="flex flex-col md:flex-row md:items-start justify-between gap-2 mb-2">
                       <div>
@@ -235,7 +235,7 @@ const AdminReviews = () => {
                       {review.comment}
                     </p>
 
-                    {/* Actions */}
+                    
                     <div className="flex gap-2">
                       <button
                         onClick={() => navigate(`/product/${review.product?._id}`)}
@@ -259,7 +259,7 @@ const AdminReviews = () => {
           )}
         </div>
 
-        {/* Pagination */}
+        
         {filteredReviews.length > 0 && (
           <div className="mt-6">
             <Pagination

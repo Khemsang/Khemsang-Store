@@ -111,7 +111,7 @@ const AdminDashboard = () => {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-6 md:py-8 lg:py-10">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="space-y-6 md:space-y-8">
-          {/* Header */}
+          
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
               <div className="flex items-center gap-3 flex-wrap">
@@ -140,7 +140,7 @@ const AdminDashboard = () => {
             </div>
           </div>
 
-          {/* Stats Grid */}
+          
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
             {stats.map((stat, i) => (
               <Card key={i}>
@@ -166,9 +166,9 @@ const AdminDashboard = () => {
             ))}
           </div>
 
-          {/* Charts */}
+          
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
-            {/* Daily Revenue */}
+            
             <Card>
               <CardHeader>
                 <CardTitle className="text-base md:text-lg">Daily Revenue (Last 7 Days)</CardTitle>
@@ -200,7 +200,7 @@ const AdminDashboard = () => {
               </CardContent>
             </Card>
 
-            {/* Weekly Revenue */}
+            
             <Card>
               <CardHeader>
                 <CardTitle className="text-base md:text-lg">Weekly Revenue (Last 7 Weeks)</CardTitle>
@@ -226,7 +226,7 @@ const AdminDashboard = () => {
               </CardContent>
             </Card>
 
-            {/* Monthly Revenue Trend */}
+            
             <Card>
               <CardHeader>
                 <CardTitle className="text-base md:text-lg">Monthly Revenue Trend</CardTitle>
@@ -250,7 +250,7 @@ const AdminDashboard = () => {
               </CardContent>
             </Card>
 
-            {/* Order Status */}
+            
             <Card>
               <CardHeader>
                 <CardTitle className="text-base md:text-lg">Order Status Distribution</CardTitle>
@@ -277,7 +277,7 @@ const AdminDashboard = () => {
                   </BarChart>
                 </ResponsiveContainer>
                 
-                {/* Legend with totals */}
+                
                 <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
                   <div className="grid grid-cols-2 gap-3">
                     {orderStatusData.map((item: any, index: number) => {
@@ -301,7 +301,7 @@ const AdminDashboard = () => {
               </CardContent>
             </Card>
 
-            {/* Recent Orders */}
+            
             <Card className="lg:col-span-2">
               <CardHeader>
                 <CardTitle className="text-base md:text-lg">Recent Orders</CardTitle>

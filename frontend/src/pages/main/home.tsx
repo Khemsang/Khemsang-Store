@@ -28,7 +28,7 @@ const AnimatedSection: React.FC<{ children: React.ReactNode }> = ({
 }) => {
   const controls = useAnimation();
   const [ref, inView] = useInView({
-    triggerOnce: false, // change to false to allow multiple animations
+    triggerOnce: false,
     threshold: 0.2,
   });
 

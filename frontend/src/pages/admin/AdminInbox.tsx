@@ -90,17 +90,17 @@ const AdminInbox = () => {
   const [adminEmail, setAdminEmail] = useState<string>("");
   const [showFilters, setShowFilters] = useState(false);
   
-  // Calculate unread counts for each view
+
   const unreadCounts = {
     inbox: contextUnreadCount,
     starred: allMessages.starred?.filter(m => !m.isRead).length || 0,
-    sent: 0, // Sent messages don't have unread count
-    drafts: 0, // Drafts don't have unread count
+    sent: 0,
+    drafts: 0,
     trash: allMessages.trash?.filter(m => !m.isRead).length || 0,
   };
   const [showReplySection, setShowReplySection] = useState(false);
   const [filters, setFilters] = useState({
-    readStatus: "all", // all, read, unread
+    readStatus: "all",
     dateFrom: "",
     dateTo: "",
     sender: "",
@@ -129,7 +129,7 @@ const AdminInbox = () => {
   const recipientDropdownRef = useRef<HTMLDivElement>(null);
   const messageMenuRef = useRef<HTMLDivElement>(null);
 
-  // Get admin email from localStorage or API
+
   useEffect(() => {
     const getUserEmail = async () => {
       try {
@@ -138,7 +138,7 @@ const AdminInbox = () => {
           const user = JSON.parse(storedUser);
           setAdminEmail(user.email || "");
         } else {
-          // Fetch from API if not in localStorage
+
           const { data } = await api.get("/auth/me");
           setAdminEmail(data.email || "");
         }
@@ -149,7 +149,7 @@ const AdminInbox = () => {
     getUserEmail();
   }, []);
 
-  // Close dropdown when clicking outside
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (recipientDropdownRef.current && !recipientDropdownRef.current.contains(event.target as Node)) {
@@ -170,7 +170,7 @@ const AdminInbox = () => {
   }, []);
 
   useEffect(() => {
-    // Filter messages when view changes
+
     setMessages(allMessages[currentView] || []);
   }, [currentView, allMessages]);
 
@@ -178,7 +178,7 @@ const AdminInbox = () => {
     try {
       setLoading(true);
       
-      // Fetch all message types in parallel
+
       const [inboxRes, starredRes, sentRes, draftsRes, trashRes] = await Promise.all([
         api.get("/messages/inbox"),
         api.get("/messages/starred"),
@@ -195,7 +195,7 @@ const AdminInbox = () => {
         trash: trashRes.data,
       });
       
-      // Refresh context unread count
+
       await refreshUnreadCount();
     } catch (err) {
       error("Failed to fetch messages");
@@ -223,7 +223,7 @@ const AdminInbox = () => {
   };
 
   const fetchMessages = async () => {
-    // Refresh all messages
+
     await fetchAllMessages();
   };
 
@@ -236,10 +236,10 @@ const AdminInbox = () => {
       
       const wasUnread = !message.isRead;
       
-      // Update read status in allMessages for ALL views where this message might appear
+
       setAllMessages(prev => {
         const updated = { ...prev };
-        // Update in all views - IMPORTANT: use map to preserve all messages
+
         Object.keys(updated).forEach(view => {
           updated[view as ViewType] = updated[view as ViewType].map((m) => 
             m._id === message._id ? { ...m, isRead: true, readAt: data.readAt } : m
@@ -248,18 +248,18 @@ const AdminInbox = () => {
         return updated;
       });
       
-      // Update messages list (current view) - IMPORTANT: use map to preserve all messages
+
       setMessages(prev => prev.map(m => 
         m._id === message._id ? { ...m, isRead: true, readAt: data.readAt } : m
       ));
       
-      // Update unread count in context if message was unread and in inbox
+
       if (wasUnread && currentView === "inbox") {
         decrementUnreadCount();
       }
       
-      // For other views (starred, trash), the unread count is calculated from allMessages
-      // so it will update automatically when we update allMessages above
+
+
     } catch (err) {
       error("Failed to load message");
     }
@@ -284,7 +284,7 @@ const AdminInbox = () => {
           formData.append("message", replyText);
           formData.append("parentMessageId", selectedMessage._id);
           
-          // Add attachments if any
+
           attachments.forEach((file) => {
             formData.append("attachments", file);
           });
@@ -329,7 +329,7 @@ const AdminInbox = () => {
           formData.append("subject", composeForm.subject);
           formData.append("message", composeForm.message);
           
-          // Add attachments
+
           attachments.forEach((file) => {
             formData.append("attachments", file);
           });
@@ -363,7 +363,7 @@ const AdminInbox = () => {
 
   const handleSaveDraft = async () => {
     if (!composeForm.recipientId && !composeForm.subject.trim() && !composeForm.message.trim()) {
-      // Empty draft - don't save
+
       return;
     }
     try {
@@ -382,7 +382,7 @@ const AdminInbox = () => {
   };
 
   const handleCloseCompose = async (autoSave = false) => {
-    // Auto-save if there's content and autoSave is true
+
     if (autoSave && (composeForm.recipientId || composeForm.subject.trim() || composeForm.message.trim())) {
       await handleSaveDraft();
     }
@@ -395,7 +395,7 @@ const AdminInbox = () => {
   };
 
   const handleCancelCompose = () => {
-    // Cancel without saving
+
     setShowCompose(false);
     setComposeForm({ recipientId: "", recipientName: "", subject: "", message: "", draftId: "" });
     setRecipientSearch("");
@@ -456,7 +456,7 @@ const AdminInbox = () => {
             setSelectedMessage(null);
           }
           
-          // Refresh unread count from context
+
           await refreshUnreadCount();
         } catch (err) {
           error("Failed to delete message");
@@ -512,7 +512,7 @@ const AdminInbox = () => {
             setSelectedMessage(null);
           }
           
-          // Refresh unread count from context
+
           await refreshUnreadCount();
         } catch (err) {
           error("Failed to restore message");
@@ -521,7 +521,7 @@ const AdminInbox = () => {
     });
   };
 
-  // Checkbox selection handlers
+
   const handleSelectAll = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.checked) {
       setSelectedMessages(filteredMessages.map(m => m._id));
@@ -539,7 +539,7 @@ const AdminInbox = () => {
     }
   };
 
-  // Bulk actions
+
   const handleBulkDelete = async () => {
     if (selectedMessages.length === 0) return;
     
@@ -585,29 +585,29 @@ const AdminInbox = () => {
   };
 
   const filteredMessages = messages.filter((m) => {
-    // Search filter
+
     const matchesSearch =
       m.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
       m.sender.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       m.message.toLowerCase().includes(searchQuery.toLowerCase());
 
-    // Read status filter
+
     const matchesReadStatus =
       filters.readStatus === "all" ||
       (filters.readStatus === "read" && m.isRead) ||
       (filters.readStatus === "unread" && !m.isRead);
 
-    // Date from filter
+
     const matchesDateFrom =
       !filters.dateFrom ||
       new Date(m.createdAt) >= new Date(filters.dateFrom);
 
-    // Date to filter
+
     const matchesDateTo =
       !filters.dateTo ||
       new Date(m.createdAt) <= new Date(filters.dateTo + "T23:59:59");
 
-    // Sender filter
+
     const matchesSender =
       !filters.sender ||
       m.sender.name.toLowerCase().includes(filters.sender.toLowerCase()) ||
@@ -635,7 +635,7 @@ const AdminInbox = () => {
 
   return (
     <div className="flex flex-col h-full w-full bg-white dark:bg-gray-900">
-      {/* Mail Header */}
+      
       <div className="flex items-center justify-between px-4 py-2 border-b border-gray-200 dark:border-gray-700">
         <div className="flex items-center gap-4 flex-1">
           <button 
@@ -688,7 +688,7 @@ const AdminInbox = () => {
       </div>
 
       <div className="flex flex-1 overflow-hidden">
-        {/* Sidebar */}
+        
         {sidebarOpen && (
           <div className="w-64 border-r border-gray-200 dark:border-gray-700 p-2 transition-all duration-200">
             <button
@@ -703,7 +703,7 @@ const AdminInbox = () => {
             <button
               onClick={() => {
                 setCurrentView("inbox");
-                setSelectedMessage(null); // Close current message
+                setSelectedMessage(null);
               }}
               className={`w-full flex items-center gap-3 px-4 py-2 rounded-r-full transition-all duration-200 ease-in-out ${
                 currentView === "inbox"
@@ -721,7 +721,7 @@ const AdminInbox = () => {
             <button
               onClick={() => {
                 setCurrentView("starred");
-                setSelectedMessage(null); // Close current message
+                setSelectedMessage(null);
               }}
               className={`w-full flex items-center gap-3 px-4 py-2 rounded-r-full transition-all duration-200 ease-in-out ${
                 currentView === "starred"
@@ -739,7 +739,7 @@ const AdminInbox = () => {
             <button
               onClick={() => {
                 setCurrentView("sent");
-                setSelectedMessage(null); // Close current message
+                setSelectedMessage(null);
               }}
               className={`w-full flex items-center gap-3 px-4 py-2 rounded-r-full transition-all duration-200 ease-in-out ${
                 currentView === "sent"
@@ -754,7 +754,7 @@ const AdminInbox = () => {
             <button
               onClick={() => {
                 setCurrentView("drafts");
-                setSelectedMessage(null); // Close current message
+                setSelectedMessage(null);
               }}
               className={`w-full flex items-center gap-3 px-4 py-2 rounded-r-full transition-all duration-200 ease-in-out ${
                 currentView === "drafts"
@@ -769,7 +769,7 @@ const AdminInbox = () => {
             <button
               onClick={() => {
                 setCurrentView("trash");
-                setSelectedMessage(null); // Close current message
+                setSelectedMessage(null);
               }}
               className={`w-full flex items-center gap-3 px-4 py-2 rounded-r-full transition-all duration-200 ease-in-out ${
                 currentView === "trash"
@@ -788,11 +788,11 @@ const AdminInbox = () => {
         </div>
         )}
 
-        {/* Main Content */}
+        
         <div className="flex-1 flex flex-col overflow-hidden">
           {!selectedMessage ? (
             <>
-              {/* Toolbar */}
+              
               <div className="flex items-center justify-between px-4 py-2 border-b border-gray-200 dark:border-gray-700">
                 <div className="flex items-center gap-2">
                   <input 
@@ -844,7 +844,7 @@ const AdminInbox = () => {
                 </div>
               </div>
 
-              {/* Filter Panel */}
+              
               {showFilters && (
                 <div className="px-4 py-3 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
                   <div className="flex items-center justify-between mb-3">
@@ -920,7 +920,7 @@ const AdminInbox = () => {
                 </div>
               )}
 
-              {/* Message List */}
+              
               <div className="flex-1 overflow-y-auto">
                 {filteredMessages.length === 0 ? (
                   <div className="flex flex-col items-center justify-center h-full text-gray-400">
@@ -1067,7 +1067,7 @@ const AdminInbox = () => {
               </div>
             </>
           ) : (
-            /* Message Detail View */
+            
             <div key={selectedMessage._id} className="flex-1 flex flex-col overflow-hidden transition-opacity duration-200">
               <div className="flex items-center gap-4 px-4 py-3 border-b border-gray-200 dark:border-gray-700">
                 <button onClick={() => setSelectedMessage(null)} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full">
@@ -1126,7 +1126,7 @@ const AdminInbox = () => {
                   {selectedMessage.message}
                 </div>
 
-                {/* Attachments */}
+                
                 {selectedMessage.attachments && selectedMessage.attachments.length > 0 && (
                   <div className="mb-8">
                     <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
@@ -1181,7 +1181,7 @@ const AdminInbox = () => {
                         <div className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap mb-3">
                           {reply.message}
                         </div>
-                        {/* Reply Attachments */}
+                        
                         {reply.attachments && reply.attachments.length > 0 && (
                           <div className="mt-3">
                             <div className="flex flex-wrap gap-2">
@@ -1234,7 +1234,7 @@ const AdminInbox = () => {
                           className="mb-4"
                         />
                         
-                        {/* Attachment Upload for Reply */}
+                        
                         <div className="mb-4">
                           <label className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg cursor-pointer w-fit transition-colors">
                             <Paperclip className="w-4 h-4" />
@@ -1298,15 +1298,15 @@ const AdminInbox = () => {
         </div>
       </div>
 
-      {/* Compose Dialog - Clean Shadcn Design */}
+      
       <Dialog open={showCompose} onOpenChange={(open) => {
         if (!open) {
-          // Dialog closing - auto-save draft
+
           handleCloseCompose(true);
         }
       }}>
         <DialogContent className="max-w-3xl w-full max-h-[90vh] p-0 overflow-hidden gap-0">
-          {/* Header */}
+          
           <div className="flex items-center justify-between px-6 py-4 border-b bg-white dark:bg-gray-900">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
@@ -1323,9 +1323,9 @@ const AdminInbox = () => {
             </div>
           </div>
 
-          {/* Form Content */}
+          
           <div className="flex-1 overflow-y-auto px-6 py-4 space-y-5 bg-gray-50 dark:bg-gray-900">
-            {/* Recipient Field */}
+            
             <div className="space-y-2">
               <Label className="text-sm font-semibold text-gray-900 dark:text-white">
                 Recipient
@@ -1349,7 +1349,7 @@ const AdminInbox = () => {
                   <Search className="w-4 h-4 text-gray-400" />
                 </div>
                 
-                {/* Dropdown with filtered customers */}
+                
                 {showRecipientDropdown && recipientSearch && filteredCustomers.length > 0 && (
                   <div className="absolute z-50 w-full mt-2 bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 rounded-lg shadow-2xl max-h-60 overflow-y-auto">
                     {filteredCustomers.map((customer) => (
@@ -1370,7 +1370,7 @@ const AdminInbox = () => {
                   </div>
                 )}
                 
-                {/* No results message */}
+                
                 {showRecipientDropdown && recipientSearch && filteredCustomers.length === 0 && (
                   <div className="absolute z-50 w-full mt-2 bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-700 rounded-lg shadow-2xl p-4 text-center text-sm text-gray-500 dark:text-gray-400">
                     No customers found matching "{recipientSearch}"
@@ -1385,7 +1385,7 @@ const AdminInbox = () => {
               )}
             </div>
 
-            {/* Subject Field */}
+            
             <div className="space-y-2">
               <Label className="text-sm font-semibold text-gray-900 dark:text-white">
                 Subject
@@ -1398,7 +1398,7 @@ const AdminInbox = () => {
               />
             </div>
 
-            {/* Message Field */}
+            
             <div className="space-y-2">
               <Label className="text-sm font-semibold text-gray-900 dark:text-white">
                 Message
@@ -1416,7 +1416,7 @@ const AdminInbox = () => {
               </div>
             </div>
 
-            {/* Attachments Field */}
+            
             <div className="space-y-2">
               <Label className="text-sm font-semibold text-gray-900 dark:text-white">
                 Attachments
@@ -1469,7 +1469,7 @@ const AdminInbox = () => {
             </div>
           </div>
 
-          {/* Footer with Action Buttons */}
+          
           <div className="flex items-center justify-between gap-3 px-6 py-4 border-t bg-white dark:bg-gray-900">
             <div className="flex items-center gap-3">
               <button
@@ -1494,7 +1494,7 @@ const AdminInbox = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Confirmation Dialog */}
+      
       <ConfirmDialog
         open={confirmDialog.open}
         onOpenChange={(open) => setConfirmDialog({ ...confirmDialog, open })}

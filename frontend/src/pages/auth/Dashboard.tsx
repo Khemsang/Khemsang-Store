@@ -80,7 +80,7 @@ const Dashboard: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900 transition-colors duration-300 py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header Section */}
+        
         <div className="mb-8">
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 transition-all duration-300 p-6 sm:p-8">
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
@@ -106,7 +106,7 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* Stats Grid */}
+        
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
           {stats.map((stat, index) => (
             <div
@@ -132,7 +132,7 @@ const Dashboard: React.FC = () => {
           ))}
         </div>
 
-        {/* Quick Actions */}
+        
         <div className="mb-8">
           <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white mb-6">
             Quick Actions
@@ -160,7 +160,7 @@ const Dashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* Recent Activity */}
+        
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 transition-all duration-300 p-6 sm:p-8">
           <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white mb-6">
             Recent Activity

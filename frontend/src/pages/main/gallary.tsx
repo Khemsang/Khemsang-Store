@@ -74,7 +74,7 @@ const GalleryPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-16">
       <div className="container mx-auto px-4">
-        {/* Header */}
+        
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -88,7 +88,7 @@ const GalleryPage: React.FC = () => {
           </p>
         </motion.div>
 
-        {/* Category Filter */}
+        
         <div className="flex flex-wrap justify-center gap-3 mb-12">
           {categories.map((cat) => (
             <button
@@ -108,7 +108,7 @@ const GalleryPage: React.FC = () => {
           ))}
         </div>
 
-        {/* Gallery Grid */}
+        
         {filteredItems.length === 0 ? (
           <div className="text-center py-16">
             <p className="text-gray-500 dark:text-gray-400 text-lg">
@@ -149,7 +149,7 @@ const GalleryPage: React.FC = () => {
               ))}
             </div>
 
-            {/* Load More Button */}
+            
             {filteredItems.length > ITEMS_PER_LOAD && (
               <div className="text-center mt-12">
                 <button
@@ -167,7 +167,7 @@ const GalleryPage: React.FC = () => {
           </>
         )}
 
-        {/* Modal */}
+        
         <AnimatePresence>
           {currentIndex !== null && (
             <motion.div

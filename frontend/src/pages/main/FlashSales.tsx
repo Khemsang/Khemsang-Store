@@ -102,14 +102,14 @@ const FlashSales = () => {
 
   return (
     <section className="min-h-screen bg-gradient-to-br from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 py-8 relative overflow-hidden">
-      {/* Subtle Background Elements */}
+      
       <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-30">
         <div className="absolute top-20 left-20 w-64 h-64 bg-orange-200/30 dark:bg-orange-900/20 rounded-full blur-3xl"></div>
         <div className="absolute bottom-20 right-20 w-80 h-80 bg-red-200/30 dark:bg-red-900/20 rounded-full blur-3xl"></div>
       </div>
 
       <div className="container mx-auto px-4 relative z-10 max-w-7xl">
-        {/* Back Button */}
+        
         <motion.button
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
@@ -121,7 +121,7 @@ const FlashSales = () => {
           <span className="font-semibold">Back to Home</span>
         </motion.button>
 
-        {/* Header */}
+        
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -140,7 +140,7 @@ const FlashSales = () => {
             Limited time offers - Grab them before they're gone!
           </p>
 
-          {/* Countdown Timer */}
+          
           {products.length > 0 && products[0].flashEndTime && (
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
@@ -174,7 +174,7 @@ const FlashSales = () => {
             </motion.div>
           )}
 
-          {/* Stats */}
+          
           {products.length > 0 && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -188,7 +188,7 @@ const FlashSales = () => {
           )}
         </motion.div>
 
-        {/* Products Grid */}
+        
         {products.length === 0 ? (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -215,7 +215,7 @@ const FlashSales = () => {
           </motion.div>
         ) : (
           <>
-            {/* Products Count Badge */}
+            
             <motion.div
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -233,7 +233,7 @@ const FlashSales = () => {
               </div>
             </motion.div>
 
-            {/* Products Grid - Clean & Consistent */}
+            
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}

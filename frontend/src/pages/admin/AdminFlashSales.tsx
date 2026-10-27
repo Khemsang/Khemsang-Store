@@ -64,7 +64,7 @@ const AdminFlashSales = () => {
     flashStartTime: "",
     flashEndTime: "",
     flashStock: 0,
-    variantColorName: "", // For variant-specific flash sale
+    variantColorName: "",
   });
 
   const { success, error } = useToast();
@@ -145,7 +145,7 @@ const AdminFlashSales = () => {
         ...prev,
         productId,
         flashStock: Math.min(10, product.stock),
-        variantColorName: "", // Reset variant selection
+        variantColorName: "",
       }));
     }
   };
@@ -154,14 +154,14 @@ const AdminFlashSales = () => {
     if (!selectedProduct) return;
     
     if (variantColorName === "") {
-      // Product-level flash sale
+
       setFormData(prev => ({
         ...prev,
         variantColorName: "",
         flashStock: Math.min(10, selectedProduct.stock),
       }));
     } else {
-      // Variant-specific flash sale
+
       const variant = selectedProduct.colorVariants?.find(v => v.colorName === variantColorName);
       if (variant) {
         setFormData(prev => ({
@@ -216,7 +216,7 @@ const AdminFlashSales = () => {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="container mx-auto p-6">
-        {/* Header */}
+        
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
           <div className="flex items-center gap-3">
             <FaFire className="w-8 h-8 text-orange-500" />
@@ -232,7 +232,7 @@ const AdminFlashSales = () => {
           </button>
         </div>
 
-        {/* Tabs */}
+        
         <div className="flex gap-4 mb-6 border-b border-gray-200 dark:border-gray-700">
           <button
             onClick={() => setActiveTab("active")}
@@ -266,7 +266,7 @@ const AdminFlashSales = () => {
           </button>
         </div>
 
-        {/* Flash Sales List */}
+        
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {flashSales[activeTab].map((product) => (
             <motion.div
@@ -293,7 +293,7 @@ const AdminFlashSales = () => {
                   {product.title}
                 </h3>
 
-                {/* Show variant info if it's a variant-specific flash sale */}
+                
                 {product.colorVariants?.some(v => v.isFlashSale) && (
                   <div className="mb-3">
                     <p className="text-sm font-medium text-blue-600 dark:text-blue-400 mb-2">
@@ -367,7 +367,7 @@ const AdminFlashSales = () => {
           </div>
         )}
 
-        {/* Create Flash Sale Modal */}
+        
         {showCreateModal && (
           <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 overflow-y-auto">
             <motion.div
@@ -375,7 +375,7 @@ const AdminFlashSales = () => {
               animate={{ opacity: 1, scale: 1 }}
               className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-3xl w-full my-8"
             >
-              {/* Header */}
+              
               <div className="bg-gradient-to-r from-orange-500 to-red-500 p-6 rounded-t-2xl">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
@@ -397,7 +397,7 @@ const AdminFlashSales = () => {
               </div>
 
               <form onSubmit={handleCreateFlashSale} className="p-6 space-y-6 max-h-[calc(90vh-120px)] overflow-y-auto">
-                {/* Product Selection */}
+                
                 <div className="space-y-2">
                   <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
                     Select Product *
@@ -427,7 +427,7 @@ const AdminFlashSales = () => {
 
                 {selectedProduct && (
                   <>
-                    {/* Product Preview Card */}
+                    
                     <div className="bg-gradient-to-br from-orange-50 to-red-50 dark:from-gray-700 dark:to-gray-600 rounded-xl p-4 border-2 border-orange-200 dark:border-orange-700">
                       <div className="flex gap-4">
                         <img
@@ -451,7 +451,7 @@ const AdminFlashSales = () => {
                       </div>
                     </div>
 
-                    {/* Variant Selection (if product has variants) */}
+                    
                     {selectedProduct.colorVariants && selectedProduct.colorVariants.length > 0 && (
                       <div className="space-y-2">
                         <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
@@ -482,7 +482,7 @@ const AdminFlashSales = () => {
                       </div>
                     )}
 
-                    {/* Discount Type */}
+                    
                     <div className="space-y-2">
                       <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
                         Discount Type *
@@ -520,7 +520,7 @@ const AdminFlashSales = () => {
                       </div>
                     </div>
 
-                    {/* Discount Value */}
+                    
                     <div className="space-y-2">
                       <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
                         Discount Value * {formData.flashDiscountType === "percentage" && "(Max: 100%)"}
@@ -575,7 +575,7 @@ const AdminFlashSales = () => {
                       )}
                     </div>
 
-                    {/* Time Selection */}
+                    
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
@@ -606,7 +606,7 @@ const AdminFlashSales = () => {
                       </div>
                     </div>
 
-                    {/* Flash Stock */}
+                    
                     <div className="space-y-2">
                       <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
                         <FaBox className="inline mr-2" />
@@ -629,7 +629,7 @@ const AdminFlashSales = () => {
                   </>
                 )}
 
-                {/* Buttons */}
+                
                 <div className="flex gap-4 pt-4 border-t border-gray-200 dark:border-gray-700">
                   <button
                     type="button"

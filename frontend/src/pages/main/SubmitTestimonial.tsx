@@ -31,7 +31,7 @@ const SubmitTestimonial: React.FC = () => {
     try {
       const response = await testimonialsApi.create(formData);
 
-      // Refresh testimonials list
+
       await dispatch(fetchTestimonials());
 
       success("Thank you! Your testimonial has been posted successfully!");
@@ -74,12 +74,12 @@ const SubmitTestimonial: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50 dark:from-gray-900 dark:via-purple-900/20 dark:to-pink-900/20 py-16 md:py-20 relative overflow-hidden">
-      {/* Decorative Elements */}
+      
       <div className="absolute top-20 left-10 w-40 h-40 bg-gradient-to-br from-purple-400/20 to-pink-400/20 rounded-full blur-3xl animate-pulse"></div>
       <div className="absolute bottom-20 right-10 w-48 h-48 bg-gradient-to-br from-orange-400/20 to-yellow-400/20 rounded-full blur-3xl animate-pulse animation-delay-2000"></div>
 
       <div className="container px-4 md:px-6 lg:px-8 max-w-3xl mx-auto relative z-10">
-        {/* Header */}
+        
         <div className="text-center mb-12">
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-full mb-6 shadow-lg">
             <span className="text-2xl">✨</span>
@@ -100,7 +100,7 @@ const SubmitTestimonial: React.FC = () => {
 
         <div className="bg-white/90 dark:bg-gray-800/90 backdrop-blur-xl rounded-3xl p-8 md:p-10 shadow-2xl border border-purple-100 dark:border-purple-900">
           <form onSubmit={handleSubmit} className="space-y-8">
-            {/* Name */}
+            
             <div className="group">
               <label className="flex items-center gap-2 text-sm font-bold text-gray-700 dark:text-gray-300 mb-3">
                 <span className="text-xl">👤</span>
@@ -118,7 +118,7 @@ const SubmitTestimonial: React.FC = () => {
               />
             </div>
 
-            {/* Rating */}
+            
             <div className="group">
               <label className="flex items-center gap-2 text-sm font-bold text-gray-700 dark:text-gray-300 mb-4">
                 <span className="text-xl">⭐</span>
@@ -129,7 +129,7 @@ const SubmitTestimonial: React.FC = () => {
               </div>
             </div>
 
-            {/* Testimonial */}
+            
             <div className="group">
               <label className="flex items-center gap-2 text-sm font-bold text-gray-700 dark:text-gray-300 mb-3">
                 <span className="text-xl">💬</span>
@@ -161,7 +161,7 @@ const SubmitTestimonial: React.FC = () => {
               </div>
             </div>
 
-            {/* Submit Button */}
+            
             <div className="flex flex-col sm:flex-row gap-4 pt-4">
               <button
                 type="submit"
@@ -220,7 +220,7 @@ const SubmitTestimonial: React.FC = () => {
             </div>
           </form>
 
-          {/* Success Note */}
+          
           <div className="mt-8 p-6 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-2xl border-2 border-green-200 dark:border-green-800 shadow-lg">
             <div className="flex items-start gap-4">
               <div className="flex-shrink-0 w-12 h-12 bg-green-500 rounded-full flex items-center justify-center text-2xl shadow-lg">

@@ -149,7 +149,7 @@ const AdminContact = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50 dark:from-gray-900 dark:via-purple-900/20 dark:to-pink-900/20 py-6 md:py-8">
       <div className="container">
-        {/* Header */}
+        
         <div className="mb-8 text-center">
           <div className="inline-flex items-center gap-3 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full mb-4 shadow-lg">
             <FaEnvelope className="text-white text-2xl" />
@@ -165,7 +165,7 @@ const AdminContact = () => {
           </p>
         </div>
 
-        {/* Tabs */}
+        
         <div className="flex justify-center gap-4 mb-8">
           <button
             onClick={() => setActiveTab("settings")}
@@ -197,7 +197,7 @@ const AdminContact = () => {
 
         {activeTab === "settings" ? (
           <form onSubmit={handleSubmit} className="max-w-4xl mx-auto space-y-6">
-            {/* Contact Information */}
+            
             <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 md:p-8 border border-purple-100 dark:border-purple-900/30">
               <div className="flex items-center gap-3 mb-6">
                 <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-xl flex items-center justify-center">
@@ -283,7 +283,7 @@ const AdminContact = () => {
               </div>
             </div>
 
-            {/* Social Media */}
+            
             <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 md:p-8 border border-purple-100 dark:border-purple-900/30">
               <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-6">
                 Social Media Links
@@ -379,7 +379,7 @@ const AdminContact = () => {
               </div>
             </div>
 
-            {/* Submit Button */}
+            
             <div className="sticky bottom-4 z-10 flex justify-center">
               <button
                 type="submit"

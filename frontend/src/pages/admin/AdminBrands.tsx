@@ -154,7 +154,7 @@ const AdminBrands = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-orange-50 dark:from-gray-900 dark:via-purple-900/20 dark:to-pink-900/20 py-6 md:py-8">
       <div className="container">
-        {/* Header */}
+        
         <div className="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
             <h1 className="text-3xl md:text-4xl font-extrabold bg-gradient-to-r from-purple-600 via-pink-600 to-orange-600 bg-clip-text text-transparent">
@@ -172,7 +172,7 @@ const AdminBrands = () => {
           </button>
         </div>
 
-        {/* Form Modal */}
+        
         {showForm && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
             <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-lg w-full p-6">
@@ -189,7 +189,7 @@ const AdminBrands = () => {
               </div>
 
               <form onSubmit={handleSubmit} className="space-y-5">
-                {/* Name */}
+                
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                     Brand Name *
@@ -206,7 +206,7 @@ const AdminBrands = () => {
                   />
                 </div>
 
-                {/* Logo */}
+                
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                     Logo *
@@ -246,7 +246,7 @@ const AdminBrands = () => {
                   )}
                 </div>
 
-                {/* Website */}
+                
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                     Website URL (optional)
@@ -265,7 +265,7 @@ const AdminBrands = () => {
                   </div>
                 </div>
 
-                {/* Active Toggle */}
+                
                 <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-xl">
                   <span className="font-medium text-gray-700 dark:text-gray-300">
                     Active
@@ -287,7 +287,7 @@ const AdminBrands = () => {
                   </button>
                 </div>
 
-                {/* Actions */}
+                
                 <div className="flex gap-3 pt-4">
                   <button
                     type="button"
@@ -309,7 +309,7 @@ const AdminBrands = () => {
           </div>
         )}
 
-        {/* Brands Grid */}
+        
         {brands.length === 0 ? (
           <div className="text-center py-20 bg-white dark:bg-gray-800 rounded-2xl">
             <FaImage className="mx-auto text-6xl text-gray-300 mb-4" />
@@ -337,7 +337,7 @@ const AdminBrands = () => {
                     : "border-gray-200 dark:border-gray-700 opacity-60"
                 }`}
               >
-                {/* Logo */}
+                
                 <div className="p-6 bg-gray-50 dark:bg-gray-700 flex items-center justify-center h-32">
                   <img
                     src={brand.logo}
@@ -346,7 +346,7 @@ const AdminBrands = () => {
                   />
                 </div>
 
-                {/* Info */}
+                
                 <div className="p-4">
                   <div className="flex items-center justify-between mb-2">
                     <h3 className="font-bold text-gray-900 dark:text-white">
@@ -374,7 +374,7 @@ const AdminBrands = () => {
                     </a>
                   )}
 
-                  {/* Actions */}
+                  
                   <div className="flex gap-2 pt-3 border-t border-gray-100 dark:border-gray-700">
                     <button
                       onClick={() => handleToggleActive(brand)}

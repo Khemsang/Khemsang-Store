@@ -61,7 +61,7 @@ interface Category {
   isActive: boolean;
 }
 
-// Available icons for categories
+
 const availableIcons = [
   { name: "FaCouch", icon: FaCouch, label: "Couch" },
   { name: "FaChair", icon: FaChair, label: "Chair" },
@@ -105,7 +105,7 @@ const availableIcons = [
   { name: "FaPaintBrush", icon: FaPaintBrush, label: "Paint" },
 ];
 
-// Helper to get icon component
+
 const getIconComponent = (iconName?: string) => {
   const iconObj = availableIcons.find((i) => i.name === iconName);
   return iconObj ? iconObj.icon : FaBox;
@@ -129,7 +129,7 @@ const AdminCategories = () => {
   const { success, error } = useToast();
   const { user } = useAuth();
   
-  // Check if user is super admin
+
   const isSuperAdmin = user?.isSuperAdmin || false;
 
   useEffect(() => {
@@ -228,7 +228,7 @@ const AdminCategories = () => {
 
   return (
     <div className="p-6 space-y-6 dark:bg-gray-900 h-full">
-      {/* Header */}
+      
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold dark:text-white">Categories</h1>
@@ -245,7 +245,7 @@ const AdminCategories = () => {
         )}
       </div>
 
-      {/* Super Admin Only Notice */}
+      
       {!isSuperAdmin && (
         <Card className="bg-amber-50 dark:bg-amber-950 border-amber-200 dark:border-amber-800">
           <CardContent className="p-4 flex items-center gap-3">
@@ -257,7 +257,7 @@ const AdminCategories = () => {
         </Card>
       )}
 
-      {/* Form */}
+      
       {showForm && isSuperAdmin && (
         <Card>
           <CardHeader>
@@ -283,7 +283,7 @@ const AdminCategories = () => {
                 />
               </div>
 
-              {/* Image Upload */}
+              
               <div>
                 <Label>Category Image</Label>
                 <Input
@@ -306,7 +306,7 @@ const AdminCategories = () => {
                 </p>
               </div>
               
-              {/* Icon Selector */}
+              
               <div>
                 <Label className="mb-3 block">Select Icon *</Label>
                 <div className="grid grid-cols-6 sm:grid-cols-8 md:grid-cols-10 gap-2 max-h-64 overflow-y-auto p-2 border rounded-lg bg-gray-50 dark:bg-gray-800">
@@ -359,7 +359,7 @@ const AdminCategories = () => {
         </Card>
       )}
 
-      {/* Categories Grid */}
+      
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {categories.map((category) => {
           const IconComponent = getIconComponent(category.icon);

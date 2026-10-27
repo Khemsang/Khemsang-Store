@@ -55,7 +55,7 @@ const ReturnPolicy = () => {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-12">
       <div className="container mx-auto px-4 max-w-4xl">
-        {/* Header */}
+        
         <div className="text-center mb-12">
           <div className="w-16 h-16 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
             <FaUndo className="w-8 h-8 text-green-600" />
@@ -68,7 +68,7 @@ const ReturnPolicy = () => {
           </p>
         </div>
 
-        {/* Return Window */}
+        
         <div className="bg-gradient-to-r from-green-500 to-emerald-500 rounded-2xl p-6 md:p-8 text-white mb-8">
           <div className="flex items-center gap-4">
             <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center">
@@ -84,7 +84,7 @@ const ReturnPolicy = () => {
           </div>
         </div>
 
-        {/* Return Process */}
+        
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 md:p-8 mb-8">
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
             <FaExchangeAlt className="text-purple-600" />
@@ -112,9 +112,9 @@ const ReturnPolicy = () => {
           </div>
         </div>
 
-        {/* Eligible & Non-Eligible */}
+        
         <div className="grid md:grid-cols-2 gap-6 mb-8">
-          {/* Eligible */}
+          
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6">
             <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
               <FaCheckCircle className="text-green-500" />
@@ -133,7 +133,7 @@ const ReturnPolicy = () => {
             </ul>
           </div>
 
-          {/* Non-Eligible */}
+          
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6">
             <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
               <FaTimesCircle className="text-red-500" />
@@ -153,7 +153,7 @@ const ReturnPolicy = () => {
           </div>
         </div>
 
-        {/* Refund Info */}
+        
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-6 md:p-8 mb-8">
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
             <FaBox className="text-blue-600" />
@@ -191,7 +191,7 @@ const ReturnPolicy = () => {
           </div>
         </div>
 
-        {/* Contact */}
+        
         <div className="text-center bg-purple-50 dark:bg-purple-900/20 rounded-2xl p-6">
           <p className="text-gray-600 dark:text-gray-400 mb-2">
             Have questions about returns?

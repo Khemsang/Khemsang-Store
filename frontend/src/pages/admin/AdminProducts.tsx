@@ -27,7 +27,7 @@ import {
   BarChart3,
 } from "lucide-react";
 
-// Predefined colors matching backend
+
 const PREDEFINED_COLORS = [
   { name: "Black", code: "#000000" },
   { name: "White", code: "#FFFFFF" },
@@ -79,7 +79,7 @@ const AdminProducts = () => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(9); // 3x3 grid
+  const [itemsPerPage] = useState(9);
   const [submitting, setSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     title: "",
@@ -134,9 +134,9 @@ const AdminProducts = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (submitting) return; // Prevent double submission
+    if (submitting) return;
     
-    // Validate discount
+
     if (formData.discount) {
       const discountValue = parseFloat(formData.discount);
       if (discountValue < 0 || discountValue > 100) {
@@ -175,7 +175,7 @@ const AdminProducts = () => {
           headers: { "Content-Type": "multipart/form-data" },
         });
         
-        // Upload variant images if product was created successfully
+
         if (response.data._id && variants.length > 0) {
           for (let i = 0; i < variants.length; i++) {
             const variant = variants[i];
@@ -188,7 +188,7 @@ const AdminProducts = () => {
               if (variant.price) variantData.append("price", variant.price.toString());
               variantData.append("isActive", variant.isActive.toString());
               
-              // Add variant images
+
               variant.images.forEach((img: any) => {
                 if (img instanceof File) {
                   variantData.append("images", img);
@@ -330,13 +330,13 @@ const AdminProducts = () => {
     products.title.toLowerCase().includes(search.toLowerCase())
   );
 
-  // Pagination logic
+
   const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const currentProducts = filteredProducts.slice(startIndex, endIndex);
 
-  // Reset to page 1 when search changes
+
   useEffect(() => {
     setCurrentPage(1);
   }, [search]);
@@ -481,7 +481,7 @@ const AdminProducts = () => {
                 </div>
               </div>
               
-              {/* Color Variants Section */}
+              
               <div className="border-t pt-4 mt-4">
                 <div className="flex items-center justify-between mb-3">
                   <Label className="text-lg">Color Variants ({variants.length})</Label>
@@ -496,15 +496,15 @@ const AdminProducts = () => {
                   </Button>
                 </div>
 
-                {/* Variant Form */}
+                
                 {showVariantForm && (
                   <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg space-y-3 mb-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      {/* Color Picker Only */}
+                      
                       <div className="md:col-span-2">
                         <Label>Color *</Label>
                         <div className="flex gap-3 items-start">
-                          {/* Color Name Input */}
+                          
                           <div className="flex-1">
                             <Input
                               type="text"
@@ -515,7 +515,7 @@ const AdminProducts = () => {
                             />
                           </div>
                           
-                          {/* Color Picker */}
+                          
                           <div className="flex flex-col items-center gap-1">
                             <input
                               type="color"
@@ -528,7 +528,7 @@ const AdminProducts = () => {
                           </div>
                         </div>
                         
-                        {/* Color Preview */}
+                        
                         {variantForm.colorName && variantForm.colorCode && (
                           <div className="flex items-center gap-3 mt-3 p-3 bg-white dark:bg-gray-700 rounded-lg border">
                             <div
@@ -621,7 +621,7 @@ const AdminProducts = () => {
                   </div>
                 )}
 
-                {/* Variants List */}
+                
                 {variants.length > 0 && (
                   <div className="space-y-2">
                     {variants.map((variant, index) => (
@@ -771,7 +771,7 @@ const AdminProducts = () => {
             </div>
           )}
           
-          {/* Pagination */}
+          
           {totalPages > 1 && (
             <div className="flex items-center justify-center gap-2 mt-6">
               <Button
@@ -785,7 +785,7 @@ const AdminProducts = () => {
               
               <div className="flex gap-1">
                 {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
-                  // Show first page, last page, current page, and pages around current
+
                   if (
                     page === 1 ||
                     page === totalPages ||
@@ -827,7 +827,7 @@ const AdminProducts = () => {
         </CardContent>
       </Card>
       
-      {/* Variant Stats Dialog */}
+      
       <Dialog open={showStatsDialog} onOpenChange={setShowStatsDialog}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>

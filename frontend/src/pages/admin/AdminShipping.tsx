@@ -48,7 +48,7 @@ const AdminShipping = () => {
   const [newStatus, setNewStatus] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   
-  // Scroll to top when page changes
+
   useScrollToTop(currentPage);
   
   const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -114,13 +114,13 @@ const filteredOrders = safeOrders
       o.trackingNumber?.toLowerCase().includes(search)
   );
 
-  // Pagination logic
+
   const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const currentOrders = filteredOrders.slice(startIndex, endIndex);
 
-  // Reset to page 1 when search or filter changes
+
   useEffect(() => {
     setCurrentPage(1);
   }, [searchTerm, statusFilter]);
@@ -168,7 +168,7 @@ const stats = (Array.isArray(orders) ? orders : []).reduce(
 
   return (
     <div className="space-y-6 dark:bg-gray-900 h-full p-7">
-      {/* Header */}
+      
       <div>
         <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
           Shipping Management
@@ -178,7 +178,7 @@ const stats = (Array.isArray(orders) ? orders : []).reduce(
         </p>
       </div>
 
-      {/* Stats Cards */}
+      
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
           {
@@ -239,7 +239,7 @@ const stats = (Array.isArray(orders) ? orders : []).reduce(
         ))}
       </div>
 
-      {/* Filters */}
+      
       <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-lg border border-gray-200 dark:border-gray-700">
         <div className="flex flex-col md:flex-row gap-4">
           <div className="flex-1 relative">
@@ -265,7 +265,7 @@ const stats = (Array.isArray(orders) ? orders : []).reduce(
         </div>
       </div>
 
-      {/* Orders List */}
+      
       <div className="space-y-4">
         <AnimatePresence>
           {currentOrders.map((order) => (
@@ -318,7 +318,7 @@ const stats = (Array.isArray(orders) ? orders : []).reduce(
                 </div>
 
                 <div className="grid md:grid-cols-3 gap-4">
-                  {/* Customer Info */}
+                  
                   <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
                     <p className="text-xs text-gray-500 dark:text-gray-400 uppercase mb-2">
                       Customer
@@ -331,7 +331,7 @@ const stats = (Array.isArray(orders) ? orders : []).reduce(
                     </p>
                   </div>
 
-                  {/* Shipping Address */}
+                  
                   <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
                     <p className="text-xs text-gray-500 dark:text-gray-400 uppercase mb-2 flex items-center gap-1">
                       <FaMapMarkerAlt /> Shipping To
@@ -344,7 +344,7 @@ const stats = (Array.isArray(orders) ? orders : []).reduce(
                     </p>
                   </div>
 
-                  {/* Order Summary */}
+                  
                   <div className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4">
                     <p className="text-xs text-gray-500 dark:text-gray-400 uppercase mb-2">
                       Order Summary
@@ -358,7 +358,7 @@ const stats = (Array.isArray(orders) ? orders : []).reduce(
                   </div>
                 </div>
 
-                {/* Edit Form */}
+                
                 {editingOrder === order._id && (
                   <motion.div
                     initial={{ opacity: 0, height: 0 }}
@@ -424,7 +424,7 @@ const stats = (Array.isArray(orders) ? orders : []).reduce(
                   </motion.div>
                 )}
 
-                {/* Tracking Info */}
+                
                 {order.trackingNumber && editingOrder !== order._id && (
                   <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 flex flex-wrap items-center gap-4">
                     <div className="flex items-center gap-2">
@@ -464,7 +464,7 @@ const stats = (Array.isArray(orders) ? orders : []).reduce(
         )}
       </div>
 
-      {/* Pagination */}
+      
       {filteredOrders.length > 0 && (
         <Pagination
           currentPage={currentPage}

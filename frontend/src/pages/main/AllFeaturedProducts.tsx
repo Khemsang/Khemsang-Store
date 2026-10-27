@@ -90,7 +90,7 @@ const AllFeaturedProducts = () => {
       const { data } = await api.get("/flash-sales/home?limit=8");
       setFlashProducts(data);
     } catch (error) {
-      // Silently fail - flash sales are optional
+
     }
   };
 
@@ -99,7 +99,7 @@ const AllFeaturedProducts = () => {
       const { data } = await api.get("/products?sort=-createdAt&limit=8");
       setLatestProducts(data.products || data);
     } catch (error) {
-      // Silently fail - latest products are optional
+
     }
   };
 
@@ -108,7 +108,7 @@ const AllFeaturedProducts = () => {
       const { data } = await api.get("/products?sort=-sold&limit=8");
       setTopSellingProducts(data.products || data);
     } catch (error) {
-      // Silently fail - top selling products are optional
+
     }
   };
 
@@ -154,7 +154,7 @@ const AllFeaturedProducts = () => {
   return (
     <section className="min-h-screen bg-gray-50 dark:bg-gray-900 py-16 md:py-20">
       <div className="container mx-auto px-4 md:px-6 lg:px-8 max-w-7xl">
-        {/* Header */}
+        
         <div className="text-center mb-12">
           <Badge className="mb-4 bg-blue-600 text-white">
             <Star className="w-4 h-4 mr-1" />
@@ -168,7 +168,7 @@ const AllFeaturedProducts = () => {
           </p>
         </div>
 
-        {/* Products Grid */}
+        
         {products.length === 0 ? (
           <Card className="text-center py-20">
             <ShoppingCart className="mx-auto h-24 w-24 text-gray-400 mb-4" />
@@ -242,7 +242,7 @@ const AllFeaturedProducts = () => {
               ))}
             </div>
 
-            {/* Flash Sale Section */}
+            
             {flashProducts.length > 0 && (
               <div className="mb-16">
                 <div className="flex items-center gap-3 mb-6">
@@ -269,7 +269,7 @@ const AllFeaturedProducts = () => {
               </div>
             )}
 
-            {/* Latest Products Section */}
+            
             {latestProducts.length > 0 && (
               <div className="mb-16">
                 <div className="flex items-center gap-3 mb-6">
@@ -292,7 +292,7 @@ const AllFeaturedProducts = () => {
               </div>
             )}
 
-            {/* Top Selling Section */}
+            
             {topSellingProducts.length > 0 && (
               <div className="mb-16">
                 <div className="flex items-center gap-3 mb-6">
@@ -315,7 +315,7 @@ const AllFeaturedProducts = () => {
               </div>
             )}
 
-            {/* Back Button */}
+            
             <div className="text-center mt-12">
               <Button variant="outline" onClick={() => navigate("/")}>
                 <ArrowLeft className="w-4 h-4 mr-2" />

@@ -30,14 +30,14 @@ interface FeaturedProduct {
   discount?: number;
   image: string;
   category: string;
-  productId?: string; // Add productId
+  productId?: string;
   isActive: boolean;
   order: number;
 }
 
 const AdminFeaturedProducts = () => {
   const [products, setProducts] = useState<FeaturedProduct[]>([]);
-  const [allProducts, setAllProducts] = useState<any[]>([]); // All regular products for linking
+  const [allProducts, setAllProducts] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -52,7 +52,7 @@ const AdminFeaturedProducts = () => {
     originalPrice: "",
     discount: "",
     category: "",
-    productId: "", // Add productId field
+    productId: "",
     order: "0",
     isActive: true,
   });
@@ -87,7 +87,7 @@ const AdminFeaturedProducts = () => {
     try {
       const data = new FormData();
       
-      // Append all form fields
+
       data.append("title", formData.title);
       data.append("description", formData.description);
       data.append("price", formData.price);
@@ -95,7 +95,7 @@ const AdminFeaturedProducts = () => {
       data.append("order", formData.order);
       data.append("isActive", formData.isActive.toString());
       
-      // Add productId field
+
       if (formData.productId) {
         data.append("productId", formData.productId);
       }
@@ -103,7 +103,7 @@ const AdminFeaturedProducts = () => {
       if (formData.originalPrice) data.append("originalPrice", formData.originalPrice);
       if (formData.discount) data.append("discount", formData.discount);
       
-      // Append image file
+
       if (imageFile) {
         data.append("image", imageFile);
       }
@@ -136,7 +136,7 @@ const AdminFeaturedProducts = () => {
       originalPrice: product.originalPrice?.toString() || "",
       discount: product.discount?.toString() || "",
       category: product.category,
-      productId: product.productId || "", // Add productId
+      productId: product.productId || "",
       order: product.order.toString(),
       isActive: product.isActive,
     });
@@ -163,7 +163,7 @@ const AdminFeaturedProducts = () => {
       originalPrice: "",
       discount: "",
       category: "",
-      productId: "", // Reset productId
+      productId: "",
       order: "0",
       isActive: true,
     });
@@ -176,13 +176,13 @@ const AdminFeaturedProducts = () => {
     p.title.toLowerCase().includes(search.toLowerCase())
   );
 
-  // Pagination logic
+
   const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const currentProducts = filteredProducts.slice(startIndex, endIndex);
 
-  // Reset to page 1 when search changes
+
   useEffect(() => {
     setCurrentPage(1);
   }, [search]);
@@ -191,7 +191,7 @@ const AdminFeaturedProducts = () => {
 
   return (
     <div className="p-6 space-y-6 dark:bg-gray-900 h-full">
-      {/* Header */}
+      
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold dark:text-white">Featured Products</h1>
@@ -203,7 +203,7 @@ const AdminFeaturedProducts = () => {
         </Button>
       </div>
 
-      {/* Form */}
+      
       {showForm && (
         <Card>
           <CardHeader>
@@ -231,9 +231,9 @@ const AdminFeaturedProducts = () => {
                       setFormData({ 
                         ...formData, 
                         productId: e.target.value,
-                        // Auto-fill price if not set
+
                         price: formData.price || selectedProd?.price || '',
-                        // Auto-fill category if not set
+
                         category: formData.category || selectedProd?.category || ''
                       });
                     }}
@@ -344,7 +344,7 @@ const AdminFeaturedProducts = () => {
         </Card>
       )}
 
-      {/* Search */}
+      
       <div className="flex items-center gap-2">
         <div className="relative flex-1 max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -357,7 +357,7 @@ const AdminFeaturedProducts = () => {
         </div>
       </div>
 
-      {/* Products Grid */}
+      
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
         {currentProducts.map((product) => (
           <Card key={product._id} className="overflow-hidden hover:shadow-lg transition-shadow">
@@ -457,7 +457,7 @@ const AdminFeaturedProducts = () => {
         </div>
       )}
 
-      {/* Pagination */}
+      
       {filteredProducts.length > 0 && (
         <Pagination
           currentPage={currentPage}

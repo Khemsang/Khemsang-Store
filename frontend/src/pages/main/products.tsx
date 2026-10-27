@@ -18,7 +18,7 @@ import { FaBalanceScale } from "react-icons/fa";
 const Products = () => {
   const [currentPage, setCurrentPage] = useState(1);
   
-  // Scroll to top when page changes
+
   useScrollToTop(currentPage);
   
   const [searchTerm, setSearchTerm] = useState("");
@@ -36,7 +36,7 @@ const Products = () => {
   const [addingToCart, setAddingToCart] = useState<string | null>(null);
   const { data: allProducts = [], isLoading: loading } = useProducts(false);
   
-  // Get unique categories from products
+
   const allCategories = useMemo(() => {
     const categories = allProducts.map((p) => p.category);
     return [...new Set(categories)];
@@ -58,7 +58,7 @@ const Products = () => {
     }
   };
 
-  // Filter products by category, search term, and price range
+
   const products = useMemo(() => {
     return allProducts.filter((p) => {
       const matchesCategory = !selectedCategory || p.category === selectedCategory;
@@ -71,13 +71,13 @@ const Products = () => {
     });
   }, [allProducts, selectedCategory, searchTerm, priceRange]);
 
-  // Read category from URL on mount
+
   useEffect(() => {
     const categoryFromUrl = searchParams.get("category");
     if (categoryFromUrl) setSelectedCategory(categoryFromUrl);
   }, [searchParams]);
 
-  // Paginated products
+
   const currentItems = useMemo(() => {
     const startIndex = (currentPage - 1) * itemsPerPage;
     return products.slice(startIndex, startIndex + itemsPerPage);
@@ -86,7 +86,7 @@ const Products = () => {
   const totalPages = Math.ceil(products.length / itemsPerPage);
 
   const handleAddToCart = async (productId: string) => {
-    // Prevent rapid clicks
+
     if (addingToCart === productId) {
       return;
     }
@@ -99,14 +99,14 @@ const Products = () => {
     try {
       setAddingToCart(productId);
       
-      // Check if product already exists in cart BEFORE API call
+
       const isExistingItem = cart.some((item) => {
         return item.product?._id === productId && !item.colorVariant;
       });
       
       await addToCart(productId, 1);
       
-      // Only show toast if it was a NEW item
+
       if (!isExistingItem) {
         success("Added to cart!");
       }
@@ -120,7 +120,7 @@ const Products = () => {
   return (
     <section className="min-h-screen bg-gray-50 dark:bg-gray-900 py-16 md:py-20">
       <div className="container px-4 md:px-6 lg:px-8">
-        {/* Header */}
+        
         <div className="text-center mb-12 md:mb-16">
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-4">
             Our <span className="bg-blue-600 bg-clip-text text-transparent">Products</span>
@@ -130,7 +130,7 @@ const Products = () => {
           </p>
         </div>
 
-        {/* Filters */}
+        
         <ProductFilters
           searchTerm={searchTerm}
           setSearchTerm={setSearchTerm}
@@ -143,7 +143,7 @@ const Products = () => {
           maxPrice={500000}
         />
 
-        {/* Compare Button */}
+        
         {compareProducts.length > 0 && (
           <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40">
             <button
@@ -158,7 +158,7 @@ const Products = () => {
           </div>
         )}
 
-        {/* Products Grid */}
+        
         {loading ? (
           <ProductGridSkeleton count={16} />
         ) : currentItems.length === 0 ? (
@@ -200,7 +200,7 @@ const Products = () => {
               ))}
             </div>
 
-            {/* Pagination */}
+            
             {products.length > 0 && (
               <Pagination
                 currentPage={currentPage}
@@ -214,14 +214,14 @@ const Products = () => {
         )}
       </div>
 
-      {/* Quick View Modal */}
+      
       <QuickView
         product={quickViewProduct}
         isOpen={!!quickViewProduct}
         onClose={() => setQuickViewProduct(null)}
       />
 
-      {/* Product Comparison Modal */}
+      
       <ProductComparison
         products={compareProducts}
         isOpen={showCompare}

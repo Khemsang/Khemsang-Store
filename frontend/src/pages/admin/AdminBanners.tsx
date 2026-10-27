@@ -29,7 +29,7 @@ const AdminBanners = () => {
   const [uploading, setUploading] = useState(false);
   const { showToast } = useToast();
 
-  // Only Super Admin can manage banners
+
   if (!user?.isSuperAdmin) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center">
@@ -78,6 +78,12 @@ const AdminBanners = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!formData.image) {
+      showToast("Please upload or enter a banner image URL", "error");
+      return;
+    }
+
     try {
       if (editingBanner) {
         await bannersApi.update(editingBanner._id, formData);
@@ -89,10 +95,11 @@ const AdminBanners = () => {
       fetchBanners();
       handleCloseModal();
     } catch (error: any) {
-      showToast(
-        error.response?.data?.message || "Failed to save banner",
-        "error"
-      );
+      const msg =
+        error.response?.data?.error ||
+        error.response?.data?.message ||
+        "Failed to save banner";
+      showToast(msg, "error");
     }
   };
 
@@ -144,13 +151,13 @@ const AdminBanners = () => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Validate file type
+
     if (!file.type.startsWith("image/")) {
       showToast("Please select an image file", "error");
       return;
     }
 
-    // Validate file size (max 5MB)
+
     if (file.size > 5 * 1024 * 1024) {
       showToast("Image size should be less than 5MB", "error");
       return;
@@ -175,7 +182,7 @@ const AdminBanners = () => {
   return (
     <div className="min-h-screen dark:bg-gray-900 dark:from-gray-900 dark:via-purple-900/20 dark:to-pink-900/20 py-6 md:py-8">
       <div className="container">
-        {/* Header Section */}
+        
         <div className="mb-8">
           <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
             <div>
@@ -354,7 +361,7 @@ const AdminBanners = () => {
           </div>
         )}
 
-        {/* Modal */}
+        
         {showModal && (
           <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
             <div className="bg-white dark:bg-gray-800 rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border border-purple-200 dark:border-purple-900/30">
@@ -454,7 +461,7 @@ const AdminBanners = () => {
                         Banner Image *
                       </label>
 
-                      {/* Image Preview */}
+                      
                       {formData.image && (
                         <div className="mb-3 relative">
                           <img
@@ -486,7 +493,7 @@ const AdminBanners = () => {
                         </div>
                       )}
 
-                      {/* Upload Button */}
+                      
                       <div className="flex gap-2">
                         <label className="flex-1 cursor-pointer">
                           <div className="flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all shadow-lg">
@@ -517,7 +524,7 @@ const AdminBanners = () => {
                         </label>
                       </div>
 
-                      {/* Or use URL */}
+                      
                       <div className="mt-3">
                         <div className="relative">
                           <div className="absolute inset-0 flex items-center">

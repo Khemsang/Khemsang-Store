@@ -97,7 +97,7 @@ const SuperAdminDashboard = () => {
     name: string;
   } | null>(null);
 
-  // Password reset modal state
+
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [passwordResetTarget, setPasswordResetTarget] = useState<{
     userId: string;
@@ -107,21 +107,21 @@ const SuperAdminDashboard = () => {
   const [newPassword, setNewPassword] = useState("");
   const [resettingPassword, setResettingPassword] = useState(false);
 
-  // Admin details modal state
+
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [adminDetails, setAdminDetails] = useState<AdminDetails | null>(null);
   const [loadingDetails, setLoadingDetails] = useState(false);
 
-  // Suspend modal state
+
   const [showSuspendModal, setShowSuspendModal] = useState(false);
   const [suspendTarget, setSuspendTarget] = useState<{
     userId: string;
     name: string;
   } | null>(null);
   const [suspendReason, setSuspendReason] = useState("");
-  const [suspendDuration, setSuspendDuration] = useState("0"); // 0 = permanent
+  const [suspendDuration, setSuspendDuration] = useState("0");
 
-  // Warning modal state
+
   const [showWarningModal, setShowWarningModal] = useState(false);
   const [warningTarget, setWarningTarget] = useState<{
     userId: string;
@@ -257,7 +257,7 @@ const SuperAdminDashboard = () => {
     }
   };
 
-  // View admin details
+
   const viewAdminDetails = async (userId: string) => {
     setLoadingDetails(true);
     setShowDetailsModal(true);
@@ -272,7 +272,7 @@ const SuperAdminDashboard = () => {
     }
   };
 
-  // Open suspend modal
+
   const openSuspendModal = (userId: string, name: string) => {
     setSuspendTarget({ userId, name });
     setSuspendReason("");
@@ -280,7 +280,7 @@ const SuperAdminDashboard = () => {
     setShowSuspendModal(true);
   };
 
-  // Handle suspend with duration
+
   const handleSuspend = async () => {
     if (!suspendTarget) return;
     try {
@@ -297,14 +297,14 @@ const SuperAdminDashboard = () => {
     }
   };
 
-  // Open warning modal
+
   const openWarningModal = (userId: string, name: string) => {
     setWarningTarget({ userId, name });
     setWarningMessage("");
     setShowWarningModal(true);
   };
 
-  // Handle warning
+
   const handleWarning = async () => {
     if (!warningTarget || !warningMessage.trim()) {
       error("Please enter a warning message");
@@ -379,7 +379,7 @@ const SuperAdminDashboard = () => {
 
   return (
     <div className="space-y-6 p-6 dark:bg-gray-900 h-full">
-      {/* Header */}
+      
       <div className="bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl p-6 md:p-8 text-white shadow-xl">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
@@ -444,7 +444,7 @@ const SuperAdminDashboard = () => {
         </div>
       </div>
 
-      {/* Stats Cards */}
+      
       {stats && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-lg border border-gray-200 dark:border-gray-700">
@@ -550,7 +550,7 @@ const SuperAdminDashboard = () => {
         </div>
       )}
 
-      {/* Create Admin Form */}
+      
       {showCreateForm && (
         <form
           onSubmit={handleCreateAdmin}
@@ -629,7 +629,7 @@ const SuperAdminDashboard = () => {
         </form>
       )}
 
-      {/* Tabs */}
+      
       <div className="flex gap-2 bg-white dark:bg-gray-800 p-2 rounded-xl shadow">
         <button
           onClick={() => setActiveTab("admins")}
@@ -673,7 +673,7 @@ const SuperAdminDashboard = () => {
         </button>
       </div>
 
-      {/* Admins List */}
+      
       {activeTab === "admins" && (
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
           <div className="overflow-x-auto">
@@ -797,7 +797,7 @@ const SuperAdminDashboard = () => {
         </div>
       )}
 
-      {/* Users List */}
+      
       {activeTab === "users" && (
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
           <div className="overflow-x-auto">
@@ -902,7 +902,7 @@ const SuperAdminDashboard = () => {
         </div>
       )}
 
-      {/* Activities List */}
+      
       {activeTab === "activities" && (
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
           <div className="p-4 border-b border-gray-200 dark:border-gray-700">
@@ -968,7 +968,7 @@ const SuperAdminDashboard = () => {
         </div>
       )}
 
-      {/* Site Settings */}
+      
       {activeTab === "settings" && siteSettings && (
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
           <div className="p-6 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
@@ -990,7 +990,7 @@ const SuperAdminDashboard = () => {
           </div>
 
           <div className="p-6 space-y-8">
-            {/* Maintenance Mode */}
+            
             <div className="bg-gradient-to-r from-red-50 to-orange-50 dark:from-red-900/20 dark:to-orange-900/20 rounded-xl p-6 border border-red-200 dark:border-red-800">
               <div className="flex items-center justify-between mb-4">
                 <div>
@@ -1026,7 +1026,7 @@ const SuperAdminDashboard = () => {
               />
             </div>
 
-            {/* Financial Settings */}
+            
             <div>
               <h4 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                 💰 Financial Settings
@@ -1099,7 +1099,7 @@ const SuperAdminDashboard = () => {
               </div>
             </div>
 
-            {/* Site Info */}
+            
             <div>
               <h4 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                 🏪 Site Information
@@ -1191,7 +1191,7 @@ const SuperAdminDashboard = () => {
         </div>
       )}
 
-      {/* Confirm Dialog */}
+      
       <ConfirmDialog
         isOpen={showConfirm}
         title={`Confirm ${confirmAction?.type}`}
@@ -1203,11 +1203,11 @@ const SuperAdminDashboard = () => {
         onCancel={() => setShowConfirm(false)}
       />
 
-      {/* Password Reset Modal */}
+      
       {showPasswordModal && passwordResetTarget && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
-            {/* Header */}
+            
             <div className="bg-gradient-to-r from-blue-500 to-indigo-600 p-6 text-white">
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
@@ -1222,7 +1222,7 @@ const SuperAdminDashboard = () => {
               </div>
             </div>
 
-            {/* Content */}
+            
             <div className="p-6">
               <div className="mb-4">
                 <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
@@ -1274,11 +1274,11 @@ const SuperAdminDashboard = () => {
         </div>
       )}
 
-      {/* Admin Details Modal */}
+      
       {showDetailsModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden">
-            {/* Header */}
+            
             <div className="bg-gradient-to-r from-purple-500 to-pink-600 p-6 text-white">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -1304,7 +1304,7 @@ const SuperAdminDashboard = () => {
               </div>
             </div>
 
-            {/* Content */}
+            
             <div className="p-6 overflow-y-auto max-h-[60vh]">
               {loadingDetails ? (
                 <div className="flex items-center justify-center py-12">
@@ -1312,7 +1312,7 @@ const SuperAdminDashboard = () => {
                 </div>
               ) : adminDetails ? (
                 <div className="space-y-6">
-                  {/* Basic Info */}
+                  
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <p className="text-sm text-gray-500 dark:text-gray-400">
@@ -1370,7 +1370,7 @@ const SuperAdminDashboard = () => {
                     </div>
                   </div>
 
-                  {/* Suspension Info */}
+                  
                   {adminDetails.adminStatus === "suspended" && (
                     <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4">
                       <h4 className="font-bold text-red-700 dark:text-red-400 mb-3 flex items-center gap-2">
@@ -1413,7 +1413,7 @@ const SuperAdminDashboard = () => {
                     </div>
                   )}
 
-                  {/* Warnings */}
+                  
                   {adminDetails.warnings &&
                     adminDetails.warnings.length > 0 && (
                       <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl p-4">
@@ -1440,7 +1440,7 @@ const SuperAdminDashboard = () => {
                       </div>
                     )}
 
-                  {/* Created By */}
+                  
                   {adminDetails.createdBy && (
                     <div className="text-sm text-gray-500 dark:text-gray-400">
                       Created by:{" "}
@@ -1461,11 +1461,11 @@ const SuperAdminDashboard = () => {
         </div>
       )}
 
-      {/* Suspend Modal */}
+      
       {showSuspendModal && suspendTarget && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
-            {/* Header */}
+            
             <div className="bg-gradient-to-r from-yellow-500 to-orange-600 p-6 text-white">
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
@@ -1478,7 +1478,7 @@ const SuperAdminDashboard = () => {
               </div>
             </div>
 
-            {/* Content */}
+            
             <div className="p-6">
               <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -1534,11 +1534,11 @@ const SuperAdminDashboard = () => {
         </div>
       )}
 
-      {/* Warning Modal */}
+      
       {showWarningModal && warningTarget && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
-            {/* Header */}
+            
             <div className="bg-gradient-to-r from-amber-500 to-yellow-600 p-6 text-white">
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
@@ -1551,7 +1551,7 @@ const SuperAdminDashboard = () => {
               </div>
             </div>
 
-            {/* Content */}
+            
             <div className="p-6">
               <div className="mb-6">
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">

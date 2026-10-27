@@ -113,7 +113,7 @@ const stats = {
 
   return (
     <div className="space-y-6 p-6 bg-gray-900 h-full ">
-      {/* Header */}
+      
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
@@ -136,7 +136,7 @@ const stats = {
         </div>
       </div>
 
-      {/* Stats Cards */}
+      
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -222,7 +222,7 @@ const stats = {
         </motion.div>
       </div>
 
-      {/* Filters */}
+      
       <div className="bg-white dark:bg-gray-800 rounded-xl p-4 shadow-lg border border-gray-200 dark:border-gray-700">
         <div className="flex flex-col md:flex-row gap-4">
           <div className="flex-1 relative">
@@ -264,7 +264,7 @@ const stats = {
         </div>
       </div>
 
-      {/* Products Table */}
+      
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">

@@ -33,7 +33,7 @@ const BestSellers = () => {
     try {
       const { data: productsRes } = await api.get("/products");
       const data = Array.isArray(productsRes) ? productsRes : (productsRes.products ?? []);
-      // Sort by rating/reviews (simulating best sellers)
+
       const sorted = data
         .sort(
           (a: Product, b: Product) =>
@@ -50,7 +50,7 @@ const BestSellers = () => {
   };
 
   const handleAddToCart = async (product: any) => {
-    // Prevent rapid clicks
+
     if (addingToCart === product._id) {
       return;
     }
@@ -58,14 +58,14 @@ const BestSellers = () => {
     try {
       setAddingToCart(product._id);
       
-      // Check if product already exists in cart BEFORE API call
+
       const isExistingItem = cart.some((item) => {
         return item.product?._id === product._id && !item.colorVariant;
       });
       
       await addToCart(product._id, 1);
       
-      // Only show toast if it was a NEW item
+
       if (!isExistingItem) {
         showToast(`${product.title} added to cart!`, "success");
       }
@@ -95,7 +95,7 @@ const BestSellers = () => {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-12">
       <div className="container mx-auto px-4">
-        {/* Header */}
+        
         <div className="text-center mb-12">
           <div className="inline-flex items-center gap-3 mb-4">
             <FaTrophy className="w-8 h-8 text-yellow-500" />
@@ -108,7 +108,7 @@ const BestSellers = () => {
           </p>
         </div>
 
-        {/* Top 3 Featured */}
+        
         {products.length >= 3 && (
           <div className="grid md:grid-cols-3 gap-6 mb-12">
             {products.slice(0, 3).map((product, index) => (
@@ -177,7 +177,7 @@ const BestSellers = () => {
           </div>
         )}
 
-        {/* Rest of Products */}
+        
         {products.length > 3 && (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-6">
             {products.slice(3).map((product, index) => (

@@ -20,7 +20,7 @@ const Signup: React.FC = () => {
   const navigate = useNavigate();
   const { success, info } = useToast();
 
-  // Redirect if already logged in
+
   React.useEffect(() => {
     if (user && !authLoading) {
       if (user.isAdmin) {
@@ -31,7 +31,7 @@ const Signup: React.FC = () => {
     }
   }, [user, authLoading, navigate]);
 
-  // Show loading while checking auth status
+
   if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
@@ -78,7 +78,7 @@ const Signup: React.FC = () => {
         formData.isAdmin
       );
 
-      // Navigate immediately to login with a flag to show the "check your email" banner
+
       navigate("/login", {
         state: { emailSent: true, email: formData.email },
       });
@@ -92,7 +92,7 @@ const Signup: React.FC = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 via-white to-gray-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 py-16 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-10">
-        {/* Header Section */}
+        
         <div className="text-center space-y-3">
           <div className="mx-auto h-16 w-16 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center shadow-lg transform hover:scale-105 transition-transform duration-300">
             <svg
@@ -117,7 +117,7 @@ const Signup: React.FC = () => {
           </p>
         </div>
 
-        {/* Form Section */}
+        
         <div className="bg-white dark:bg-gray-800 shadow-2xl rounded-2xl p-10 space-y-7 border border-gray-100 dark:border-gray-700">
           {error && (
             <div className="bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500 p-4 rounded-lg animate-shake">
@@ -141,7 +141,7 @@ const Signup: React.FC = () => {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Full Name */}
+            
             <div>
               <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                 Full Name
@@ -174,7 +174,7 @@ const Signup: React.FC = () => {
               </div>
             </div>
 
-            {/* Email */}
+            
             <div>
               <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                 Email Address
@@ -207,7 +207,7 @@ const Signup: React.FC = () => {
               </div>
             </div>
 
-            {/* Password */}
+            
             <div>
               <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                 Password
@@ -252,7 +252,7 @@ const Signup: React.FC = () => {
               </div>
             </div>
 
-            {/* Confirm Password */}
+            
             <div>
               <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                 Confirm Password
@@ -296,28 +296,10 @@ const Signup: React.FC = () => {
               </div>
             </div>
 
-            {/* Admin Checkbox - Hidden, only super admin can create admins */}
-            {/* <div className="flex items-center">
-              <input
-                type="checkbox"
-                name="isAdmin"
-                id="isAdmin"
-                checked={formData.isAdmin}
-                onChange={handleChange}
-                className="w-5 h-5 text-[var(--root-color)] bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded focus:ring-[var(--root-color)] focus:ring-2 cursor-pointer"
-              />
-              <label
-                htmlFor="isAdmin"
-                className="ml-3 text-sm font-medium text-gray-700 dark:text-gray-300 cursor-pointer select-none"
-              >
-                Register as Admin
-                <span className="ml-2 text-xs text-gray-500 dark:text-gray-400">
-                  (For store management)
-                </span>
-              </label>
-            </div> */}
+            
+            
 
-            {/* Submit Button */}
+            
             <button
               type="submit"
               disabled={loading}
@@ -327,7 +309,7 @@ const Signup: React.FC = () => {
             </button>
           </form>
 
-          {/* Divider */}
+          
           <div className="relative my-6">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-gray-300 dark:border-gray-600"></div>
@@ -339,11 +321,11 @@ const Signup: React.FC = () => {
             </div>
           </div>
 
-          {/* Google OAuth Button */}
+          
           <button
             type="button"
             onClick={() => {
-              // TODO: Implement Google OAuth
+
               alert("Google OAuth coming soon! Backend configuration needed.");
             }}
             className="w-full flex justify-center items-center gap-3 py-4 px-4 border-2 border-gray-300 dark:border-gray-600 rounded-xl shadow-sm text-sm font-semibold text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transform hover:scale-[1.02] transition-all duration-200"

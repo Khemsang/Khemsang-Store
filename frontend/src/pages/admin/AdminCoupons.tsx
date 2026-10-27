@@ -31,7 +31,7 @@ const AdminCoupons = () => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   
-  // Scroll to top when page changes
+
   useScrollToTop(currentPage);
   
   const [itemsPerPage, setItemsPerPage] = useState(12);
@@ -129,7 +129,7 @@ const AdminCoupons = () => {
     setShowForm(false);
   };
 
-  // Pagination logic
+
   const totalPages = Math.ceil(coupons.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
@@ -139,7 +139,7 @@ const AdminCoupons = () => {
 
   return (
     <div className="p-6 space-y-6 dark:bg-gray-900 h-full">
-      {/* Header */}
+      
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold dark:text-white">Coupons</h1>
@@ -151,7 +151,7 @@ const AdminCoupons = () => {
         </Button>
       </div>
 
-      {/* Form */}
+      
       {showForm && (
         <Card>
           <CardHeader>
@@ -255,7 +255,7 @@ const AdminCoupons = () => {
         </Card>
       )}
 
-      {/* Coupons Grid */}
+      
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {currentCoupons.map((coupon) => (
           <Card key={coupon._id} className="hover:shadow-lg transition-shadow">
@@ -327,7 +327,7 @@ const AdminCoupons = () => {
         </div>
       )}
 
-      {/* Pagination */}
+      
       {coupons.length > 0 && (
         <Pagination
           currentPage={currentPage}

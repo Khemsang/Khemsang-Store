@@ -18,7 +18,7 @@ const VerifyOTP = () => {
 
   const email = location.state?.email || "";
 
-  // Countdown timer for resend
+
   useEffect(() => {
     if (countdown > 0) {
       const timer = setTimeout(() => setCountdown(countdown - 1), 1000);
@@ -28,7 +28,7 @@ const VerifyOTP = () => {
     }
   }, [countdown]);
 
-  // Focus first input on mount
+
   useEffect(() => {
     inputRefs.current[0]?.focus();
   }, []);
@@ -40,7 +40,7 @@ const VerifyOTP = () => {
     newOtp[index] = value.slice(-1);
     setOtp(newOtp);
 
-    // Auto-focus next input
+
     if (value && index < 5) {
       inputRefs.current[index + 1]?.focus();
     }
@@ -78,8 +78,8 @@ const VerifyOTP = () => {
       const data = await verifyOTP(email, otpString);
       success("Login successful!");
 
-      // user is already saved in AuthContext by verifyOTP()
-      // Redirect based on role — admin goes to dashboard, everyone else goes home
+
+
       const isAdmin =
         data.user?.isAdmin ||
         data.user?.isSuperAdmin ||
@@ -109,7 +109,7 @@ const VerifyOTP = () => {
     try {
       const data = await resendOTP(email);
       if (data.otp) {
-        // OTP available in development mode
+
       }
       success("New OTP sent to your email!");
       setOtp(["", "", "", "", "", ""]);
@@ -129,16 +129,16 @@ const VerifyOTP = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-100 via-purple-50 to-pink-100 dark:from-gray-900 dark:via-purple-900/20 dark:to-gray-900 py-12 px-4">
-      {/* Background decoration */}
+      
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-300 dark:bg-purple-900/30 rounded-full blur-3xl opacity-50"></div>
         <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-indigo-300 dark:bg-indigo-900/30 rounded-full blur-3xl opacity-50"></div>
       </div>
 
       <div className="relative max-w-md w-full">
-        {/* Card */}
+        
         <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl shadow-2xl rounded-3xl p-8 md:p-10 border border-white/20 dark:border-gray-700/50">
-          {/* Icon */}
+          
           <div className="text-center mb-8">
             <div className="mx-auto w-20 h-20 bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 rounded-2xl flex items-center justify-center shadow-lg shadow-purple-500/30 transform hover:scale-105 transition-transform duration-300">
               <svg
@@ -166,7 +166,7 @@ const VerifyOTP = () => {
             </p>
           </div>
 
-          {/* Error */}
+          
           {error && (
             <div className="mb-6 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4 flex items-center gap-3 animate-shake">
               <div className="flex-shrink-0 w-10 h-10 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center">
@@ -186,9 +186,9 @@ const VerifyOTP = () => {
             </div>
           )}
 
-          {/* OTP Form */}
+          
           <form onSubmit={handleSubmit}>
-            {/* OTP Inputs */}
+            
             <div
               className="flex justify-center gap-2 md:gap-3 mb-6"
               onPaste={handlePaste}
@@ -214,7 +214,7 @@ const VerifyOTP = () => {
               ))}
             </div>
 
-            {/* Timer */}
+            
             <div className="text-center mb-6">
               <div className="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-700/50 rounded-full">
                 <svg
@@ -239,7 +239,7 @@ const VerifyOTP = () => {
               </div>
             </div>
 
-            {/* Submit Button */}
+            
             <button
               type="submit"
               disabled={loading || otpString.length !== 6}
@@ -274,7 +274,7 @@ const VerifyOTP = () => {
             </button>
           </form>
 
-          {/* Resend Section */}
+          
           <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700 text-center">
             <p className="text-gray-600 dark:text-gray-400 mb-3">
               Didn't receive the code?
@@ -338,7 +338,7 @@ const VerifyOTP = () => {
           </div>
         </div>
 
-        {/* Back to login */}
+        
         <div className="mt-6 text-center">
           <button
             onClick={() => navigate("/login")}
