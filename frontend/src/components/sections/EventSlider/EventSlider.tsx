@@ -2,18 +2,10 @@ import React, { useEffect } from "react";
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
-import { useAppDispatch, useAppSelector } from "../../../store/hooks";
-import { fetchCategories } from "../../../store/slices/categoriesSlice";
+import { useCategories } from "../../../hooks/useServerQueries";
 
 const ChooseYourPickSlider = () => {
-  const dispatch = useAppDispatch();
-  const { items: categories, loading } = useAppSelector(
-    (state) => state.categories
-  );
-
-  useEffect(() => {
-    dispatch(fetchCategories());
-  }, [dispatch]);
+  const { data: categories = [], isLoading: loading } = useCategories();
   const settings = {
     dots: false,
     infinite: true,

@@ -178,14 +178,12 @@ const Navbar: React.FC = () => {
               alt="Logo"
               className="h-12 md:h-14 transform group-hover:scale-105 transition-transform duration-300"
             />
-            <div className="hidden md:block">
-              <h1 className="text-xl font-bold text-gray-900 dark:text-white">
-                Khemsang Store
-              </h1>
-              <p className="text-xs text-gray-500 dark:text-gray-400">
+            {/* <div className="hidden md:block">
+              
+              <p className="text-[8px] text-gray-500 dark:text-gray-400">
                 Quality & Style
               </p>
-            </div>
+            </div> */}
           </div>
 
           {/* Desktop Nav Links */}

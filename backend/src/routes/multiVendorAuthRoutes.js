@@ -8,11 +8,12 @@ import {
   getCurrentUser
 } from "../controllers/multiVendorAuthController.js";
 import { 
-  authenticate, 
+  auth as authenticate,
   requireSuperAdmin,
-  rateLimitSensitive,
-  logAdminAction
-} from "../middleware/roleAuth.js";
+} from "../middleware/auth.js";
+
+const noop = (req, res, next) => next();
+const rateLimitSensitive = noop;
 
 const router = express.Router();
 
@@ -44,9 +45,8 @@ router.get("/me", authenticate, getCurrentUser);
 
 // Create Admin Account (Super Admin Only)
 router.post(
-  "/create-admin", 
+  "/create-admin",
   ...requireSuperAdmin,
-  logAdminAction("create_admin"),
   rateLimitSensitive,
   createAdmin
 );

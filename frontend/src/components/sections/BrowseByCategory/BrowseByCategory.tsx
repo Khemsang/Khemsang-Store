@@ -190,24 +190,24 @@ const BrowseByCategory: React.FC = () => {
                 onClick={() => handleCategoryClick(category.name)}
                 className="group cursor-pointer"
               >
-                <div className="relative overflow-hidden rounded-2xl bg-gray-100 dark:from-gray-800 dark:to-gray-700 aspect-square shadow-lg hover:shadow-2xl transition-all duration-500">
+                <div className=" relative overflow-hidden rounded-2xl bg-gray-100 dark:from-gray-800 dark:to-gray-700 aspect-square shadow-lg hover:shadow-2xl transition-all duration-500 ">
                   {category.image ? (
                     <>
                       <img
                         src={category.image}
                         alt={category.name}
-                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                        className="w-full h-full object-cover group-hover:scale-10 transition-transform duration-700"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
                       <div className="absolute inset-0 bg-blue-600/0 group-hover:bg-blue-600/20 transition-colors duration-500" />
                       <div className="absolute bottom-0 left-0 right-0 p-2 text-center">
-                        <h3 className="text-white font-bold text-[10px] sm:text-xs drop-shadow-lg line-clamp-2">
+                        <h3 className="text-black font-bold text-[10px] sm:text-xs drop-shadow-lg line-clamp-2">
                           {category.name}
                         </h3>
                       </div>
                     </>
                   ) : (
-                    <div className="flex flex-col items-center justify-center h-full p-2 group-hover:bg-gradient-to-br group-hover:from-blue-600 group-hover:to-blue-700 transition-all duration-500">
+                    <div className="flex flex-col items-center justify-center h-full p-2 dark:text-black group-hover:bg-gradient-to-br group-hover:from-blue-600 group-hover:to-blue-700 transition-all duration-500">
                       <div className="mb-2 p-2 sm:p-3 bg-white dark:bg-gray-600 rounded-xl shadow-md group-hover:shadow-xl group-hover:scale-110 group-hover:bg-white/20 transition-all duration-500">
                         <IconComponent className="text-xl sm:text-2xl text-blue-600 dark:text-blue-400 group-hover:text-white transition-colors duration-500" />
                       </div>

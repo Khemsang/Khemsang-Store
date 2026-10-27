@@ -4,8 +4,7 @@ import { useAuth } from "../../context/AuthContext";
 import { useToast } from "../../context/ToastContext";
 import { testimonialsApi } from "../../services/api";
 import { FaStar } from "react-icons/fa";
-import { useAppDispatch } from "../../store/hooks";
-import { fetchTestimonials } from "../../store/slices/testimonialsSlice";
+import { useInvalidateTestimonials } from "../../hooks/useServerQueries";
 
 const SubmitTestimonial: React.FC = () => {
   const { user } = useAuth();

@@ -8,57 +8,18 @@ import {
   reactivateSeller,
   getSellerStats
 } from "../controllers/sellerManagementController.js";
-import { 
-  requireAdmin,
-  logAdminAction
-} from "../middleware/roleAuth.js";
+import { requireAdmin } from "../middleware/auth.js";
 
 const router = express.Router();
 
-/**
- * Seller Management Routes
- * Admin and Super Admin can manage seller accounts
- */
+const noop = (req, res, next) => next();
 
-// GET ALL SELLERS (with filtering and pagination)
-router.get("/", ...requireAdmin, getAllSellers);
-
-// GET SELLER STATISTICS
-router.get("/stats", ...requireAdmin, getSellerStats);
-
-// GET SELLER DETAILS
-router.get("/:sellerId", ...requireAdmin, getSellerDetails);
-
-// APPROVE SELLER
-router.put(
-  "/:sellerId/approve", 
-  ...requireAdmin,
-  logAdminAction("approve_seller"),
-  approveSeller
-);
-
-// REJECT SELLER
-router.put(
-  "/:sellerId/reject", 
-  ...requireAdmin,
-  logAdminAction("reject_seller"),
-  rejectSeller
-);
-
-// SUSPEND SELLER
-router.put(
-  "/:sellerId/suspend", 
-  ...requireAdmin,
-  logAdminAction("suspend_seller"),
-  suspendSeller
-);
-
-// REACTIVATE SELLER
-router.put(
-  "/:sellerId/reactivate", 
-  ...requireAdmin,
-  logAdminAction("reactivate_seller"),
-  reactivateSeller
-);
+router.get("/",                  ...requireAdmin, getAllSellers);
+router.get("/stats",             ...requireAdmin, getSellerStats);
+router.get("/:sellerId",         ...requireAdmin, getSellerDetails);
+router.put("/:sellerId/approve", ...requireAdmin, approveSeller);
+router.put("/:sellerId/reject",  ...requireAdmin, rejectSeller);
+router.put("/:sellerId/suspend", ...requireAdmin, suspendSeller);
+router.put("/:sellerId/reactivate", ...requireAdmin, reactivateSeller);
 
 export default router;

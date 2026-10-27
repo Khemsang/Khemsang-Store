@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { useAppDispatch, useAppSelector } from "../../store/hooks";
-import { fetchGalleryImages } from "../../store/slices/gallerySlice";
+import React, { useState } from "react";
+import { useGallery } from "../../hooks/useGallery";
 import {
   FaChevronLeft,
   FaChevronRight,
@@ -10,10 +9,7 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 
 const GalleryPage: React.FC = () => {
-  const dispatch = useAppDispatch();
-  const { items: galleryItems, loading } = useAppSelector(
-    (state) => state.gallery
-  );
+  const { items: galleryItems, isLoading: loading } = useGallery();
 
   const ITEMS_PER_LOAD = 16;
   const [visibleCount, setVisibleCount] = useState(ITEMS_PER_LOAD);
