@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Quote, ChevronLeft, ChevronRight, Star } from "lucide-react";
-import { useAppDispatch, useAppSelector } from "../../../store/hooks";
-import { fetchTestimonials } from "../../../store/slices/testimonialsSlice";
+import { Quote, ChevronLeft, ChevronRight } from "lucide-react";
+import { useTestimonials } from "../../../hooks/useServerQueries";
 import Loading from "../../common/Loading";
 import { Card, CardContent } from "../../ui/card";
 import { Button } from "../../ui/button";
@@ -16,18 +15,11 @@ const testimonialHeading = {
 const animationDuration = 300;
 
 const TestimonialSection: React.FC = () => {
-  const dispatch = useAppDispatch();
-  const { items: testimonials, loading } = useAppSelector(
-    (state) => state.testimonials
-  );
+  const { data: testimonials = [], isLoading: loading } = useTestimonials();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [animate, setAnimate] = useState(true);
   const autoSlideRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const isHoveredRef = useRef(false);
-
-  useEffect(() => {
-    dispatch(fetchTestimonials());
-  }, [dispatch]);
 
   useEffect(() => {
     setAnimate(true);
